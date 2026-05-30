@@ -1,0 +1,1500 @@
+// ================================================================
+// BONDHU — PRISMA SCHEMA
+// PostgreSQL 16 + PostGIS + Partitioning
+// ================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+
+}
+
+// ================================================================
+// 1. GEOGRAPHY & LOCALIZATION
+// ================================================================
+
+model District {
+  id          Int           @id @default(autoincrement())
+  nameBn      String        @map("name_bn")
+  nameEn      String        @map("name_en")
+  division    String
+  latitude    Decimal?      @db.Decimal(10, 8)
+  longitude   Decimal?      @db.Decimal(11, 8)
+  geoLocationLat Float? @map("geo_location_lat")
+  geoLocationLng Float? @map("geo_location_lng")
+  subDistricts SubDistrict[]
+  posts       Post[]
+  users       UserProfile[]
+  communities Community[]
+  priceReports PriceReport[]
+  jobs        Job[]
+  shops       Shop[]
+
+  @@map("districts")
+}
+
+model SubDistrict {
+  id          Int           @id @default(autoincrement())
+  districtId  Int           @map("district_id")
+  nameBn      String        @map("name_bn")
+  nameEn      String        @map("name_en")
+  latitude    Decimal?      @db.Decimal(10, 8)
+  longitude   Decimal?      @db.Decimal(11, 8)
+  geoLocationLat Float? @map("geo_location_lat")
+  geoLocationLng Float? @map("geo_location_lng")
+  district    District      @relation(fields: [districtId], references: [id])
+  posts       Post[]
+  users       UserProfile[]
+  communities Community[]
+
+  @@index([districtId])
+  @@map("sub_districts")
+}
+
+// ================================================================
+// 2. USERS & AUTHENTICATION
+// ================================================================
+
+model User {
+  id                String          @id @default(uuid()) @db.Uuid
+  phoneNumber       String          @unique @map("phone_number")
+  phoneVerified     Boolean         @default(false) @map("phone_verified")
+  email             String?         @unique
+  emailVerified     Boolean         @default(false) @map("email_verified")
+  passwordHash      String?         @map("password_hash")
+  otpSecret         String?         @map("otp_secret")
+  otpExpiresAt      DateTime?       @map("otp_expires_at")
+  otpAttempts       Int             @default(0) @map("otp_attempts")
+  isGuest           Boolean         @default(false) @map("is_guest")
+  isActive          Boolean         @default(true) @map("is_active")
+  isDeleted         Boolean         @default(false) @map("is_deleted")
+  deletedAt         DateTime?       @map("deleted_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  lastLoginAt       DateTime?       @map("last_login_at")
+  profile           UserProfile?
+  sessions          Session[]
+  devices           UserDevice[]
+  posts             Post[]
+  comments          Comment[]
+  interactions      PostInteraction[]
+  stories           Story[]
+  sentMessages      DirectMessage[] @relation("SentMessages")
+  receivedMessages  DirectMessage[] @relation("ReceivedMessages")
+  conversations     ConversationParticipant[]
+  communitiesOwned  Community[]
+  memberships       CommunityMembership[]
+  marketplaceItems  MarketplaceItem[]
+  fundraisers       Fundraiser[]
+  reportsFiled      Report[]        @relation("ReportedBy")
+  reportsReceived   Report[]        @relation("ReportedUser")
+  notifications     Notification[]
+  actorNotifications Notification[] @relation("NotificationActor")
+  settings          UserSettings?
+  preferences       UserPreference?
+  followsFollowing  Follow[]        @relation("Following")
+  followsFollowers  Follow[]        @relation("Followers")
+  bookmarks         Bookmark[]
+  blockedWords      BlockedWord[]
+  blockedHashtags   BlockedHashtag[]
+  pollVotes         PollVote[]
+  paymentsSent      Payment[]       @relation("PaymentSender")
+  paymentsReceived  Payment[]       @relation("PaymentReceiver")
+  escrowAsBuyer     Escrow[]        @relation("EscrowBuyer")
+  escrowAsSeller    Escrow[]        @relation("EscrowSeller")
+  verifications     VerificationRequest[]
+  activityLogs      ActivityLog[]
+  storyViews        StoryView[]
+  pointsLogs        PointsLog[]
+  trustedContacts   TrustedContact[]
+  sosAlerts         SOSAlert[]
+  rumorFlags        RumorFlag[]
+  priceReports      PriceReport[]
+  jobsPosted        Job[]           @relation("JobPoster")
+  shopsOwned        Shop[]
+  commentInteractions CommentInteraction[]
+
+  @@index([phoneNumber])
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserProfile {
+  id                String          @id @default(uuid()) @db.Uuid
+  userId            String          @unique @map("user_id") @db.Uuid
+  legalName         String          @map("legal_name")
+  displayName       String          @map("display_name")
+  handle            String          @unique
+  handleLockedUntil DateTime?       @map("handle_locked_until")
+  bio               String?         @db.VarChar(150)
+  pronouns          String?
+  avatarUrl         String?         @map("avatar_url")
+  avatarKey         String?         @map("avatar_key")
+  coverUrl          String?         @map("cover_url")
+  coverKey          String?         @map("cover_key")
+  districtId        Int?            @map("district_id")
+  subDistrictId     Int?            @map("sub_district_id")
+  geoLocationLat    Float? @map("geo_location_lat")
+  geoLocationLng    Float? @map("geo_location_lng")
+  visibility        VisibilityScope @default(PUBLIC)
+  verificationType  VerificationType? @map("verification_type")
+  isVerified        Boolean         @default(false) @map("is_verified")
+  followerCount     Int             @default(0) @map("follower_count")
+  followingCount    Int             @default(0) @map("following_count")
+  postCount         Int             @default(0) @map("post_count")
+  bondhuPoints      Int             @default(0) @map("bondhu_points")
+  pointsLevel       PointsLevel     @default(NEW_FRIEND) @map("points_level")
+  language          AppLanguage     @default(BANGLA)
+  theme             AppTheme        @default(SYSTEM)
+  fontScale         FontScale       @default(MEDIUM) @map("font_scale")
+  highContrast      Boolean         @default(false) @map("high_contrast")
+  reducedMotion     Boolean         @default(false) @map("reduced_motion")
+  autoImageAlt      Boolean         @default(false) @map("auto_image_alt")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district          District?       @relation(fields: [districtId], references: [id])
+  subDistrict       SubDistrict?    @relation(fields: [subDistrictId], references: [id])
+
+  @@index([handle])
+  @@index([districtId])
+  @@index([subDistrictId])
+  @@index([verificationType])
+  @@index([isVerified])
+  @@map("user_profiles")
+}
+
+model Session {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  token       String    @unique
+  refreshToken String?  @unique @map("refresh_token")
+  expiresAt   DateTime  @map("expires_at")
+  refreshExpiresAt DateTime? @map("refresh_expires_at")
+  ipAddress   String?   @map("ip_address")
+  userAgent   String?   @map("user_agent")
+  deviceId    String?   @map("device_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([refreshToken])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model UserDevice {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  deviceToken String?   @map("device_token")
+  platform    String    // ios, android, web
+  model       String?
+  osVersion   String?   @map("os_version")
+  appVersion  String?   @map("app_version")
+  lastActive  DateTime  @default(now()) @map("last_active")
+  pushEnabled Boolean   @default(true) @map("push_enabled")
+  biometricEnabled Boolean @default(false) @map("biometric_enabled")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceToken])
+  @@map("user_devices")
+}
+
+// ================================================================
+// 3. SOCIAL GRAPH
+// ================================================================
+
+model Follow {
+  id          String    @id @default(uuid()) @db.Uuid
+  followerId  String    @map("follower_id") @db.Uuid
+  followingId String    @map("following_id") @db.Uuid
+  status      FollowStatus @default(ACCEPTED)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  follower    User      @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User      @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([createdAt])
+  @@map("follows")
+}
+
+// ================================================================
+// 4. POSTS & CONTENT (Partitioned by month via raw SQL)
+// ================================================================
+
+model Post {
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  content         String?         @db.Text
+  contentMarkdown Boolean         @default(false) @map("content_markdown")
+  locationName    String?         @map("location_name")
+  districtId      Int?            @map("district_id")
+  subDistrictId   Int?            @map("sub_district_id")
+  geoLocationLat  Float? @map("geo_location_lat")
+  geoLocationLng  Float? @map("geo_location_lng")
+  visibility      VisibilityScope @default(PUBLIC)
+  isPinned        Boolean         @default(false) @map("is_pinned")
+  isArchived      Boolean         @default(false) @map("is_archived")
+  isEdited        Boolean         @default(false) @map("is_edited")
+  editedAt        DateTime?       @map("edited_at")
+  editDeadline    DateTime?       @map("edit_deadline")
+  commentCount    Int             @default(0) @map("comment_count")
+  reactionCount   Int             @default(0) @map("reaction_count")
+  shareCount      Int             @default(0) @map("share_count")
+  bookmarkCount   Int             @default(0) @map("bookmark_count")
+  score           Decimal         @default(0) @db.Decimal(12, 6)
+  languageScript  LanguageScript? @map("language_script")
+  factCheckStatus FactCheckStatus @default(UNVERIFIED) @map("fact_check_status")
+  sharedPostId    String?         @map("shared_post_id") @db.Uuid
+  hiddenFromTimeline Boolean      @default(false) @map("hidden_from_timeline")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district        District?       @relation(fields: [districtId], references: [id])
+  subDistrict     SubDistrict?    @relation(fields: [subDistrictId], references: [id])
+  mediaAssets     MediaAsset[]
+  comments        Comment[]
+  interactions    PostInteraction[]
+  bookmarks       Bookmark[]
+  hashtags        PostHashtag[]
+  poll            Poll?
+  reports         Report[]
+  notifications   Notification[]
+  communityPosts  CommunityPost[]
+  rumorFlags      RumorFlag[]
+  sharedBy        Post[]          @relation("SharedPost")
+  sharedFrom      Post?           @relation("SharedPost", fields: [sharedPostId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([sharedPostId])
+  @@index([districtId, createdAt])
+  @@index([subDistrictId, createdAt])
+  @@index([score])
+  @@index([createdAt])
+  @@index([visibility, isArchived, createdAt])
+  @@map("posts")
+}
+
+model MediaAsset {
+  id          String      @id @default(uuid()) @db.Uuid
+  postId      String?     @map("post_id") @db.Uuid
+  storyId     String?     @map("story_id") @db.Uuid
+  messageId   String?     @map("message_id") @db.Uuid
+  marketplaceItemId String? @map("marketplace_item_id") @db.Uuid
+  type        MediaType
+  url         String
+  key         String
+  thumbnailUrl String?    @map("thumbnail_url")
+  width       Int?
+  height      Int?
+  duration    Int?        // seconds for video/audio
+  sizeBytes   Int         @map("size_bytes")
+  mimeType    String      @map("mime_type")
+  altText     String?     @map("alt_text")
+  hlsUrl      String?     @map("hls_url")
+  orderIndex  Int         @default(0) @map("order_index")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  post        Post?       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  story       Story?      @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  marketplaceItem MarketplaceItem? @relation(fields: [marketplaceItemId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([storyId])
+  @@index([type])
+  @@map("media_assets")
+}
+
+model Comment {
+  id              String      @id @default(uuid()) @db.Uuid
+  postId          String      @map("post_id") @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  parentId        String?     @map("parent_id") @db.Uuid
+  content         String      @db.Text
+  isEdited        Boolean     @default(false) @map("is_edited")
+  editedAt        DateTime?   @map("edited_at")
+  reactionCount   Int         @default(0) @map("reaction_count")
+  replyCount      Int         @default(0) @map("reply_count")
+  depth           Int         @default(0) // 0-4 for 5-level nesting
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  post            Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent          Comment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         Comment[]   @relation("CommentReplies")
+  reports         Report[]
+  interactions    CommentInteraction[]
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@index([userId])
+  @@index([depth])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model PostInteraction {
+  id          String      @id @default(uuid()) @db.Uuid
+  postId      String      @map("post_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  type        ReactionType
+  createdAt   DateTime    @default(now()) @map("created_at")
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([postId, type])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("post_interactions")
+}
+
+model Bookmark {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  postId      String      @map("post_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@map("bookmarks")
+}
+
+// ================================================================
+// 5. STORIES (24h ephemeral)
+// ================================================================
+
+model Story {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  type            StoryType   @default(STANDARD)
+  expiresAt       DateTime    @map("expires_at")
+  isArchived      Boolean     @default(false) @map("is_archived")
+  locationName    String?     @map("location_name")
+  geoLocationLat  Float? @map("geo_location_lat")
+  geoLocationLng  Float? @map("geo_location_lng")
+  viewCount       Int         @default(0) @map("view_count")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaAssets     MediaAsset[]
+  stickers        StorySticker[]
+  views           StoryView[]
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@map("stories")
+}
+
+model StoryView {
+  id          String      @id @default(uuid()) @db.Uuid
+  storyId     String      @map("story_id") @db.Uuid
+  viewerId    String      @map("viewer_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+  story       Story       @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer      User        @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, viewerId])
+  @@index([storyId])
+  @@index([viewerId])
+  @@map("story_views")
+}
+
+model StorySticker {
+  id          String      @id @default(uuid()) @db.Uuid
+  storyId     String      @map("story_id") @db.Uuid
+  type        StickerType
+  positionX   Decimal     @map("position_x") @db.Decimal(5, 2)
+  positionY   Decimal     @map("position_y") @db.Decimal(5, 2)
+  rotation    Decimal?    @db.Decimal(5, 2)
+  scale       Decimal?    @default(1.0) @db.Decimal(5, 2)
+  payload     Json?       // Poll options, question text, geotag data
+  createdAt   DateTime    @default(now()) @map("created_at")
+  story       Story       @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@index([storyId])
+  @@map("story_stickers")
+}
+
+// ================================================================
+// 6. DIRECT MESSAGES & CONVERSATIONS
+// ================================================================
+
+model Conversation {
+  id              String                  @id @default(uuid()) @db.Uuid
+  type            ConversationType        @default(DIRECT)
+  title           String?
+  avatarUrl       String?                 @map("avatar_url")
+  lastMessageAt   DateTime?               @map("last_message_at")
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @updatedAt @map("updated_at")
+  participants    ConversationParticipant[]
+  messages        DirectMessage[]
+
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String          @id @default(uuid()) @db.Uuid
+  conversationId  String          @map("conversation_id") @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  role            ParticipantRole @default(MEMBER)
+  unreadCount     Int             @default(0) @map("unread_count")
+  lastReadAt      DateTime?       @map("last_read_at")
+  isMuted         Boolean         @default(false) @map("is_muted")
+  joinedAt        DateTime        @default(now()) @map("joined_at")
+  conversation    Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId, lastReadAt])
+  @@map("conversation_participants")
+}
+
+model DirectMessage {
+  id              String          @id @default(uuid()) @db.Uuid
+  conversationId  String          @map("conversation_id") @db.Uuid
+  senderId        String          @map("sender_id") @db.Uuid
+  receiverId      String?         @map("receiver_id") @db.Uuid
+  type            MessageType     @default(TEXT)
+  content         String?         @db.Text
+  mediaUrl        String?         @map("media_url")
+  mediaKey        String?         @map("media_key")
+  voiceDuration   Int?            @map("voice_duration")
+  voicePlaybackSpeed Decimal?     @default(1.0) @map("voice_playback_speed") @db.Decimal(3, 1)
+  replyToId       String?         @map("reply_to_id") @db.Uuid
+  forwardedFromId String?         @map("forwarded_from_id") @db.Uuid
+  isDeleted       Boolean         @default(false) @map("is_deleted")
+  deletedAt       DateTime?       @map("deleted_at")
+  isRead          Boolean         @default(false) @map("is_read")
+  readAt          DateTime?       @map("read_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  conversation    Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User            @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver        User?           @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: SetNull)
+  replyTo         DirectMessage?  @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies         DirectMessage[] @relation("ReplyTo")
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@map("direct_messages")
+}
+
+// ================================================================
+// 7. COMMUNITIES / GROUPS
+// ================================================================
+
+model Community {
+  id              String              @id @default(uuid()) @db.Uuid
+  ownerId         String              @map("owner_id") @db.Uuid
+  name            String
+  slug            String              @unique
+  description     String?             @db.Text
+  avatarUrl       String?             @map("avatar_url")
+  coverUrl        String?             @map("cover_url")
+  category        CommunityCategory
+  districtId      Int?                @map("district_id")
+  subDistrictId   Int?                @map("sub_district_id")
+  geoLocationLat  Float? @map("geo_location_lat")
+  geoLocationLng  Float? @map("geo_location_lng")
+  geoRadiusKm     Int?                @default(5) @map("geo_radius_km")
+  visibility      VisibilityScope     @default(PUBLIC)
+  joinType        JoinType            @default(OPEN) @map("join_type")
+  autoFilterEnabled Boolean           @default(true) @map("auto_filter_enabled")
+  memberCount     Int                 @default(0) @map("member_count")
+  postCount       Int                 @default(0) @map("post_count")
+  isVerified      Boolean             @default(false) @map("is_verified")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  owner           User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  district        District?           @relation(fields: [districtId], references: [id])
+  subDistrict     SubDistrict?        @relation(fields: [subDistrictId], references: [id])
+  memberships     CommunityMembership[]
+  rules           CommunityRule[]
+  joinQuestions   JoinQuestion[]
+  posts           CommunityPost[]
+
+  @@index([category])
+  @@index([districtId])
+  @@index([slug])
+  @@map("communities")
+}
+
+model CommunityMembership {
+  id            String          @id @default(uuid()) @db.Uuid
+  communityId   String          @map("community_id") @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  role          CommunityRole   @default(MEMBER)
+  status        MembershipStatus @default(APPROVED)
+  answers       Json?           // Store answers to join questions
+  mutedUntil    DateTime?       @map("muted_until")
+  joinedAt      DateTime        @default(now()) @map("joined_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  community     Community       @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@index([userId])
+  @@map("community_memberships")
+}
+
+model CommunityRule {
+  id          String      @id @default(uuid()) @db.Uuid
+  communityId String      @map("community_id") @db.Uuid
+  orderIndex  Int         @map("order_index")
+  title       String
+  description String?     @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  community   Community   @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, orderIndex])
+  @@map("community_rules")
+}
+
+model JoinQuestion {
+  id          String      @id @default(uuid()) @db.Uuid
+  communityId String      @map("community_id") @db.Uuid
+  orderIndex  Int         @map("order_index")
+  question    String
+  isRequired  Boolean     @default(true) @map("is_required")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  community   Community   @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, orderIndex])
+  @@map("join_questions")
+}
+
+model CommunityPost {
+  id          String      @id @default(uuid()) @db.Uuid
+  communityId String      @map("community_id") @db.Uuid
+  postId      String      @unique @map("post_id") @db.Uuid
+  pinnedAt    DateTime?   @map("pinned_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  community   Community   @relation(fields: [communityId], references: [id])
+  post        Post        @relation(fields: [postId], references: [id])
+
+  @@index([communityId, createdAt])
+  @@map("community_posts")
+}
+
+// ================================================================
+// 8. POLLS
+// ================================================================
+
+model Poll {
+  id          String      @id @default(uuid()) @db.Uuid
+  postId      String      @unique @map("post_id") @db.Uuid
+  expiresAt   DateTime    @map("expires_at")
+  totalVotes  Int         @default(0) @map("total_votes")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options     PollOption[]
+  votes       PollVote[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id          String      @id @default(uuid()) @db.Uuid
+  pollId      String      @map("poll_id") @db.Uuid
+  orderIndex  Int         @map("order_index")
+  text        String
+  voteCount   Int         @default(0) @map("vote_count")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  poll        Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes       PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id          String      @id @default(uuid()) @db.Uuid
+  pollId      String      @map("poll_id") @db.Uuid
+  optionId    String      @map("option_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+  poll        Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option      PollOption  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([optionId])
+  @@map("poll_votes")
+}
+
+// ================================================================
+// 9. MARKETPLACE (F-Commerce)
+// ================================================================
+
+model MarketplaceItem {
+  id              String          @id @default(uuid()) @db.Uuid
+  sellerId        String          @map("seller_id") @db.Uuid
+  title           String
+  description     String          @db.Text
+  price           Decimal         @db.Decimal(12, 2)
+  currency        String          @default("BDT")
+  condition       ItemCondition
+  category        String
+  districtId      Int?            @map("district_id")
+  subDistrictId   Int?            @map("sub_district_id")
+  geoLocationLat  Float? @map("geo_location_lat")
+  geoLocationLng  Float? @map("geo_location_lng")
+  isNegotiable    Boolean         @default(false) @map("is_negotiable")
+  isVerifiedSeller Boolean        @default(false) @map("is_verified_seller")
+  isSold          Boolean         @default(false) @map("is_sold")
+  viewCount       Int             @default(0) @map("view_count")
+  visibility      VisibilityScope @default(PUBLIC)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  seller          User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  mediaAssets     MediaAsset[]
+  escrow          Escrow[]
+
+  @@index([sellerId, createdAt])
+  @@index([category, createdAt])
+  @@index([price])
+  @@index([districtId])
+  @@index([isVerifiedSeller])
+  @@index([createdAt])
+  @@map("marketplace_items")
+}
+
+// ================================================================
+// 10. FUNDRAISERS
+// ================================================================
+
+model Fundraiser {
+  id              String              @id @default(uuid()) @db.Uuid
+  creatorId       String              @map("creator_id") @db.Uuid
+  title           String
+  description     String              @db.Text
+  goalAmount      Decimal             @map("goal_amount") @db.Decimal(14, 2)
+  raisedAmount    Decimal             @default(0) @map("raised_amount") @db.Decimal(14, 2)
+  currency        String              @default("BDT")
+  coverUrl        String?             @map("cover_url")
+  category        FundraiserCategory
+  status          FundraiserStatus    @default(PENDING)
+  verificationNote String?            @map("verification_note")
+  expiresAt       DateTime?           @map("expires_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  creator         User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  documents       FundraiserDocument[]
+  payments        Payment[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([category])
+  @@map("fundraisers")
+}
+
+model FundraiserDocument {
+  id            String      @id @default(uuid()) @db.Uuid
+  fundraiserId  String      @map("fundraiser_id") @db.Uuid
+  type          DocumentType
+  url           String
+  key           String
+  status        DocumentStatus @default(PENDING)
+  uploadedAt    DateTime    @default(now()) @map("uploaded_at")
+  fundraiser    Fundraiser  @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+
+  @@index([fundraiserId])
+  @@map("fundraiser_documents")
+}
+
+// ================================================================
+// 11. PAYMENTS & ESCROW (Fintech)
+// ================================================================
+
+model Payment {
+  id              String          @id @default(uuid()) @db.Uuid
+  senderId        String          @map("sender_id") @db.Uuid
+  receiverId      String?         @map("receiver_id") @db.Uuid
+  fundraiserId    String?         @map("fundraiser_id") @db.Uuid
+  conversationId  String?         @map("conversation_id") @db.Uuid
+  type            PaymentType
+  amount          Decimal         @db.Decimal(14, 2)
+  currency        String          @default("BDT")
+  provider        MfsProvider
+  providerTxnId   String?         @map("provider_txn_id")
+  status          PaymentStatus   @default(PENDING)
+  description     String?
+  verifiedVia     VerificationMethod? @map("verified_via")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  sender          User            @relation("PaymentSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver        User?           @relation("PaymentReceiver", fields: [receiverId], references: [id], onDelete: SetNull)
+  fundraiser      Fundraiser?     @relation(fields: [fundraiserId], references: [id], onDelete: SetNull)
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([status])
+  @@index([providerTxnId])
+  @@map("payments")
+}
+
+model Escrow {
+  id              String          @id @default(uuid()) @db.Uuid
+  marketplaceItemId String        @map("marketplace_item_id") @db.Uuid
+  buyerId         String          @map("buyer_id") @db.Uuid
+  sellerId        String          @map("seller_id") @db.Uuid
+  amount          Decimal         @db.Decimal(14, 2)
+  currency        String          @default("BDT")
+  status          EscrowStatus    @default(PENDING)
+  buyerConfirmed  Boolean         @default(false) @map("buyer_confirmed")
+  sellerConfirmed Boolean         @default(false) @map("seller_confirmed")
+  releasedAt      DateTime?       @map("released_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  item            MarketplaceItem @relation(fields: [marketplaceItemId], references: [id], onDelete: Cascade)
+  buyer           User            @relation("EscrowBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller          User            @relation("EscrowSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("escrows")
+}
+
+// ================================================================
+// 12. VERIFICATION & IDENTITY
+// ================================================================
+
+model VerificationRequest {
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  type            VerificationRequestType
+  status          VerificationStatus @default(PENDING)
+  documentFrontUrl String?        @map("document_front_url")
+  documentFrontKey String?        @map("document_front_key")
+  documentBackUrl String?         @map("document_back_url")
+  documentBackKey String?         @map("document_back_key")
+  faceMatchUrl    String?         @map("face_match_url")
+  faceMatchScore  Decimal?        @map("face_match_score") @db.Decimal(5, 2)
+  ocrData         Json?           @map("ocr_data")
+  reviewedBy      String?         @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime?       @map("reviewed_at")
+  reviewNote      String?         @map("review_note")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([status])
+  @@map("verification_requests")
+}
+
+// ================================================================
+// 13. MODERATION & REPORTS
+// ================================================================
+
+model Report {
+  id              String          @id @default(uuid()) @db.Uuid
+  reporterId      String          @map("reporter_id") @db.Uuid
+  reportedUserId  String?         @map("reported_user_id") @db.Uuid
+  postId          String?         @map("post_id") @db.Uuid
+  commentId       String?         @map("comment_id") @db.Uuid
+  type            ReportType
+  code            ReportCode
+  description     String?         @db.Text
+  status          ReportStatus    @default(PENDING)
+  moderatorId     String?         @map("moderator_id") @db.Uuid
+  resolvedAt      DateTime?       @map("resolved_at")
+  resolutionNote  String?         @map("resolution_note")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  reporter        User            @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser    User?           @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  post            Post?           @relation(fields: [postId], references: [id], onDelete: SetNull)
+  comment         Comment?        @relation(fields: [commentId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([postId])
+  @@map("reports")
+}
+
+// ================================================================
+// 14. NOTIFICATIONS
+// ================================================================
+
+model Notification {
+  id              String              @id @default(uuid()) @db.Uuid
+  userId          String              @map("user_id") @db.Uuid
+  type            NotificationType
+  title           String?
+  body            String              @db.Text
+  data            Json?
+  actorId         String?             @map("actor_id") @db.Uuid
+  postId          String?             @map("post_id") @db.Uuid
+  isRead          Boolean             @default(false) @map("is_read")
+  readAt          DateTime?           @map("read_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post            Post?               @relation(fields: [postId], references: [id], onDelete: SetNull)
+  actor           User?               @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead, createdAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ================================================================
+// 15. USER SETTINGS & PREFERENCES
+// ================================================================
+
+model UserSettings {
+  id                      String      @id @default(uuid()) @db.Uuid
+  userId                  String      @unique @map("user_id") @db.Uuid
+  emailNotifications      Boolean     @default(true) @map("email_notifications")
+  pushNotifications       Boolean     @default(true) @map("push_notifications")
+  smsNotifications        Boolean     @default(false) @map("sms_notifications")
+  likeAlertRate           AlertRate   @default(INSTANT) @map("like_alert_rate")
+  commentAlertRate        AlertRate   @default(INSTANT) @map("comment_alert_rate")
+  followAlertRate         AlertRate   @default(INSTANT) @map("follow_alert_rate")
+  messageAlertRate        AlertRate   @default(INSTANT) @map("message_alert_rate")
+  mentionAlertRate        AlertRate   @default(INSTANT) @map("mention_alert_rate")
+  allowTagging            Boolean     @default(true) @map("allow_tagging")
+  allowMessaging          MessagePermission @default(EVERYONE) @map("allow_messaging")
+  showActivityStatus      Boolean     @default(true) @map("show_activity_status")
+  showReadReceipts        Boolean     @default(true) @map("show_read_receipts")
+  allowContactSync        Boolean     @default(false) @map("allow_contact_sync")
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model UserPreference {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @unique @map("user_id") @db.Uuid
+  topicCategories String[]    @default([]) @map("topic_categories")
+  mutedUsers      String[]    @default([]) @map("muted_users")
+  closeFriends    String[]    @default([]) @map("close_friends")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model BlockedWord {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  word        String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+  @@map("blocked_words")
+}
+
+model BlockedHashtag {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  hashtag     String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hashtag])
+  @@map("blocked_hashtags")
+}
+
+// ================================================================
+// 16. HASHTAGS & TRENDS
+// ================================================================
+
+model Hashtag {
+  id          String      @id @default(uuid()) @db.Uuid
+  tag         String      @unique
+  phoneticKey String      @map("phonetic_key")
+  postCount   Int         @default(0) @map("post_count")
+  trendingScore Decimal   @default(0) @map("trending_score") @db.Decimal(12, 6)
+  lastUsedAt  DateTime    @default(now()) @map("last_used_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  posts       PostHashtag[]
+
+  @@index([phoneticKey])
+  @@index([trendingScore])
+  @@map("hashtags")
+}
+
+model PostHashtag {
+  id          String      @id @default(uuid()) @db.Uuid
+  postId      String      @map("post_id") @db.Uuid
+  hashtagId   String      @map("hashtag_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag     Hashtag     @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([hashtagId])
+  @@map("post_hashtags")
+}
+
+// ================================================================
+// 17. ACTIVITY LOGS
+// ================================================================
+
+model ActivityLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  action      String
+  entityType  String      @map("entity_type")
+  entityId    String?     @map("entity_id")
+  metadata    Json?
+  ipAddress   String?     @map("ip_address")
+  userAgent   String?     @map("user_agent")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("activity_logs")
+}
+
+// ================================================================
+// 18. COMMENT INTERACTIONS
+// ================================================================
+
+model CommentInteraction {
+  id          String      @id @default(uuid()) @db.Uuid
+  commentId   String      @map("comment_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  type        ReactionType
+  createdAt   DateTime    @default(now()) @map("created_at")
+  comment     Comment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId, type])
+  @@index([userId])
+  @@map("comment_interactions")
+}
+
+// ================================================================
+// 19. BAZAAR (Local Price Reports)
+// ================================================================
+
+model PriceReport {
+  id          String      @id @default(uuid()) @db.Uuid
+  reporterId  String      @map("reporter_id") @db.Uuid
+  districtId  Int         @map("district_id")
+  itemType    PriceItemType @map("item_type")
+  itemName    String      @map("item_name")
+  price       Decimal     @db.Decimal(10, 2)
+  unit        String      // per kg, per piece, etc.
+  note        String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  reporter    User        @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  district    District    @relation(fields: [districtId], references: [id])
+
+  @@index([districtId, itemType, createdAt])
+  @@index([reporterId])
+  @@map("price_reports")
+}
+
+// ================================================================
+// 20. JOBS BOARD
+// ================================================================
+
+model Job {
+  id                  String      @id @default(uuid()) @db.Uuid
+  posterId            String      @map("poster_id") @db.Uuid
+  title               String
+  company             String?
+  location            String?
+  districtId          Int?        @map("district_id")
+  salaryMin           Decimal?    @map("salary_min") @db.Decimal(12, 2)
+  salaryMax           Decimal?    @map("salary_max") @db.Decimal(12, 2)
+  salaryCurrency      String      @default("BDT") @map("salary_currency")
+  description         String      @db.Text
+  requirements        String?     @db.Text
+  category            JobCategory
+  contactInfo         String?     @map("contact_info")
+  applicationDeadline DateTime?   @map("application_deadline")
+  isActive            Boolean     @default(true) @map("is_active")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  poster              User        @relation("JobPoster", fields: [posterId], references: [id], onDelete: Cascade)
+  district            District?   @relation(fields: [districtId], references: [id])
+
+  @@index([districtId, category, isActive])
+  @@index([posterId])
+  @@index([isActive, createdAt])
+  @@map("jobs")
+}
+
+// ================================================================
+// 21. SHOPS (F-Commerce)
+// ================================================================
+
+model Shop {
+  id              String      @id @default(uuid()) @db.Uuid
+  ownerId         String      @map("owner_id") @db.Uuid
+  name            String
+  handle          String      @unique
+  description     String?     @db.Text
+  logoUrl         String?     @map("logo_url")
+  coverUrl        String?     @map("cover_url")
+  category        String
+  districtId      Int?        @map("district_id")
+  followerCount   Int         @default(0) @map("follower_count")
+  isVerified      Boolean     @default(false) @map("is_verified")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  owner           User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  district        District?   @relation(fields: [districtId], references: [id])
+  products        ShopProduct[]
+
+  @@index([handle])
+  @@index([districtId])
+  @@map("shops")
+}
+
+model ShopProduct {
+  id              String      @id @default(uuid()) @db.Uuid
+  shopId          String      @map("shop_id") @db.Uuid
+  title           String
+  description     String?     @db.Text
+  price           Decimal     @db.Decimal(12, 2)
+  stock           Int         @default(0)
+  condition       ItemCondition
+  images          String[]
+  status          ProductStatus @default(AVAILABLE)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  shop            Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, status])
+  @@index([status, createdAt])
+  @@map("shop_products")
+}
+
+// ================================================================
+// 22. BONDHU POINTS
+// ================================================================
+
+model PointsLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  amount      Int
+  reason      PointsReason
+  metadata    Json?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("points_log")
+}
+
+// ================================================================
+// 23. TRUSTED CONTACTS & SOS
+// ================================================================
+
+model TrustedContact {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  contactName     String    @map("contact_name")
+  contactPhone    String    @map("contact_phone")
+  relationship    String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactPhone])
+  @@index([userId])
+  @@map("trusted_contacts")
+}
+
+model SOSAlert {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  latitude      Decimal?  @db.Decimal(10, 8)
+  longitude     Decimal?  @db.Decimal(11, 8)
+  locationName  String?   @map("location_name")
+  status        SOSStatus @default(ACTIVE)
+  resolvedAt    DateTime? @map("resolved_at")
+  expiresAt     DateTime  @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("sos_alerts")
+}
+
+// ================================================================
+// 24. RUMOR FLAGS & FACT CHECK
+// ================================================================
+
+model RumorFlag {
+  id          String    @id @default(uuid()) @db.Uuid
+  postId      String    @map("post_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@map("rumor_flags")
+}
+
+// ================================================================
+// ENUMS
+// ================================================================
+
+enum VisibilityScope {
+  PUBLIC
+  FOLLOWERS
+  CLOSE_FRIENDS
+  PRIVATE
+}
+
+enum VerificationType {
+  BLUE_INDIVIDUAL
+  GREEN_BUSINESS
+  ORANGE_CREATOR
+}
+
+enum AppLanguage {
+  BANGLA
+  ENGLISH
+  BANGLISH
+}
+
+enum AppTheme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum FontScale {
+  XS
+  SMALL
+  MEDIUM
+  LARGE
+  XL
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  LAUGH
+  SAD
+  WOW
+  ANGRY
+}
+
+enum LanguageScript {
+  BANGLA
+  ENGLISH
+  BANGLISH
+}
+
+enum StoryType {
+  STANDARD
+  POLL
+  QUESTION
+  GEO_TAG
+}
+
+enum StickerType {
+  GEO_TAG
+  POLL
+  QUESTION
+  COUNTDOWN
+  QUIZ
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum ParticipantRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  VOICE
+  FILE
+  PAYMENT_REQUEST
+  PAYMENT_SENT
+  SYSTEM
+}
+
+enum CommunityCategory {
+  SME_NETWORKS
+  FREELANCE_HUBS
+  ACADEMIC_PREP
+  CULTURAL_ARTS
+  GENERAL
+}
+
+enum CommunityRole {
+  OWNER
+  ADMIN
+  MODERATOR
+  SECRETARY
+  MEMBER
+  MUTED
+}
+
+enum MembershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BANNED
+}
+
+enum JoinType {
+  OPEN
+  APPROVAL_REQUIRED
+  INVITE_ONLY
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  USED
+  REFURBISHED
+}
+
+enum FundraiserCategory {
+  MEDICAL
+  EDUCATION
+  DISASTER_RELIEF
+  COMMUNITY
+  BUSINESS
+  CREATIVE
+  OTHER
+}
+
+enum FundraiserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentType {
+  NID_FRONT
+  NID_BACK
+  PASSPORT
+  TRADE_LICENSE
+  BANK_STATEMENT
+  UTILITY_BILL
+  PROOF_OF_ADDRESS
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentType {
+  P2P_TRANSFER
+  FUND_REQUEST
+  ESCROW_LOCK
+  FUNDRAISER_DONATION
+  REFUND
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum MfsProvider {
+  BKASH
+  NAGAD
+  ROCKET
+  UPAY
+}
+
+enum VerificationMethod {
+  BIOMETRIC
+  OTP_2FA
+  PIN
+}
+
+enum EscrowStatus {
+  PENDING
+  FUNDED
+  DELIVERED
+  DISPUTED
+  RELEASED
+  CANCELLED
+}
+
+enum VerificationRequestType {
+  NID
+  PASSPORT
+  SME_LICENSE
+  CREATOR
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ReportType {
+  POST
+  COMMENT
+  USER
+  MARKETPLACE_ITEM
+  COMMUNITY
+}
+
+enum ReportCode {
+  HARASSMENT
+  HATE_SPEECH
+  FAKE_NEWS
+  FRAUD
+  SPAM
+  NUDITY
+  VIOLENCE
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  LIKE
+  REACTION
+  COMMENT
+  REPLY
+  FOLLOW
+  FOLLOW_REQUEST
+  MENTION
+  MESSAGE
+  STORY_VIEW
+  POST_SHARE
+  SYSTEM
+  VERIFICATION
+  PAYMENT
+  ESCROW_UPDATE
+  COMMUNITY_INVITE
+  COMMUNITY_APPROVAL
+}
+
+enum AlertRate {
+  INSTANT
+  HOURLY_DIGEST
+  DAILY_SUMMARY
+  OFF
+}
+
+enum MessagePermission {
+  EVERYONE
+  FOLLOWERS
+  NO_ONE
+}
+
+enum FactCheckStatus {
+  UNVERIFIED
+  UNDER_REVIEW
+  VERIFIED
+  FALSE_INFORMATION
+}
+
+enum PointsReason {
+  POST_CREATED
+  REACTION_RECEIVED
+  FOLLOWER_GAINED
+  DAILY_LOGIN
+  NID_VERIFIED
+  MISINFO_REPORTED
+  COMMUNITY_CONTRIBUTION
+}
+
+enum PointsLevel {
+  NEW_FRIEND
+  ACQUAINTANCE
+  TRUSTED_FRIEND
+  STAR
+  LEGEND
+}
+
+enum SOSStatus {
+  ACTIVE
+  RESOLVED
+}
+
+enum ProductStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+}
+
+enum PriceItemType {
+  RICE
+  FISH
+  VEGETABLES
+  EGG
+  OIL
+}
+
+enum JobCategory {
+  GARMENTS
+  IT
+  TEACHING
+  HEALTHCARE
+  AGRICULTURE
+  BUSINESS
+}

@@ -1,0 +1,251 @@
+export enum VisibilityScope {
+  PUBLIC = 'PUBLIC',
+  FOLLOWERS = 'FOLLOWERS',
+  CLOSE_FRIENDS = 'CLOSE_FRIENDS',
+  PRIVATE = 'PRIVATE',
+}
+
+export enum VerificationType {
+  BLUE_INDIVIDUAL = 'BLUE_INDIVIDUAL',
+  GREEN_BUSINESS = 'GREEN_BUSINESS',
+  ORANGE_CREATOR = 'ORANGE_CREATOR',
+}
+
+export enum AppLanguage {
+  BANGLA = 'BANGLA',
+  ENGLISH = 'ENGLISH',
+  BANGLISH = 'BANGLISH',
+}
+
+export enum AppTheme {
+  LIGHT = 'LIGHT',
+  DARK = 'DARK',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum FontScale {
+  XS = 'XS',
+  SMALL = 'SMALL',
+  MEDIUM = 'MEDIUM',
+  LARGE = 'LARGE',
+  XL = 'XL',
+}
+
+export enum ReactionType {
+  LIKE = 'LIKE',
+  LOVE = 'LOVE',
+  LAUGH = 'LAUGH',
+  SAD = 'SAD',
+  WOW = 'WOW',
+  ANGRY = 'ANGRY',
+}
+
+export enum StoryType {
+  STANDARD = 'STANDARD',
+  POLL = 'POLL',
+  QUESTION = 'QUESTION',
+  GEO_TAG = 'GEO_TAG',
+}
+
+export enum StickerType {
+  GEO_TAG = 'GEO_TAG',
+  POLL = 'POLL',
+  QUESTION = 'QUESTION',
+  COUNTDOWN = 'COUNTDOWN',
+  QUIZ = 'QUIZ',
+}
+
+export enum ConversationType {
+  DIRECT = 'DIRECT',
+  GROUP = 'GROUP',
+}
+
+export enum ParticipantRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+}
+
+export enum MessageType {
+  TEXT = 'TEXT',
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  VOICE = 'VOICE',
+  FILE = 'FILE',
+  PAYMENT_REQUEST = 'PAYMENT_REQUEST',
+  PAYMENT_SENT = 'PAYMENT_SENT',
+  SYSTEM = 'SYSTEM',
+}
+
+export enum CommunityCategory {
+  SME_NETWORKS = 'SME_NETWORKS',
+  FREELANCE_HUBS = 'FREELANCE_HUBS',
+  ACADEMIC_PREP = 'ACADEMIC_PREP',
+  CULTURAL_ARTS = 'CULTURAL_ARTS',
+  GENERAL = 'GENERAL',
+}
+
+export enum CommunityRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR',
+  MEMBER = 'MEMBER',
+  MUTED = 'MUTED',
+}
+
+export enum MembershipStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  BANNED = 'BANNED',
+}
+
+export enum JoinType {
+  OPEN = 'OPEN',
+  APPROVAL_REQUIRED = 'APPROVAL_REQUIRED',
+  INVITE_ONLY = 'INVITE_ONLY',
+}
+
+export enum ItemCondition {
+  NEW = 'NEW',
+  LIKE_NEW = 'LIKE_NEW',
+  USED = 'USED',
+  REFURBISHED = 'REFURBISHED',
+}
+
+export enum FundraiserCategory {
+  MEDICAL = 'MEDICAL',
+  EDUCATION = 'EDUCATION',
+  DISASTER_RELIEF = 'DISASTER_RELIEF',
+  COMMUNITY = 'COMMUNITY',
+  BUSINESS = 'BUSINESS',
+  CREATIVE = 'CREATIVE',
+  OTHER = 'OTHER',
+}
+
+export enum FundraiserStatus {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum PaymentType {
+  P2P_TRANSFER = 'P2P_TRANSFER',
+  FUND_REQUEST = 'FUND_REQUEST',
+  ESCROW_LOCK = 'ESCROW_LOCK',
+  FUNDRAISER_DONATION = 'FUNDRAISER_DONATION',
+  REFUND = 'REFUND',
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED',
+}
+
+export enum MfsProvider {
+  BKASH = 'BKASH',
+  NAGAD = 'NAGAD',
+  ROCKET = 'ROCKET',
+  UPAY = 'UPAY',
+}
+
+export enum VerificationMethod {
+  BIOMETRIC = 'BIOMETRIC',
+  OTP_2FA = 'OTP_2FA',
+  PIN = 'PIN',
+}
+
+export enum EscrowStatus {
+  PENDING = 'PENDING',
+  FUNDED = 'FUNDED',
+  DELIVERED = 'DELIVERED',
+  DISPUTED = 'DISPUTED',
+  RELEASED = 'RELEASED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum VerificationRequestType {
+  NID = 'NID',
+  PASSPORT = 'PASSPORT',
+  SME_LICENSE = 'SME_LICENSE',
+  CREATOR = 'CREATOR',
+}
+
+export enum VerificationStatus {
+  PENDING = 'PENDING',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export enum ReportType {
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+  USER = 'USER',
+  MARKETPLACE_ITEM = 'MARKETPLACE_ITEM',
+  COMMUNITY = 'COMMUNITY',
+}
+
+export enum ReportCode {
+  HARASSMENT = 'HARASSMENT',
+  HATE_SPEECH = 'HATE_SPEECH',
+  FAKE_NEWS = 'FAKE_NEWS',
+  FRAUD = 'FRAUD',
+  SPAM = 'SPAM',
+  NUDITY = 'NUDITY',
+  VIOLENCE = 'VIOLENCE',
+  COPYRIGHT = 'COPYRIGHT',
+  OTHER = 'OTHER',
+}
+
+export enum ReportStatus {
+  PENDING = 'PENDING',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  RESOLVED = 'RESOLVED',
+  DISMISSED = 'DISMISSED',
+}
+
+export enum NotificationType {
+  LIKE = 'LIKE',
+  REACTION = 'REACTION',
+  COMMENT = 'COMMENT',
+  REPLY = 'REPLY',
+  FOLLOW = 'FOLLOW',
+  FOLLOW_REQUEST = 'FOLLOW_REQUEST',
+  MENTION = 'MENTION',
+  MESSAGE = 'MESSAGE',
+  STORY_VIEW = 'STORY_VIEW',
+  POST_SHARE = 'POST_SHARE',
+  SYSTEM = 'SYSTEM',
+  VERIFICATION = 'VERIFICATION',
+  PAYMENT = 'PAYMENT',
+  ESCROW_UPDATE = 'ESCROW_UPDATE',
+  COMMUNITY_INVITE = 'COMMUNITY_INVITE',
+  COMMUNITY_APPROVAL = 'COMMUNITY_APPROVAL',
+}
+
+export enum AlertRate {
+  INSTANT = 'INSTANT',
+  HOURLY_DIGEST = 'HOURLY_DIGEST',
+  DAILY_SUMMARY = 'DAILY_SUMMARY',
+  OFF = 'OFF',
+}
+
+export enum MessagePermission {
+  EVERYONE = 'EVERYONE',
+  FOLLOWERS = 'FOLLOWERS',
+  NO_ONE = 'NO_ONE',
+}
+
+export enum MediaType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  AUDIO = 'AUDIO',
+  DOCUMENT = 'DOCUMENT',
+}

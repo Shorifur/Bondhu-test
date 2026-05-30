@@ -1,0 +1,31 @@
+{
+  "name": "bondhu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bondhu (বন্ধু) — Social platform for Bangladesh",
+  "scripts": {
+    "dev": "npx concurrently -n API,WEB -c blue,green \"cd apps/api && npm run dev\" \"cd apps/web && npm run dev\"",
+    "build": "cd apps/api && npm run build && cd ../../apps/web && npm run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:migrate:dev": "cd apps/api && npx prisma migrate dev",
+    "db:migrate:deploy": "cd apps/api && npx prisma migrate deploy",
+    "db:generate": "cd apps/api && npx prisma generate",
+    "db:seed": "cd apps/api && npx prisma db seed",
+    "db:studio": "cd apps/api && npx prisma studio",
+    "redis:flush": "docker compose exec redis redis-cli FLUSHDB"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

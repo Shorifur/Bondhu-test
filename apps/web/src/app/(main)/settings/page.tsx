@@ -1,0 +1,404 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowLeft, User, Shield, Bell, Eye, Moon, Type, Palette,
+  Globe, Lock, HelpCircle, LogOut, ChevronRight, Fingerprint,
+  X, Check, Plus, Trash2,
+} from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+import { useUIStore } from '@/stores/uiStore';
+import { useTheme } from 'next-themes';
+import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
+
+export default function SettingsPage() {
+  const router = useRouter();
+  const { logout, user, setUser } = useAuthStore();
+  const { theme, setTheme } = useTheme();
+  const { fontScale, setFontScale, language, setLanguage, highContrast, setHighContrast, reducedMotion, setReducedMotion, addToast } = useUIStore();
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [blockedWords, setBlockedWords] = useState<string[]>([]);
+  const [blockedHashtags, setBlockedHashtags] = useState<string[]>([]);
+  const [newWord, setNewWord] = useState('');
+  const [newHashtag, setNewHashtag] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [savingDisplay, setSavingDisplay] = useState(false);
+
+  useEffect(() => {
+    // Apply high contrast class to document
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [highContrast]);
+
+  useEffect(() => {
+    // Apply font scale to document
+    const scaleMap: Record<string, string> = {
+      XS: '0.75rem',
+      SMALL: '0.875rem',
+      MEDIUM: '1rem',
+      LARGE: '1.125rem',
+      XL: '1.25rem',
+    };
+    document.documentElement.style.fontSize = scaleMap[fontScale] || '1rem';
+  }, [fontScale]);
+
+  const saveDisplaySettings = async (updates: Record<string, any>) => {
+    setSavingDisplay(true);
+    try {
+      await api.patch('users/me', updates);
+      addToast('Settings saved', 'success');
+    } catch (err: any) {
+      addToast(err?.message || 'Failed to save settings', 'error');
+    } finally {
+      setSavingDisplay(false);
+    }
+  };
+
+  const handleFontScaleChange = (scale: typeof fontScale) => {
+    setFontScale(scale);
+    saveDisplaySettings({ fontScale: scale });
+  };
+
+  const langMap: Record<string, string> = { bn: 'BANGLA', en: 'ENGLISH', bng: 'BANGLISH' };
+
+  const handleLanguageChange = (lang: typeof language) => {
+    setLanguage(lang);
+    saveDisplaySettings({ language: langMap[lang] });
+  };
+
+  const handleHighContrastChange = (v: boolean) => {
+    setHighContrast(v);
+    saveDisplaySettings({ highContrast: v });
+  };
+
+  const handleReducedMotionChange = (v: boolean) => {
+    setReducedMotion(v);
+    saveDisplaySettings({ reducedMotion: v });
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/onboarding');
+  };
+
+  const addBlockedWord = async () => {
+    if (!newWord.trim()) return;
+    setLoading(true);
+    try {
+      await api.post('users/me/blocked-words', { word: newWord.trim() });
+      setBlockedWords((prev) => [...prev, newWord.trim()]);
+      setNewWord('');
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addBlockedHashtag = async () => {
+    if (!newHashtag.trim()) return;
+    setLoading(true);
+    try {
+      await api.post('users/me/blocked-hashtags', { hashtag: newHashtag.trim() });
+      setBlockedHashtags((prev) => [...prev, newHashtag.trim()]);
+      setNewHashtag('');
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sections = [
+    {
+      id: 'profile',
+      title: 'Profile Info',
+      icon: User,
+      items: [
+        { label: 'Edit Bio', labelBn: 'বায়ো সম্পাদনা', action: () => router.push('/profile') },
+        { label: 'Change Avatar', labelBn: 'অবতার পরিবর্তন', action: () => router.push('/profile') },
+        { label: 'Update Handle', labelBn: 'হ্যান্ডেল আপডেট', action: () => alert('Handle changes are locked for 30 days after creation') },
+      ],
+    },
+    {
+      id: 'verification',
+      title: 'Identity Verification',
+      icon: Shield,
+      items: [
+        { label: 'NID Verification', labelBn: 'জাতীয় পরিচয়পত্র যাচাই', icon: Fingerprint, action: () => alert('NID verification requires document upload (coming soon)') },
+        { label: 'Passport', labelBn: 'পাসপোর্ট', action: () => alert('Passport verification requires document upload (coming soon)') },
+        { label: 'SME Trade License', labelBn: 'ব্যবসায়িক লাইসেন্স', action: () => alert('SME verification requires document upload (coming soon)') },
+      ],
+    },
+    {
+      id: 'preferences',
+      title: 'Preferences & Filters',
+      icon: Bell,
+      items: [
+        { label: 'Topic Categories', labelBn: 'বিষয়শ্রেণী', action: () => alert('Topic category selection coming soon') },
+        { label: 'Notification Rates', labelBn: 'বিজ্ঞপ্তির হার', action: () => alert('Notification rate controls coming soon') },
+        { label: 'Blocked Words', labelBn: 'ব্লক করা শব্দ', action: () => setActiveModal('blocked-words') },
+        { label: 'Blocked Hashtags', labelBn: 'ব্লক করা হ্যাশট্যাগ', action: () => setActiveModal('blocked-hashtags') },
+      ],
+    },
+    {
+      id: 'display',
+      title: 'Display & Accessibility',
+      icon: Eye,
+      items: [
+        {
+          label: 'Theme',
+          labelBn: 'থিম',
+          control: (
+            <div className="flex gap-1 bg-muted rounded-lg p-1">
+              {(['light', 'dark', 'system'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={cn(
+                    'px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors',
+                    theme === t ? 'bg-card shadow-sm' : 'text-muted-foreground',
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          ),
+        },
+        {
+          label: 'Font Size',
+          labelBn: 'ফন্ট সাইজ',
+          control: (
+            <div className="flex gap-1 bg-muted rounded-lg p-1">
+              {(['XS', 'SMALL', 'MEDIUM', 'LARGE', 'XL'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleFontScaleChange(s)}
+                  className={cn(
+                    'px-2 py-1 rounded-md text-xs font-medium transition-colors',
+                    fontScale === s ? 'bg-card shadow-sm' : 'text-muted-foreground',
+                  )}
+                >
+                  {s[0]}
+                </button>
+              ))}
+            </div>
+          ),
+        },
+        {
+          label: 'Language',
+          labelBn: 'ভাষা',
+          control: (
+            <div className="flex gap-1 bg-muted rounded-lg p-1">
+              {([
+                { code: 'bn', label: 'বাংলা' },
+                { code: 'en', label: 'English' },
+                { code: 'bng', label: 'Banglish' },
+              ] as const).map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => handleLanguageChange(l.code)}
+                  className={cn(
+                    'px-2 py-1 rounded-md text-xs font-medium transition-colors',
+                    language === l.code ? 'bg-card shadow-sm' : 'text-muted-foreground',
+                  )}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          ),
+        },
+        {
+          label: 'High Contrast',
+          labelBn: 'উচ্চ কনট্রাস্ট',
+          control: (
+            <button
+              onClick={() => handleHighContrastChange(!highContrast)}
+              className={cn(
+                'w-10 h-6 rounded-full transition-colors relative',
+                highContrast ? 'bg-bondhu-green' : 'bg-muted',
+              )}
+            >
+              <motion.div
+                animate={{ x: highContrast ? 16 : 2 }}
+                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+              />
+            </button>
+          ),
+        },
+        {
+          label: 'Reduced Motion',
+          labelBn: 'কমানো মোশন',
+          control: (
+            <button
+              onClick={() => handleReducedMotionChange(!reducedMotion)}
+              className={cn(
+                'w-10 h-6 rounded-full transition-colors relative',
+                reducedMotion ? 'bg-bondhu-green' : 'bg-muted',
+              )}
+            >
+              <motion.div
+                animate={{ x: reducedMotion ? 16 : 2 }}
+                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+              />
+            </button>
+          ),
+        },
+      ],
+    },
+  ];
+
+  return (
+    <div className="py-4 space-y-6">
+      <div className="flex items-center gap-3">
+        <button onClick={() => router.push('/')} className="p-2 -ml-2 hover:bg-muted rounded-full">
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-2xl font-bold">Settings</h1>
+      </div>
+
+      {sections.map((section) => (
+        <div key={section.id} className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <section.icon className="w-4 h-4 text-bondhu-green" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              {section.title}
+            </h2>
+          </div>
+
+          <div className="bg-card rounded-2xl border divide-y divide-border overflow-hidden">
+            {section.items.map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                {'control' in item ? (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <p className="font-medium text-sm">{item.label}</p>
+                      <p className="text-xs text-muted-foreground font-bangla">{item.labelBn}</p>
+                    </div>
+                    {item.control}
+                  </div>
+                ) : (
+                  <button
+                    onClick={item.action}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.icon && <item.icon className="w-4 h-4 text-muted-foreground" />}
+                      <div>
+                        <p className="font-medium text-sm">{item.label}</p>
+                        <p className="text-xs text-muted-foreground font-bangla">{item.labelBn}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Modals */}
+      <AnimatePresence>
+        {activeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
+            onClick={() => setActiveModal(null)}
+          >
+            <motion.div
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              exit={{ y: 100 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-background w-full max-w-md rounded-2xl p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold">
+                  {activeModal === 'blocked-words' ? 'Blocked Words' : 'Blocked Hashtags'}
+                </h3>
+                <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-muted rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  value={activeModal === 'blocked-words' ? newWord : newHashtag}
+                  onChange={(e) => activeModal === 'blocked-words' ? setNewWord(e.target.value) : setNewHashtag(e.target.value)}
+                  placeholder={activeModal === 'blocked-words' ? 'Add a word...' : 'Add a hashtag...'}
+                  className="flex-1 px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      activeModal === 'blocked-words' ? addBlockedWord() : addBlockedHashtag();
+                    }
+                  }}
+                />
+                <button
+                  onClick={activeModal === 'blocked-words' ? addBlockedWord : addBlockedHashtag}
+                  disabled={loading}
+                  className="px-3 py-2 bg-bondhu-green text-white rounded-xl hover:bg-bondhu-green-dark transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).map((item) => (
+                  <div key={item} className="flex items-center justify-between px-3 py-2 bg-card rounded-xl">
+                    <span className="text-sm">{item}</span>
+                    <button
+                      onClick={() => {
+                        if (activeModal === 'blocked-words') {
+                          setBlockedWords((prev) => prev.filter((w) => w !== item));
+                        } else {
+                          setBlockedHashtags((prev) => prev.filter((h) => h !== item));
+                        }
+                      }}
+                      className="p-1 hover:bg-destructive/10 text-destructive rounded-lg"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No {activeModal === 'blocked-words' ? 'blocked words' : 'blocked hashtags'} yet
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-destructive/10 text-destructive font-semibold hover:bg-destructive/20 transition-colors"
+      >
+        <LogOut className="w-5 h-5" />
+        Log Out
+      </button>
+
+      <p className="text-center text-xs text-muted-foreground pb-4">
+        Bondhu v1.0.0 · Made with ❤️ for Bangladesh
+      </p>
+    </div>
+  );
+}
