@@ -29,7 +29,8 @@
       "@communities/*": ["src/communities/*"],
       "@marketplace/*": ["src/marketplace/*"],
       "@payments/*": ["src/payments/*"],
-      "@media/*": ["src/media/*"]
+      "@media/*": ["src/media/*"],
+      "@bondhu/shared-types": ["../../packages/shared-types/src"]
     }
   },
   "include": ["src/**/*", "test/**/*"],
