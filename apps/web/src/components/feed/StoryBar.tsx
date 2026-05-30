@@ -24,10 +24,10 @@ function StoryRing({ story, onClick }: StoryRingProps) {
     >
       <div
         className={cn(
-          'relative w-16 h-16 rounded-full p-[3px]',
+          'relative w-16 h-16 rounded-full',
           hasViewed
-            ? 'bg-muted'
-            : 'bg-gradient-to-tr from-bondhu-green via-bondhu-blue to-purple-500'
+            ? 'story-ring-viewed'
+            : 'story-ring'
         )}
       >
         <div className="w-full h-full rounded-full bg-background border-2 border-background overflow-hidden">

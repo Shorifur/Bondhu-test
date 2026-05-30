@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, MessageCircle, Bookmark, Share2, MoreHorizontal,
   MapPin, Verified, CheckCircle2, BadgeCheck, Award,
   Globe, Users, Lock,
 } from 'lucide-react';
@@ -16,6 +15,14 @@ import { toBengaliDate } from '@/lib/bengali-date';
 import type { Post, ReactionType } from '@bondhu/shared-types';
 import { MediaCarousel } from './MediaCarousel';
 import { ReactionPicker } from './ReactionPicker';
+import {
+  LeafIcon,
+  TreeIcon,
+  ShareIcon,
+  BookmarkIcon,
+  ThreeDotsIcon,
+  HeaderTreeIcon,
+} from '@/components/ui/CulturalIcons';
 
 const reactionEmoji: Record<ReactionType, string> = {
   LIKE: '❤️',
@@ -102,68 +109,74 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <article className="feed-card p-4 space-y-3">
+    <article className="feed-card p-4 mx-3 mb-3 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.push(`/profile/${profile?.handle}`)}
           className="flex items-center gap-3 group"
         >
-          <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border">
+          <div className="w-10 h-10 rounded-full bg-[#F0EEF8] overflow-hidden border-2 border-[#E8E4F5]">
             {profile?.avatarUrl ? (
               <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-bold text-sm">
+              <div className="w-full h-full flex items-center justify-center font-bold text-sm text-[#7C3AED]">
                 {profile?.displayName?.[0] || 'U'}
               </div>
             )}
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1">
-              <span className="font-semibold text-sm group-hover:text-bondhu-green transition-colors">
+              <span className="font-semibold text-[13px] text-[#1a1a2e] group-hover:text-purple-600 transition-colors">
                 {profile?.displayName}
               </span>
               {verification && (
-                <verification.icon className={cn('w-4 h-4', verification.color)} />
+                <verification.icon className={cn('w-3.5 h-3.5', verification.color)} />
               )}
             </div>
-            <span className="text-xs text-muted-foreground">@{profile?.handle}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-[#9B8FC0]">@{profile?.handle}</span>
+              {/* Visibility icon */}
+              {post.visibility === 'PUBLIC' && (
+                <span title="সকলের জন্য - Public"><Globe className="w-3 h-3 text-[#C4B8E0]" /></span>
+              )}
+              {post.visibility === 'FOLLOWERS' && (
+                <span title="অনুসারীদের জন্য - Followers"><Users className="w-3 h-3 text-[#C4B8E0]" /></span>
+              )}
+              {post.visibility === 'PRIVATE' && (
+                <span title="ব্যক্তিগত - Private"><Lock className="w-3 h-3 text-[#C4B8E0]" /></span>
+              )}
+            </div>
           </div>
         </button>
 
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-end">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              {post.visibility === 'PUBLIC' && (
-                <span title="সকলের জন্য - Public"><Globe className="w-3 h-3" /></span>
-              )}
-              {post.visibility === 'FOLLOWERS' && (
-                <span title="অনুসারীদের জন্য - Followers"><Users className="w-3 h-3" /></span>
-              )}
-              {post.visibility === 'PRIVATE' && (
-                <span title="ব্যক্তিগত - Private"><Lock className="w-3 h-3" /></span>
-              )}
+            <span className="text-[11px] text-[#9B8FC0]">
               {formatTimeAgo(post.createdAt, 'bn')}
             </span>
-            <span className="text-[10px] text-muted-foreground/60 font-bangla">
+            <span className="text-[10px] text-[#C4B8E0] font-bangla">
               {toBengaliDate(post.createdAt).formatted}
             </span>
           </div>
-          <button onClick={handleMenu} className="p-1.5 hover:bg-muted rounded-full transition-colors">
-            <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+          <button
+            onClick={handleMenu}
+            className="p-1.5 hover:bg-[#F0EEF8] rounded-full transition-colors"
+          >
+            <ThreeDotsIcon className="text-[#C4B8E0]" size={18} />
           </button>
         </div>
       </div>
 
       {/* Rumor Flag Warning */}
       {(post as any).rumorFlags >= 5 && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl">
-          <span className="text-lg">⚠️</span>
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+          <span className="text-base">⚠️</span>
           <div>
-            <p className="text-xs font-medium text-yellow-800 font-bangla">
+            <p className="text-[11px] font-medium text-amber-800 font-bangla">
               এই পোস্টটি যাচাই করা হয়নি
             </p>
-            <p className="text-[10px] text-yellow-600">
+            <p className="text-[10px] text-amber-600">
               This post is unverified
             </p>
           </div>
@@ -172,28 +185,36 @@ export function PostCard({ post }: PostCardProps) {
 
       {/* Content */}
       {post.content && (
-        <div className="text-sm leading-relaxed whitespace-pre-wrap post-content">
+        <div
+          className={cn(
+            'whitespace-pre-wrap post-content',
+            !post.mediaAssets?.length && 'text-[15px] leading-relaxed p-3 rounded-xl',
+            !post.mediaAssets?.length && 'bg-[#FAFAFF]'
+          )}
+        >
           {post.content}
         </div>
       )}
 
       {/* Location */}
       {post.locationName && (
-        <div className="flex items-center gap-1 text-xs text-bondhu-green">
+        <div className="flex items-center gap-1 text-[11px]" style={{ color: '#7C3AED' }}>
           <MapPin className="w-3.5 h-3.5" />
-          <span>{post.locationName}</span>
+          <span className="font-bangla">{post.locationName}</span>
         </div>
       )}
 
       {/* Media */}
       {post.mediaAssets && post.mediaAssets.length > 0 && (
-        <MediaCarousel assets={post.mediaAssets} />
+        <div className="rounded-xl overflow-hidden">
+          <MediaCarousel assets={post.mediaAssets} />
+        </div>
       )}
 
-      {/* Action Bar */}
-      <div className="flex items-center justify-between pt-2 border-t border-border/50">
-        <div className="flex items-center gap-1 relative">
-          {/* Reaction Button */}
+      {/* Action Bar — Cultural Icons */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-0.5 relative">
+          {/* Leaf / Like Button */}
           <button
             onClick={handleLike}
             onMouseDown={startLongPress}
@@ -201,14 +222,14 @@ export function PostCard({ post }: PostCardProps) {
             onTouchStart={startLongPress}
             onTouchEnd={endLongPress}
             onContextMenu={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-muted transition-colors relative"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0EEF8] transition-colors"
           >
             {liked ? (
-              <span className="text-lg">{reactionEmoji[post.myReaction || 'LIKE']}</span>
+              <span className="text-base">{reactionEmoji[post.myReaction || 'LIKE']}</span>
             ) : (
-              <Heart className="w-5 h-5 text-muted-foreground" />
+              <LeafIcon size={20} className="text-[#9B8FC0]" />
             )}
-            <span className={cn('text-sm font-medium', liked && 'text-bondhu-red')}>
+            <span className={cn('text-[13px] font-medium', liked ? 'text-purple-600' : 'text-[#9B8FC0]')}>
               {localReactionCount}
             </span>
           </button>
@@ -223,34 +244,35 @@ export function PostCard({ post }: PostCardProps) {
             )}
           </AnimatePresence>
 
-          {/* Comment */}
+          {/* Tree / Comment Button */}
           <button
             onClick={() => router.push(`/p/${post.id}`)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-muted transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0EEF8] transition-colors"
           >
-            <MessageCircle className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">{post.commentCount}</span>
+            <TreeIcon size={20} className="text-[#9B8FC0]" />
+            <span className="text-[13px] font-medium text-[#9B8FC0]">{post.commentCount}</span>
           </button>
 
-          {/* Share */}
+          {/* Share Button */}
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-muted transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0EEF8] transition-colors"
           >
-            <Share2 className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">{post.shareCount}</span>
+            <ShareIcon size={20} className="text-[#9B8FC0]" />
+            <span className="text-[13px] font-medium text-[#9B8FC0]">{post.shareCount}</span>
           </button>
         </div>
 
         {/* Bookmark */}
         <button
           onClick={handleBookmark}
-          className="p-2 rounded-xl hover:bg-muted transition-colors"
+          className="p-2 rounded-xl hover:bg-[#F0EEF8] transition-colors"
         >
-          <Bookmark
+          <BookmarkIcon
+            size={20}
             className={cn(
-              'w-5 h-5 transition-colors',
-              bookmarked ? 'fill-bondhu-gold text-bondhu-gold' : 'text-muted-foreground',
+              'transition-colors',
+              bookmarked ? 'text-purple-500' : 'text-[#9B8FC0]',
             )}
           />
         </button>

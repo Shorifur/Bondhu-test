@@ -1,96 +1,110 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
-  Home, Compass, PlusCircle, MessageSquare, User,
-  Store, Briefcase, ShoppingBasket, Coffee, Trophy, CircleDot,
-} from 'lucide-react';
-import { useUIStore } from '@/stores/uiStore';
-import { cn } from '@/lib/utils';
+  HomeIcon,
+  ExploreIcon,
+  CreateIcon,
+  ProfileIcon,
+  MoreIcon,
+} from '@/components/ui/CulturalIcons';
+import MoreDrawer from './MoreDrawer';
 
-const navItems = [
-  { icon: Home, label: 'Home', href: '/' },
-  { icon: Compass, label: 'Explore', href: '/explore' },
-  { icon: PlusCircle, label: 'Create', href: '/create' },
-  { icon: MessageSquare, label: 'Chat', href: '/chat' },
-  { icon: User, label: 'Profile', href: '/profile' },
+const mainNavItems = [
+  { icon: HomeIcon, label: 'Home', href: '/' },
+  { icon: ExploreIcon, label: 'Explore', href: '/explore' },
+  { icon: CreateIcon, label: 'Create', href: '/create', isFab: true },
+  { icon: ProfileIcon, label: 'Profile', href: '/profile' },
+  { icon: MoreIcon, label: 'More', href: '#more', isMore: true },
 ];
 
-const moreItems = [
-  { icon: Store, label: 'Shop', href: '/shop' },
-  { icon: Briefcase, label: 'Jobs', href: '/jobs' },
-  { icon: ShoppingBasket, label: 'Bazaar', href: '/bazaar' },
-  { icon: Coffee, label: 'Adda', href: '/adda' },
-  { icon: CircleDot, label: 'Cricket', href: '/cricket' },
-  { icon: Trophy, label: 'Leaderboard', href: '/leaderboard' },
-];
-
-export function BottomNav() {
+export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { setBottomNavIndex } = useUIStore();
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const activeIndex = navItems.findIndex((item) => {
-    if (item.href === '/') return pathname === '/';
-    return pathname.startsWith(item.href);
-  });
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname?.startsWith(href);
+  };
 
-  // Check if any "more" item is active
-  const moreActive = moreItems.some((item) => pathname.startsWith(item.href));
+  const handleClick = (item: typeof mainNavItems[0]) => {
+    if (item.isMore) {
+      setMoreOpen(true);
+      return;
+    }
+    if (item.href) {
+      router.push(item.href);
+    }
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t safe-bottom">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="flex items-center justify-around h-16">
-          {navItems.map((item, index) => {
-            const isActive = activeIndex === index;
-            return (
-              <button
-                key={item.href}
-                onClick={() => {
-                  setBottomNavIndex(index);
-                  router.push(item.href);
-                }}
-                className={cn(
-                  'relative flex flex-col items-center gap-1 p-2 rounded-xl transition-colors',
-                  isActive ? 'text-bondhu-green' : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <item.icon className={cn('w-6 h-6', isActive && 'stroke-[2.5]')} />
-                <span className="text-[10px] font-medium">{item.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="bottom-nav-indicator"
-                    className="absolute -bottom-2 w-1 h-1 rounded-full bg-bondhu-green"
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-[#E8E4F5] bottom-nav-shadow safe-bottom">
+        <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-2">
+          {mainNavItems.map((item) => {
+            const active = isActive(item.href);
 
-        {/* Secondary quick access bar for Bangladesh features */}
-        <div className="flex items-center justify-around pb-2 -mt-1">
-          {moreItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            if (item.isFab) {
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => handleClick(item)}
+                  className="relative -mt-6 flex flex-col items-center"
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={cn(
+                      'w-14 h-14 rounded-full flex items-center justify-center shadow-lg',
+                      active
+                        ? 'bondhu-gradient-purple text-white'
+                        : 'bg-gradient-to-br from-purple-400 to-teal-300 text-white'
+                    )}
+                  >
+                    <item.icon size={24} />
+                  </motion.div>
+                  <span className={cn(
+                    'text-[10px] mt-0.5 font-medium',
+                    active ? 'text-purple-600' : 'text-[#9B8FC0]'
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
+
             return (
               <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  'flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors',
-                  isActive ? 'text-bondhu-green' : 'text-muted-foreground/60 hover:text-muted-foreground',
-                )}
+                key={item.label}
+                onClick={() => handleClick(item)}
+                className="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-full"
               >
-                <item.icon className="w-4 h-4" />
-                <span className="text-[9px] font-medium">{item.label}</span>
+                <item.icon
+                  size={22}
+                  className={cn(
+                    'transition-colors',
+                    active ? 'text-purple-600' : 'text-[#9B8FC0]'
+                  )}
+                />
+                <span
+                  className={cn(
+                    'text-[10px] font-medium transition-colors',
+                    active ? 'text-purple-600' : 'text-[#9B8FC0]'
+                  )}
+                >
+                  {item.label}
+                </span>
               </button>
             );
           })}
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* More drawer */}
+      <MoreDrawer isOpen={moreOpen} onClose={() => setMoreOpen(false)} />
+    </>
   );
 }
