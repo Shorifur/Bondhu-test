@@ -168,10 +168,10 @@ export default function CommunityDetailPage() {
 
   const isMember = !!community.myRole;
   const canJoin = !isMember && community.joinType === 'OPEN';
-  const isAdmin = community.myRole === 'OWNER' || community.myRole === 'ADMIN';
-  const isOwner = community.myRole === 'OWNER';
-  const isModerator = community.myRole === 'MODERATOR';
-  const isSecretary = community.myRole === 'SECRETARY';
+  const isAdmin = (community.myRole as string) === 'OWNER' || (community.myRole as string) === 'ADMIN';
+  const isOwner = (community.myRole as string) === 'OWNER';
+  const isModerator = (community.myRole as string) === 'MODERATOR';
+  const isSecretary = (community.myRole as string) === 'SECRETARY';
   const canManage = isAdmin || isModerator || isSecretary;
   const district = getDistrictById(community.districtId || 0);
 

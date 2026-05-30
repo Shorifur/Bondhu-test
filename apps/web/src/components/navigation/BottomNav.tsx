@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Home, Compass, PlusCircle, MessageSquare, User,
-  Store, Briefcase, ShoppingBasket, Coffee, Trophy,
+  Store, Briefcase, ShoppingBasket, Coffee, Trophy, CircleDot,
 } from 'lucide-react';
 import { useUIStore } from '@/stores/uiStore';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ const moreItems = [
   { icon: Briefcase, label: 'Jobs', href: '/jobs' },
   { icon: ShoppingBasket, label: 'Bazaar', href: '/bazaar' },
   { icon: Coffee, label: 'Adda', href: '/adda' },
+  { icon: CircleDot, label: 'Cricket', href: '/cricket' },
   { icon: Trophy, label: 'Leaderboard', href: '/leaderboard' },
 ];
 

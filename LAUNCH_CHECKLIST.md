@@ -155,7 +155,11 @@
 - `apps/web/src/app/(main)/create/page.tsx` — Unique UI per post mode
 - `apps/web/src/app/(main)/p/[id]/page.tsx` — Full comments with nested replies, likes, delete
 - `apps/web/src/app/(main)/explore/page.tsx` — Real-time search, recent searches, trending, tabs
-- `apps/web/src/app/(main)/communities/[slug]/page.tsx` — Role badges, rules/members/posts tabs, manage panel
+- `apps/web/src/app/(main)/communities/[slug]/page.tsx` — Role badges, rules/members/posts tabs, manage panel, type cast fix for SECRETARY
+- `apps/web/src/app/(main)/stories/[id]/page.tsx` — Added heart reaction button + reply input with auto-pause
+- `apps/web/src/components/feed/PostCard.tsx` — Added Bengali date display, rumor flag warning banner (5+ flags)
+- `apps/web/src/app/(main)/settings/page.tsx` — Added SOS Emergency modal + Trusted Contacts management, language switcher fix
+- `apps/web/src/components/navigation/BottomNav.tsx` — Added Cricket to secondary quick access bar
 
 ---
 
@@ -163,7 +167,7 @@
 1. **Adda real-time chat** — Rooms are stored in Redis but the actual WebSocket message relay for adda rooms is not wired to a dedicated chat UI yet. The page shows rooms and reactions but a full chatroom component would need additional WebSocket event handlers.
 2. **Cricket live scores** — The score widget is a mock UI. For production, embed Cricbuzz or use a cricket API (e.g., CricAPI) and connect to real match data.
 3. **Festival themes** — The festival config exists but the automatic theme application across the app is not globally wired (can be added via a context/provider that reads `getActiveFestival()`).
-4. **Bengali date on posts** — The `toBanglaDate()` utility is created but not yet integrated into `PostCard` / feed components. Add `<span>{toBanglaDate(post.createdAt)}</span>` next to the English date.
+4. ~~**Bengali date on posts** — FIXED: `toBengaliDate()` now integrated into `PostCard` with `font-bangla` class below English timestamp.~~ ✅
 5. **SMS OTP** — Currently uses a dev bypass. See deployment section below.
 6. **File storage** — Media uploads use mock CDN URLs. See deployment section below.
 7. **Shop follow button** — UI exists but backend follow logic for shops is not implemented (can be added similarly to user follows).

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, User, Shield, Bell, Eye, Moon, Type, Palette,
   Globe, Lock, HelpCircle, LogOut, ChevronRight, Fingerprint,
-  X, Check, Plus, Trash2,
+  X, Check, Plus, Trash2, AlertTriangle, Phone, MapPin,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -26,6 +26,11 @@ export default function SettingsPage() {
   const [newHashtag, setNewHashtag] = useState('');
   const [loading, setLoading] = useState(false);
   const [savingDisplay, setSavingDisplay] = useState(false);
+  const [sendingSOS, setSendingSOS] = useState(false);
+  const [trustedContacts, setTrustedContacts] = useState<{contactName: string; contactPhone: string; relationship?: string}[]>([]);
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactRelation, setNewContactRelation] = useState('');
 
   useEffect(() => {
     // Apply high contrast class to document
@@ -69,6 +74,8 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (lang: typeof language) => {
     setLanguage(lang);
+    // Set HTML lang attribute immediately
+    document.documentElement.lang = lang === 'en' ? 'en' : 'bn';
     saveDisplaySettings({ language: langMap[lang] });
   };
 
@@ -115,6 +122,58 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSendSOS = async () => {
+    setSendingSOS(true);
+    try {
+      // Get GPS location
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
+      });
+      const { latitude, longitude } = position.coords;
+      await api.post('sos', {
+        latitude,
+        longitude,
+        locationName: '',
+      });
+      addToast('SOS alert sent! Your trusted contacts have been notified.', 'success');
+    } catch (err: any) {
+      // Send without location if GPS fails
+      try {
+        await api.post('sos', {});
+        addToast('SOS alert sent! (Location unavailable)', 'success');
+      } catch {
+        addToast('Failed to send SOS alert', 'error');
+      }
+    } finally {
+      setSendingSOS(false);
+    }
+  };
+
+  const addTrustedContact = async () => {
+    if (!newContactName.trim() || !newContactPhone.trim()) return;
+    setLoading(true);
+    try {
+      await api.post('users/me/trusted-contacts', {
+        contactName: newContactName.trim(),
+        contactPhone: newContactPhone.trim(),
+        relationship: newContactRelation.trim() || undefined,
+      });
+      setTrustedContacts((prev) => [...prev, {
+        contactName: newContactName.trim(),
+        contactPhone: newContactPhone.trim(),
+        relationship: newContactRelation.trim(),
+      }]);
+      setNewContactName('');
+      setNewContactPhone('');
+      setNewContactRelation('');
+      addToast('Trusted contact added', 'success');
+    } catch {
+      addToast('Failed to add contact', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sections = [
     {
       id: 'profile',
@@ -134,6 +193,26 @@ export default function SettingsPage() {
         { label: 'NID Verification', labelBn: 'জাতীয় পরিচয়পত্র যাচাই', icon: Fingerprint, action: () => alert('NID verification requires document upload (coming soon)') },
         { label: 'Passport', labelBn: 'পাসপোর্ট', action: () => alert('Passport verification requires document upload (coming soon)') },
         { label: 'SME Trade License', labelBn: 'ব্যবসায়িক লাইসেন্স', action: () => alert('SME verification requires document upload (coming soon)') },
+      ],
+    },
+    {
+      id: 'safety',
+      title: 'Safety & Emergency',
+      icon: AlertTriangle,
+      items: [
+        {
+          label: 'Send SOS Alert',
+          labelBn: 'জরুরী সাহায্য',
+          icon: Phone,
+          action: () => setActiveModal('sos'),
+          danger: true,
+        },
+        {
+          label: 'Trusted Contacts',
+          labelBn: 'বিশ্বস্ত পরিচিতজন',
+          icon: MapPin,
+          action: () => setActiveModal('trusted-contacts'),
+        },
       ],
     },
     {
@@ -293,16 +372,19 @@ export default function SettingsPage() {
                 ) : (
                   <button
                     onClick={item.action}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+                    className={cn(
+                      "w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left",
+                      (item as any).danger && "hover:bg-red-50"
+                    )}
                   >
                     <div className="flex items-center gap-3">
-                      {item.icon && <item.icon className="w-4 h-4 text-muted-foreground" />}
+                      {item.icon && <item.icon className={cn("w-4 h-4", (item as any).danger ? "text-red-500" : "text-muted-foreground")} />}
                       <div>
-                        <p className="font-medium text-sm">{item.label}</p>
+                        <p className={cn("font-medium text-sm", (item as any).danger && "text-red-600")}>{item.label}</p>
                         <p className="text-xs text-muted-foreground font-bangla">{item.labelBn}</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className={cn("w-4 h-4", (item as any).danger ? "text-red-400" : "text-muted-foreground")} />
                   </button>
                 )}
               </motion.div>
@@ -326,62 +408,171 @@ export default function SettingsPage() {
               animate={{ y: 0 }}
               exit={{ y: 100 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-background w-full max-w-md rounded-2xl p-6 space-y-4"
+              className="bg-background w-full max-w-md rounded-2xl p-6 space-y-4 max-h-[80vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold">
-                  {activeModal === 'blocked-words' ? 'Blocked Words' : 'Blocked Hashtags'}
-                </h3>
-                <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-muted rounded-full">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+              {/* SOS Alert Modal */}
+              {activeModal === 'sos' && (
+                <>
+                  <div className="text-center space-y-3">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                      <AlertTriangle className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-red-600">Emergency SOS</h3>
+                    <p className="text-sm text-muted-foreground font-bangla">
+                      জরুরী সাহায্যের প্রয়োজন? আপনার বিশ্বস্ত পরিচিতজনদের আপনার অবস্থান জানানো হবে।
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      This will send your GPS location to your trusted contacts for 1 hour.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSendSOS}
+                    disabled={sendingSOS}
+                    className="w-full py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {sendingSOS ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Phone className="w-5 h-5" />
+                        SEND SOS ALERT
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setActiveModal(null)}
+                    className="w-full py-3 bg-muted rounded-xl text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
 
-              <div className="flex gap-2">
-                <input
-                  value={activeModal === 'blocked-words' ? newWord : newHashtag}
-                  onChange={(e) => activeModal === 'blocked-words' ? setNewWord(e.target.value) : setNewHashtag(e.target.value)}
-                  placeholder={activeModal === 'blocked-words' ? 'Add a word...' : 'Add a hashtag...'}
-                  className="flex-1 px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      activeModal === 'blocked-words' ? addBlockedWord() : addBlockedHashtag();
-                    }
-                  }}
-                />
-                <button
-                  onClick={activeModal === 'blocked-words' ? addBlockedWord : addBlockedHashtag}
-                  disabled={loading}
-                  className="px-3 py-2 bg-bondhu-green text-white rounded-xl hover:bg-bondhu-green-dark transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).map((item) => (
-                  <div key={item} className="flex items-center justify-between px-3 py-2 bg-card rounded-xl">
-                    <span className="text-sm">{item}</span>
-                    <button
-                      onClick={() => {
-                        if (activeModal === 'blocked-words') {
-                          setBlockedWords((prev) => prev.filter((w) => w !== item));
-                        } else {
-                          setBlockedHashtags((prev) => prev.filter((h) => h !== item));
-                        }
-                      }}
-                      className="p-1 hover:bg-destructive/10 text-destructive rounded-lg"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
+              {/* Trusted Contacts Modal */}
+              {activeModal === 'trusted-contacts' && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">Trusted Contacts</h3>
+                    <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-muted rounded-full">
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
-                ))}
-                {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No {activeModal === 'blocked-words' ? 'blocked words' : 'blocked hashtags'} yet
+                  <p className="text-xs text-muted-foreground font-bangla">
+                    বিশ্বস্ত পরিচিতজন যোগ করুন - তারা SOS অ্যালার্ট পাবেন
                   </p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <input
+                      value={newContactName}
+                      onChange={(e) => setNewContactName(e.target.value)}
+                      placeholder="Contact Name"
+                      className="w-full px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
+                    />
+                    <input
+                      value={newContactPhone}
+                      onChange={(e) => setNewContactPhone(e.target.value)}
+                      placeholder="Phone Number"
+                      className="w-full px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
+                    />
+                    <input
+                      value={newContactRelation}
+                      onChange={(e) => setNewContactRelation(e.target.value)}
+                      placeholder="Relationship (optional)"
+                      className="w-full px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
+                    />
+                    <button
+                      onClick={addTrustedContact}
+                      disabled={!newContactName.trim() || !newContactPhone.trim() || loading}
+                      className="w-full py-2 bg-bondhu-green text-white rounded-xl text-sm font-medium disabled:bg-muted disabled:text-muted-foreground"
+                    >
+                      {loading ? 'Adding...' : 'Add Contact'}
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {trustedContacts.map((contact, i) => (
+                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-card rounded-xl">
+                        <div>
+                          <p className="text-sm font-medium">{contact.contactName}</p>
+                          <p className="text-xs text-muted-foreground">{contact.contactPhone}</p>
+                          {contact.relationship && (
+                            <p className="text-xs text-muted-foreground">{contact.relationship}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setTrustedContacts((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="p-1 hover:bg-destructive/10 text-destructive rounded-lg"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {trustedContacts.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No trusted contacts yet
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Blocked Words / Hashtags Modal */}
+              {(activeModal === 'blocked-words' || activeModal === 'blocked-hashtags') && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">
+                      {activeModal === 'blocked-words' ? 'Blocked Words' : 'Blocked Hashtags'}
+                    </h3>
+                    <button onClick={() => setActiveModal(null)} className="p-1 hover:bg-muted rounded-full">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      value={activeModal === 'blocked-words' ? newWord : newHashtag}
+                      onChange={(e) => activeModal === 'blocked-words' ? setNewWord(e.target.value) : setNewHashtag(e.target.value)}
+                      placeholder={activeModal === 'blocked-words' ? 'Add a word...' : 'Add a hashtag...'}
+                      className="flex-1 px-3 py-2 bg-card border rounded-xl text-sm focus:outline-none focus:border-bondhu-green"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          activeModal === 'blocked-words' ? addBlockedWord() : addBlockedHashtag();
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={activeModal === 'blocked-words' ? addBlockedWord : addBlockedHashtag}
+                      disabled={loading}
+                      className="px-3 py-2 bg-bondhu-green text-white rounded-xl hover:bg-bondhu-green-dark transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).map((item) => (
+                      <div key={item} className="flex items-center justify-between px-3 py-2 bg-card rounded-xl">
+                        <span className="text-sm">{item}</span>
+                        <button
+                          onClick={() => {
+                            if (activeModal === 'blocked-words') {
+                              setBlockedWords((prev) => prev.filter((w) => w !== item));
+                            } else {
+                              setBlockedHashtags((prev) => prev.filter((h) => h !== item));
+                            }
+                          }}
+                          className="p-1 hover:bg-destructive/10 text-destructive rounded-lg"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {(activeModal === 'blocked-words' ? blockedWords : blockedHashtags).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No {activeModal === 'blocked-words' ? 'blocked words' : 'blocked hashtags'} yet
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

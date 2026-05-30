@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import { useFeedStore } from '@/stores/feedStore';
 import { useUIStore } from '@/stores/uiStore';
 import { formatTimeAgo, cn } from '@/lib/utils';
+import { toBengaliDate } from '@/lib/bengali-date';
 import type { Post, ReactionType } from '@bondhu/shared-types';
 import { MediaCarousel } from './MediaCarousel';
 import { ReactionPicker } from './ReactionPicker';
@@ -131,23 +132,43 @@ export function PostCard({ post }: PostCardProps) {
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            {post.visibility === 'PUBLIC' && (
-              <span title="সকলের জন্য - Public"><Globe className="w-3 h-3" /></span>
-            )}
-            {post.visibility === 'FOLLOWERS' && (
-              <span title="অনুসারীদের জন্য - Followers"><Users className="w-3 h-3" /></span>
-            )}
-            {post.visibility === 'PRIVATE' && (
-              <span title="ব্যক্তিগত - Private"><Lock className="w-3 h-3" /></span>
-            )}
-            {formatTimeAgo(post.createdAt, 'bn')}
-          </span>
+          <div className="flex flex-col items-end">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              {post.visibility === 'PUBLIC' && (
+                <span title="সকলের জন্য - Public"><Globe className="w-3 h-3" /></span>
+              )}
+              {post.visibility === 'FOLLOWERS' && (
+                <span title="অনুসারীদের জন্য - Followers"><Users className="w-3 h-3" /></span>
+              )}
+              {post.visibility === 'PRIVATE' && (
+                <span title="ব্যক্তিগত - Private"><Lock className="w-3 h-3" /></span>
+              )}
+              {formatTimeAgo(post.createdAt, 'bn')}
+            </span>
+            <span className="text-[10px] text-muted-foreground/60 font-bangla">
+              {toBengaliDate(post.createdAt).formatted}
+            </span>
+          </div>
           <button onClick={handleMenu} className="p-1.5 hover:bg-muted rounded-full transition-colors">
             <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
       </div>
+
+      {/* Rumor Flag Warning */}
+      {(post as any).rumorFlags >= 5 && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl">
+          <span className="text-lg">⚠️</span>
+          <div>
+            <p className="text-xs font-medium text-yellow-800 font-bangla">
+              এই পোস্টটি যাচাই করা হয়নি
+            </p>
+            <p className="text-[10px] text-yellow-600">
+              This post is unverified
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       {post.content && (

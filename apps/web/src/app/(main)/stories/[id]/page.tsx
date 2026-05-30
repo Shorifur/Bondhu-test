@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Heart, Send } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatTimeAgo } from '@/lib/utils';
 
@@ -27,6 +27,8 @@ export default function StoryViewerPage() {
   const storyId = params.id as string;
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [liked, setLiked] = useState(false);
   const progressRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
@@ -52,6 +54,18 @@ export default function StoryViewerPage() {
   const markViewed = useMutation({
     mutationFn: async () => {
       await api.post(`stories/${storyId}/view`, {});
+    },
+  });
+
+  const sendReply = useMutation({
+    mutationFn: async (text: string) => {
+      await api.post(`stories/${storyId}/reply`, { content: text });
+    },
+  });
+
+  const sendReaction = useMutation({
+    mutationFn: async () => {
+      await api.post(`stories/${storyId}/react`, { type: 'LOVE' });
     },
   });
 
@@ -111,6 +125,18 @@ export default function StoryViewerPage() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [paused, currentStory, goNext]);
 
+  const handleLike = () => {
+    setLiked(true);
+    sendReaction.mutate();
+    setTimeout(() => setLiked(false), 1000);
+  };
+
+  const handleReply = () => {
+    if (!replyText.trim()) return;
+    sendReply.mutate(replyText.trim());
+    setReplyText('');
+  };
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
@@ -134,13 +160,7 @@ export default function StoryViewerPage() {
   const hasImageBg = media?.type === 'IMAGE' || media?.type === 'image';
 
   return (
-    <div
-      className="fixed inset-0 bg-black z-50 flex flex-col"
-      onTouchStart={() => setPaused(true)}
-      onTouchEnd={() => setPaused(false)}
-      onMouseDown={() => setPaused(true)}
-      onMouseUp={() => setPaused(false)}
-    >
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Progress Bar */}
       <div className="absolute top-0 left-0 right-0 z-20 px-2 pt-12 pb-2 flex gap-1">
         <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
@@ -175,7 +195,13 @@ export default function StoryViewerPage() {
       </div>
 
       {/* Story Content */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+      <div
+        className="flex-1 relative flex items-center justify-center overflow-hidden"
+        onTouchStart={() => setPaused(true)}
+        onTouchEnd={() => setPaused(false)}
+        onMouseDown={() => setPaused(true)}
+        onMouseUp={() => setPaused(false)}
+      >
         {hasImageBg && (
           <img
             src={media.url}
@@ -212,6 +238,43 @@ export default function StoryViewerPage() {
           <button onClick={goPrev} className="w-1/3 h-full" />
           <div className="w-1/3 h-full" />
           <button onClick={goNext} className="w-1/3 h-full" />
+        </div>
+      </div>
+
+      {/* Bottom Bar - Heart Reaction + Reply */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-8 bg-gradient-to-t from-black/60 to-transparent">
+        {/* Heart Animation */}
+        <motion.button
+          onClick={handleLike}
+          className="absolute right-4 bottom-24 p-3 rounded-full bg-black/30 backdrop-blur-sm"
+          whileTap={{ scale: 0.8 }}
+        >
+          <Heart
+            className={`w-7 h-7 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-white'}`}
+          />
+        </motion.button>
+
+        {/* Reply Input */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            onFocus={() => setPaused(true)}
+            onBlur={() => setPaused(false)}
+            placeholder="Reply to story..."
+            className="flex-1 px-4 py-3 bg-white/20 backdrop-blur-sm rounded-full text-white placeholder:text-white/60 text-sm focus:outline-none focus:bg-white/30 transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleReply();
+            }}
+          />
+          <button
+            onClick={handleReply}
+            disabled={!replyText.trim()}
+            className={`p-3 rounded-full transition-colors ${replyText.trim() ? 'bg-bondhu-green text-white' : 'bg-white/20 text-white/60'}`}
+          >
+            <Send className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
