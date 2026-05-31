@@ -22,7 +22,7 @@ import {
 const navItems = [
   { icon: HomeIcon, label: 'Home', labelBn: 'হোম', href: '/' },
   { icon: ExploreIcon, label: 'Explore', labelBn: 'অন্বেষণ', href: '/explore' },
-  { icon: CreateIcon, label: 'Create', labelBn: 'তৈরি', href: '/create', isAction: true },
+  { icon: CreateIcon, label: 'Create', labelBn: 'তৈরি', href: '/create' },
   { icon: ProfileIcon, label: 'Profile', labelBn: 'প্রোফাইল', href: '/profile' },
   { icon: null, label: '', href: '', isDivider: true },
   { icon: ShopIcon, label: 'Shop', labelBn: 'দোকান', href: '/shop' },
@@ -78,29 +78,6 @@ export function DesktopSidebar() {
         {navItems.map((item, index) => {
           if (item.isDivider) {
             return <div key={`divider-${index}`} className="my-2 border-t border-[#DDD6F3]/50 mx-3" />;
-          }
-
-          if (item.isAction) {
-            const isActive = pathname === item.href;
-            return (
-              <button
-                key={item.label}
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all active:scale-[0.98] my-1',
-                  isActive
-                    ? 'text-white'
-                    : 'text-[#3D2B6B] bg-white border border-[#DDD6F3] hover:bg-[#F5F2FF]'
-                )}
-                style={isActive ? { background: 'linear-gradient(135deg, #5B21B6, #0D9488)' } : undefined}
-              >
-                <item.icon size={20} className={isActive ? 'text-white' : 'text-[#5B21B6]'} />
-                <div>
-                  <span className="text-[14px]">{item.label}</span>
-                  <span className={cn('block text-[10px] font-bangla -mt-0.5', isActive ? 'opacity-80' : 'text-[#6B5E8A]')}>{item.labelBn}</span>
-                </div>
-              </button>
-            );
           }
 
           const isActive = pathname === item.href;
