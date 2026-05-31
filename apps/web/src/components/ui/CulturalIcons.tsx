@@ -82,6 +82,22 @@ export function LeafIcon({ className, size = 22 }: IconProps) {
   );
 }
 
+/* ─────────── HeaderTree — Decorative banyan tree for post header ─────────── */
+export function HeaderTreeIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22V12" />
+      <path d="M12 12c-1.5-3-4.5-5-8-5" />
+      <path d="M12 12c1.5-3 4.5-5 8-5" />
+      <path d="M12 8c-1-2.5-3-4.5-6-5" />
+      <path d="M12 8c1-2.5 3-4.5 6-5" />
+      <path d="M12 16c-2-1.5-5-2-8-1" />
+      <path d="M12 16c2-1.5 5-2 8-1" />
+      <path d="M10 22h4" />
+    </svg>
+  );
+}
+
 /* ─────────── Comment — Banyan tree / বটগাছ ─────────── */
 export function TreeIcon({ className, size = 22 }: IconProps) {
   return (
