@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
-import { JobCategory } from '@prisma/client';
+import { JobCategory, JobType } from '@prisma/client';
 import type { CreateJobDto } from './dto/jobs.dto';
 
 @Injectable()
@@ -19,6 +19,7 @@ export class JobsService {
         salaryMax: dto.salaryMax,
         description: dto.description,
         requirements: dto.requirements,
+        type: dto.type,
         category: dto.category,
         contactInfo: dto.contactInfo,
         applicationDeadline: dto.applicationDeadline ? new Date(dto.applicationDeadline) : undefined,
@@ -28,10 +29,11 @@ export class JobsService {
     return { data: job };
   }
 
-  async findAll(districtId?: number, category?: string, page = 1, limit = 20) {
+  async findAll(districtId?: number, category?: string, type?: string, page = 1, limit = 20) {
     const where: Record<string, unknown> = { isActive: true };
     if (districtId) where.districtId = districtId;
     if (category) where.category = category as JobCategory;
+    if (type) where.type = type as JobType;
 
     const [jobs, total] = await Promise.all([
       this.prisma.job.findMany({
@@ -44,6 +46,20 @@ export class JobsService {
       this.prisma.job.count({ where }),
     ]);
 
+    return { data: jobs, meta: { page, limit, total } };
+  }
+
+  async findByPoster(userId: string, page = 1, limit = 20) {
+    const [jobs, total] = await Promise.all([
+      this.prisma.job.findMany({
+        where: { posterId: userId },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { poster: { include: { profile: true } }, district: true },
+      }),
+      this.prisma.job.count({ where: { posterId: userId } }),
+    ]);
     return { data: jobs, meta: { page, limit, total } };
   }
 

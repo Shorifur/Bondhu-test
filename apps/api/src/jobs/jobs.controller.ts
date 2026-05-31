@@ -22,20 +22,33 @@ export class JobsController {
   @ApiOperation({ summary: 'List jobs' })
   @ApiQuery({ name: 'districtId', required: false })
   @ApiQuery({ name: 'category', required: false })
+  @ApiQuery({ name: 'type', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async findAll(
     @Query('districtId') districtId?: string,
     @Query('category') category?: string,
+    @Query('type') type?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.jobsService.findAll(
       districtId ? Number(districtId) : undefined,
       category,
+      type,
       Number(page) || 1,
       Number(limit) || 20,
     );
+  }
+
+  @Get('my-posts')
+  @ApiOperation({ summary: 'Get jobs posted by current user' })
+  async findMyPosts(
+    @CurrentUser('id') userId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.jobsService.findByPoster(userId, Number(page) || 1, Number(limit) || 20);
   }
 
   @Get(':id')

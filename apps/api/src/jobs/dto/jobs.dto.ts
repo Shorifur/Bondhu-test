@@ -1,9 +1,13 @@
 import { IsString, IsOptional, IsEnum, IsInt, IsNumber, Min, IsBoolean, IsDateString } from 'class-validator';
-import { JobCategory } from '@prisma/client';
+import { JobCategory, JobType } from '@prisma/client';
 
 export class CreateJobDto {
   @IsString()
   title: string;
+
+  @IsOptional()
+  @IsString()
+  titleBn?: string;
 
   @IsOptional()
   @IsString()
@@ -34,6 +38,9 @@ export class CreateJobDto {
   @IsString()
   requirements?: string;
 
+  @IsEnum(JobType)
+  type: JobType;
+
   @IsEnum(JobCategory)
   category: JobCategory;
 
@@ -54,6 +61,10 @@ export class JobFilterDto {
   @IsOptional()
   @IsEnum(JobCategory)
   category?: JobCategory;
+
+  @IsOptional()
+  @IsEnum(JobType)
+  type?: JobType;
 
   @IsOptional()
   @IsBoolean()
