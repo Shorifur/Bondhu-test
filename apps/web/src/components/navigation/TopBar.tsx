@@ -15,14 +15,15 @@ export function TopBar() {
     queryKey: ['unread-notifications', user?.id],
     queryFn: async () => {
       try {
-        const res = await api.get('notifications/unread-count');
+        const res = await api.get('notifications/unread-count', { silent: true } as any);
         return (res.data as any)?.count || 0;
       } catch {
-        return 0;
+        return 0; // Silently fail — backend may not have this route
       }
     },
     enabled: !!user?.id,
-    refetchInterval: 30000,
+    refetchInterval: 60000, // Check every minute
+    retry: false, // Don't retry on failure
   });
 
   return (

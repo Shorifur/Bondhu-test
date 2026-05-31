@@ -33,11 +33,12 @@ class ApiClient {
     return this.token;
   }
 
-  private async request<T>(method: string, path: string, body?: unknown, opts?: RequestInit): Promise<ApiResponse<T>> {
+  private async request<T>(method: string, path: string, body?: unknown, opts?: RequestInit & { silent?: boolean }): Promise<ApiResponse<T>> {
+    const { silent, ...fetchOpts } = opts || {};
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      ...((opts?.headers as Record<string, string>) || {}),
+      ...((fetchOpts?.headers as Record<string, string>) || {}),
     };
 
     const token = this.getToken();
@@ -48,8 +49,13 @@ class ApiClient {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      ...opts,
+      ...fetchOpts,
     });
+
+    // Silent mode: return empty success on 404 (backend route not ready)
+    if (silent && res.status === 404) {
+      return { success: true, data: null as T };
+    }
 
     const data = await res.json().catch(() => ({ success: false, error: { code: 'PARSE_ERROR', message: 'Invalid JSON' } }));
 
