@@ -6,20 +6,73 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   MapPin, Link2, Settings, FileText, Bookmark, Check, X, Camera, Loader2,
-  Calendar, Share2, Image, ShoppingBag, Briefcase, TrendingUp, Award, Phone,
-  Lock, Globe, LogOut,
+  Calendar, Share2, Image, ShoppingBag, Briefcase, Lock, Globe, Phone,
+  User, Heart, MessageCircle, Eye, Award,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { postService } from '@/services/post.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { formatNumber, cn } from '@/lib/utils';
-import { InlineCommentSection } from '@/components/feed/InlineCommentSection';
+import { PostCard } from '@/components/feed/PostCard';
 import type { UserProfile, Post } from '@bondhu/shared-types';
+
+// ── Privacy Toggle Switch ──
+function PrivacyToggle({ isPrivate, onToggle, isPending }: {
+  isPrivate: boolean; onToggle: () => void; isPending: boolean;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      disabled={isPending}
+      className={cn(
+        'relative flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border transition-all',
+        isPrivate
+          ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
+          : 'bg-[#E1F5EE] text-[#0F6E56] border-[#0D9488]/20 hover:bg-[#D1EDE5]'
+      )}
+    >
+      {isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+      {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+      <span className="font-bangla">{isPrivate ? 'প্রাইভেট' : 'পাবলিক'}</span>
+    </button>
+  );
+}
+
+// ── Stat Card ──
+function StatCard({ icon: Icon, label, labelBn, value, color }: {
+  icon: typeof Heart; label: string; labelBn: string; value: string | number; color: string;
+}) {
+  return (
+    <div className="glass-card p-3 text-center">
+      <Icon className="w-4 h-4 mx-auto mb-1" style={{ color }} />
+      <p className="text-lg font-extrabold" style={{ color }}>{value}</p>
+      <p className="text-[10px] text-[#6B5E8A] font-medium font-bangla">{labelBn}</p>
+    </div>
+  );
+}
+
+// ── Empty State ──
+function EmptyState({ icon, text, textEn, cta, href, router }: {
+  icon: string; text: string; textEn: string; cta?: string; href?: string; router: any;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <span className="text-5xl">{icon}</span>
+      <p className="text-[#6B5E8A] text-sm font-medium font-bangla">{text}</p>
+      <p className="text-[#9B8FC0] text-xs">{textEn}</p>
+      {cta && href && (
+        <button onClick={() => router.push(href)} className="px-5 py-2.5 bondhu-gradient text-white text-sm font-semibold rounded-xl shadow-md font-bangla">
+          {cta}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, setUser, logout } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const queryClient = useQueryClient();
   const { openSheet, addToast } = useUIStore();
   const [editingBio, setEditingBio] = useState(false);
@@ -27,8 +80,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'saved' | 'shop' | 'jobs'>('posts');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
-  const [expandedTextPostIds, setExpandedTextPostIds] = useState<Set<string>>(new Set());
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,13 +96,24 @@ export default function ProfilePage() {
     enabled: !!user?.profile?.handle,
   });
 
+  // Posts query — feed into PostCard for working interactions
   const { data: userPosts, isLoading: postsLoading } = useQuery({
     queryKey: ['user-posts', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       const res = await postService.getUserPosts(user.id, 1, 50);
       const raw = res.data as any;
-      return Array.isArray(raw) ? raw : raw?.data ?? [];
+      const posts = Array.isArray(raw) ? raw : raw?.data ?? [];
+      // Normalize: ensure every post has a user object
+      return posts.map((p: Post) => ({
+        ...p,
+        user: p.user || {
+          id: user.id,
+          displayName: user.profile?.displayName || 'User',
+          handle: user.profile?.handle || 'user',
+          avatarUrl: user.profile?.avatarUrl || null,
+        },
+      }));
     },
     enabled: !!user?.id,
   });
@@ -64,7 +126,7 @@ export default function ProfilePage() {
       const raw = res.data as any;
       return Array.isArray(raw) ? raw : raw?.data ?? [];
     },
-    enabled: !!user?.id && (activeTab === 'saved' || activeTab === 'media'),
+    enabled: !!user?.id && activeTab === 'saved',
   });
 
   const { data: pointsData } = useQuery({
@@ -78,28 +140,19 @@ export default function ProfilePage() {
 
   const { data: myShop } = useQuery({
     queryKey: ['my-shop', user?.id],
-    queryFn: async () => {
-      const res = await api.get('shops/mine');
-      return (res.data as any) || null;
-    },
+    queryFn: async () => { const res = await api.get('shops/mine'); return (res.data as any) || null; },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myShopProducts } = useQuery({
     queryKey: ['my-shop-products', user?.id],
-    queryFn: async () => {
-      const res = await api.get('marketplace/my-items');
-      return (res.data as any)?.data || [];
-    },
+    queryFn: async () => { const res = await api.get('marketplace/my-items'); return (res.data as any)?.data || []; },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myJobs } = useQuery({
     queryKey: ['my-jobs', user?.id],
-    queryFn: async () => {
-      const res = await api.get('jobs/my-posts');
-      return (res.data as any)?.data || [];
-    },
+    queryFn: async () => { const res = await api.get('jobs/my-posts'); return (res.data as any)?.data || []; },
     enabled: !!user?.id && activeTab === 'jobs',
   });
 
@@ -107,28 +160,15 @@ export default function ProfilePage() {
   //  MUTATIONS
   // ═══════════════════════════════════════════════════════════
   const updateBio = useMutation({
-    mutationFn: async (bio: string) => {
-      const res = await api.patch('users/me', { bio });
-      return res.data;
-    },
-    onSuccess: (data) => {
+    mutationFn: async (bio: string) => { const res = await api.patch('users/me', { bio }); return res.data; },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-      if (user) {
-        setUser({
-          ...user,
-          profile: user.profile ? ({ ...user.profile, ...(data as any) } as any) : null,
-        });
-      }
       setEditingBio(false);
     },
   });
 
-  // Private/Public toggle mutation
   const togglePrivacy = useMutation({
-    mutationFn: async (isPrivate: boolean) => {
-      const res = await api.patch('users/me', { isPrivate });
-      return res.data;
-    },
+    mutationFn: async (isPrivate: boolean) => { const res = await api.patch('users/me', { isPrivate }); return res.data; },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       addToast('প্রাইভেসি সেটিংস আপডেট হয়েছে', 'success');
@@ -147,8 +187,7 @@ export default function ProfilePage() {
     });
     if (!res.ok) throw new Error('Upload failed');
     const data = await res.json();
-    const payload = data?.data ?? data;
-    return payload?.url || null;
+    return data?.data?.url || data?.url || null;
   };
 
   const updateProfileImage = useMutation({
@@ -160,12 +199,10 @@ export default function ProfilePage() {
     },
     onSuccess: ({ type, url }) => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-      if (user?.profile) {
-        setUser({ ...user, profile: { ...user.profile, [type === 'avatar' ? 'avatarUrl' : 'coverUrl']: url } as any });
-      }
+      if (user?.profile) setUser({ ...user, profile: { ...user.profile, [type === 'avatar' ? 'avatarUrl' : 'coverUrl']: url } as any });
       addToast(`${type === 'avatar' ? 'Profile picture' : 'Cover photo'} updated`, 'success');
     },
-    onError: () => addToast('Upload failed. Please try again.', 'error'),
+    onError: () => addToast('Upload failed', 'error'),
   });
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,34 +222,16 @@ export default function ProfilePage() {
   };
 
   // ═══════════════════════════════════════════════════════════
-  //  HELPERS
+  //  DERIVED
   // ═══════════════════════════════════════════════════════════
-  const getProfileCompletion = () => {
-    const checks = [
-      { done: !!(profile?.avatarUrl), label: 'প্রোফাইল ছবি যোগ করুন', labelEn: 'Add profile photo', points: 20 },
-      { done: !!(profile?.coverUrl), label: 'কভার ছবি যোগ করুন', labelEn: 'Add cover photo', points: 10 },
-      { done: !!(profile?.bio), label: 'বায়ো লিখুন', labelEn: 'Write a bio', points: 15 },
-      { done: !!(profile?.districtId), label: 'অবস্থান যোগ করুন', labelEn: 'Add location', points: 10 },
-      { done: !!(user?.phoneVerified), label: 'ফোন যাচাই করুন', labelEn: 'Verify phone', points: 30 },
-      { done: !!(user?.email && user?.emailVerified), label: 'ইমেইল যাচাই করুন', labelEn: 'Verify email', points: 20 },
-    ];
-    const done = checks.filter(c => c.done).length;
-    const percent = Math.round((done / checks.length) * 100);
-    const nextTask = checks.find(c => !c.done);
-    return { percent, nextTask, done, total: checks.length };
-  };
-  const completion = getProfileCompletion();
-
-  const getBadge = (points: number) => {
-    if (points >= 10000) return { label: 'Legend', labelBn: 'কিংবদন্তি', icon: '👑', color: '#A78BFA' };
-    if (points >= 5000) return { label: 'Diamond', labelBn: 'হীরা', icon: '💎', color: '#7DD3FC' };
-    if (points >= 2000) return { label: 'Gold', labelBn: 'স্বর্ণ', icon: '🥇', color: '#FFD700' };
-    if (points >= 500) return { label: 'Silver', labelBn: 'রৌপ্য', icon: '🥈', color: '#C0C0C0' };
-    return { label: 'Bronze', labelBn: 'ব্রোঞ্জ', icon: '🥉', color: '#CD7F32' };
-  };
+  const isPrivate = (profile as any)?.isPrivate ?? (user?.profile as any)?.isPrivate ?? false;
+  const displayBio = profile?.bio || (user?.profile as any)?.bio || '';
   const myPoints = pointsData?.total || 0;
-  const myBadge = getBadge(myPoints);
-  const myStreak = pointsData?.streak || 0;
+
+  const posts: Post[] = (activeTab === 'posts' || activeTab === 'media' ? userPosts : savedPosts) || [];
+  const isLoading = activeTab === 'posts' || activeTab === 'media' ? postsLoading : savedLoading;
+  const textPosts = posts.filter((p: Post) => !p.mediaAssets || p.mediaAssets.length === 0);
+  const mediaPosts = posts.filter((p: Post) => p.mediaAssets && p.mediaAssets.length > 0);
 
   const tabs = [
     { id: 'posts' as const, label: 'পোস্ট', labelEn: 'Posts', icon: FileText },
@@ -222,165 +241,9 @@ export default function ProfilePage() {
     { id: 'jobs' as const, label: 'চাকরি', labelEn: 'Jobs', icon: Briefcase },
   ];
 
-  const isPrivate = (profile as any)?.isPrivate ?? (user?.profile as any)?.isPrivate ?? false;
-
-  const EmptyState = ({ icon, text, textEn, cta, href }: { icon: string; text: string; textEn: string; cta: string | null; href: string | null }) => (
-    <div className="flex flex-col items-center justify-center py-16 gap-4">
-      <span className="text-5xl">{icon}</span>
-      <p className="text-[#6B5E8A] text-sm font-medium font-bangla">{text}</p>
-      <p className="text-[#9B8FC0] text-xs">{textEn}</p>
-      {cta && href && (
-        <button onClick={() => router.push(href)} className="px-5 py-2.5 bondhu-gradient text-white text-sm font-semibold rounded-xl shadow-md">
-          {cta}
-        </button>
-      )}
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════
-  //  RENDER HELPERS
-  // ═══════════════════════════════════════════════════════════
-  const posts = (activeTab === 'posts' || activeTab === 'media' ? userPosts : savedPosts) || [];
-  const isLoading = activeTab === 'posts' || activeTab === 'media' ? postsLoading : savedLoading;
-  const textPosts = posts.filter((post: Post) => !post.mediaAssets || post.mediaAssets.length === 0);
-  const mediaPosts = posts.filter((post: Post) => post.mediaAssets && post.mediaAssets.length > 0);
-
-  const renderMediaGrid = (items: Post[]) => (
-    <div className="grid grid-cols-3 gap-1">
-      {items.map((post: Post) => (
-        <button key={post.id} onClick={() => router.push(`/p/${post.id}`)} className="aspect-square bg-muted rounded-lg overflow-hidden relative group">
-          <img src={post.mediaAssets![0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-          {post.mediaAssets!.length > 1 && (
-            <div className="absolute top-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">{post.mediaAssets!.length}</div>
-          )}
-        </button>
-      ))}
-    </div>
-  );
-
-  const formatTimeAgo = (date: string) => {
-    const now = Date.now();
-    const then = new Date(date).getTime();
-    const diff = Math.floor((now - then) / 1000);
-    if (diff < 60) return 'এইমাত্র';
-    if (diff < 3600) return `${Math.floor(diff / 60)} মিনিট আগে`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} ঘণ্টা আগে`;
-    return `${Math.floor(diff / 86400)} দিন আগে`;
-  };
-
-  // ── Text posts rendered as Adda-style cards with comments ──
-  const renderTextCards = (items: Post[]) => (
-    <div className="space-y-4">
-      {items.map((post: Post) => {
-        const showComments = openCommentsPostId === post.id;
-        const hasLongText = (post.content?.length || 0) > 300;
-        const isTextExpanded = expandedTextPostIds.has(post.id);
-        const displayText = (hasLongText && !isTextExpanded) ? `${post.content?.slice(0, 300)}...` : post.content;
-        return (
-          <motion.div
-            key={post.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card overflow-hidden"
-          >
-            <div className="p-5 space-y-4">
-              {/* ── Author Row ── */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {post.user?.avatarUrl ? (
-                    <img src={post.user.avatarUrl} className="w-10 h-10 rounded-xl object-cover border border-[#DDD6F3]/50" alt="" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-[#F5F2FF] border border-[#DDD6F3]/50 flex items-center justify-center text-lg font-bold text-[#5B21B6]">
-                      {post.user?.displayName?.[0] || 'U'}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-extrabold text-xs text-[#0F0A1E] font-bangla">
-                        {post.user?.displayName || post.user?.legalName || 'Bondhu User'}
-                      </h4>
-                      <span className="text-[9px] bg-[#F5F2FF] text-[#5B21B6] font-extrabold px-1.5 py-0.5 rounded-sm">
-                        @{post.user?.handle || 'user'}
-                      </span>
-                    </div>
-                    <span className="text-[9px] text-[#6B5E8A] font-semibold block mt-0.5 font-bangla">
-                      {formatTimeAgo(post.createdAt)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Post Body ── */}
-              <p className="text-xs sm:text-sm font-semibold text-[#0F0A1E] leading-relaxed whitespace-pre-line font-bangla">
-                {displayText}
-                {hasLongText && !isTextExpanded && (
-                  <button onClick={() => setExpandedTextPostIds((prev) => new Set(prev).add(post.id))} className="text-[#5B21B6] font-bold ml-1 hover:underline">
-                    আরো দেখুন
-                  </button>
-                )}
-              </p>
-
-              {/* ── Reaction Bar ── */}
-              <div className="flex items-center gap-3 border-y border-[#DDD6F3]/50 py-2.5">
-                <button
-                  onClick={async () => { try { await api.post(`posts/${post.id}/react`, { type: 'LIKE' }); } catch {} }}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    post.myReaction
-                      ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
-                      : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span className="font-bangla">পছন্দ ({post.reactionCount || 0})</span>
-                </button>
-
-                <button
-                  onClick={() => setOpenCommentsPostId(showComments ? null : post.id)}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    showComments
-                      ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
-                      : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
-                  }`}
-                >
-                  <Award className="w-3.5 h-3.5" />
-                  <span className="font-bangla">মন্তব্য ({post.commentCount || 0})</span>
-                </button>
-
-                <button
-                  onClick={() => { const url = `https://bondhu.app/p/${post.id}`; if (navigator.share) navigator.share({ title: post.content?.slice(0, 50), url }); else { navigator.clipboard.writeText(url); addToast('লিংক কপি হয়েছে!', 'success'); } }}
-                  className="ml-auto flex items-center gap-1 text-xs font-bold px-2 py-1.5 text-[#9B8FC0] hover:text-[#5B21B6] transition-all"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  onClick={async () => { try { if (post.isBookmarked) await api.delete(`posts/${post.id}/bookmark`); else await api.post(`posts/${post.id}/bookmark`); } catch {} }}
-                  className={`flex items-center gap-1 text-xs font-bold px-2 py-1.5 transition-all ${
-                    post.isBookmarked ? 'text-[#5B21B6]' : 'text-[#9B8FC0] hover:text-[#5B21B6]'
-                  }`}
-                >
-                  <Bookmark className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* ── Comments Section (InlineCommentSection) ── */}
-            <InlineCommentSection
-              postId={post.id}
-              commentCount={post.commentCount || 0}
-              isOpen={showComments}
-            />
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-
-  // Shop tab content
+  // Shop tab
   const ShopTabContent = () => {
-    if (!myShop) {
-      return <EmptyState icon="🏪" text="আপনার এখনো কোনো দোকান নেই" textEn="No shop yet" cta="দোকান তৈরি করুন" href="/shop/create" />;
-    }
+    if (!myShop) return <EmptyState icon="🏪" text="আপনার এখনো কোনো দোকান নেই" textEn="No shop yet" cta="দোকান তৈরি করুন" href="/shop/create" router={router} />;
     return (
       <div className="space-y-4">
         <div className="glass-card p-3 flex items-center gap-3 cursor-pointer" onClick={() => router.push(`/shop/${myShop.handle}`)}>
@@ -391,17 +254,15 @@ export default function ProfilePage() {
           </div>
           <span className="text-xs text-[#5B21B6] font-medium font-bangla">দোকান দেখুন →</span>
         </div>
-        {(myShopProducts || []).length > 0 ? renderMediaGrid(myShopProducts as any) : <EmptyState icon="📦" text="কোনো পণ্য নেই" textEn="No products yet" cta="পণ্য যোগ করুন" href={`/shop/${myShop.handle}/manage`} />}
+        {(myShopProducts || []).length === 0 && <EmptyState icon="📦" text="কোনো পণ্য নেই" textEn="No products yet" cta="পণ্য যোগ করুন" href={`/shop/${myShop.handle}/manage`} router={router} />}
       </div>
     );
   };
 
-  // Jobs tab content
+  // Jobs tab
   const JobsTabContent = () => {
     const jobs = myJobs || [];
-    if (jobs.length === 0) {
-      return <EmptyState icon="💼" text="কোনো চাকরির পোস্ট নেই" textEn="No job posts yet" cta="চাকরি পোস্ট করুন" href="/jobs/post" />;
-    }
+    if (jobs.length === 0) return <EmptyState icon="💼" text="কোনো চাকরির পোস্ট নেই" textEn="No job posts yet" cta="চাকরি পোস্ট করুন" href="/jobs/post" router={router} />;
     return (
       <div className="space-y-3">
         {jobs.map((job: any) => (
@@ -429,188 +290,121 @@ export default function ProfilePage() {
   // ═══════════════════════════════════════════════════════════
   if (!user) { router.push('/onboarding'); return null; }
 
-  const displayBio = profile?.bio || (user?.profile as any)?.bio || '';
-
   // ═══════════════════════════════════════════════════════════
   //  MAIN RENDER
   // ═══════════════════════════════════════════════════════════
   return (
     <div className="py-4 space-y-4 relative z-10">
 
-      {/* Profile Completion Progress Bar */}
-      {completion.percent < 100 && (
-        <div className="glass-card p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-[#3D2B6B] font-bangla">প্রোফাইল {completion.percent}% সম্পূর্ণ</span>
-            <span className="text-xs text-[#7C3AED] font-medium">{completion.done}/{completion.total}</span>
+      {/* ═══════ HEADER CARD (distinct visual section) ═══════ */}
+      <div className="glass-card p-5 space-y-4">
+        {/* Cover */}
+        <div className="relative h-32 rounded-xl overflow-hidden cursor-pointer group" style={{ background: 'linear-gradient(135deg, rgba(91,33,182,0.15), rgba(13,148,136,0.15))' }} onClick={() => coverInputRef.current?.click()}>
+          {profile?.coverUrl && <img src={profile.coverUrl} alt="" className="w-full h-full object-cover" />}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+            {uploadingCover ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />}
           </div>
-          <div className="w-full bg-[#E0D9F7] rounded-full h-2 mb-2">
-            <div className="bg-gradient-to-r from-[#7C3AED] to-[#0D9488] h-2 rounded-full transition-all" style={{ width: `${completion.percent}%` }} />
+          <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
+        </div>
+
+        {/* Avatar + Actions Row */}
+        <div className="flex items-end justify-between -mt-10">
+          <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-lg cursor-pointer group border-4 border-white" onClick={() => avatarInputRef.current?.click()}>
+            {profile?.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#5B21B6] to-[#0D9488] text-white text-xl font-bold">{profile?.displayName?.[0] || user?.profile?.displayName?.[0] || 'U'}</div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+              {uploadingAvatar ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Camera className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />}
+            </div>
+            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
-          {completion.nextTask && (
-            <p className="text-xs text-[#6B5E8A] font-bangla">👉 {completion.nextTask.label} → +{completion.nextTask.points} পয়েন্ট পাবেন</p>
-          )}
-        </div>
-      )}
 
-      {/* Cover */}
-      <div className="relative h-40 rounded-2xl overflow-hidden cursor-pointer group" style={{ background: 'linear-gradient(135deg, rgba(91,33,182,0.15), rgba(13,148,136,0.15))' }} onClick={() => coverInputRef.current?.click()}>
-        {profile?.coverUrl && <img src={profile.coverUrl} alt="" className="w-full h-full object-cover" />}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
-          {uploadingCover ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />}
-        </div>
-        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
-      </div>
-
-      {/* Avatar & Actions */}
-      <div className="relative px-4 -mt-12 flex items-end justify-between">
-        <div className="relative w-24 h-24 rounded-2xl overflow-hidden shadow-lg cursor-pointer group border-4 border-[#F4F7F6]" onClick={() => avatarInputRef.current?.click()}>
-          {profile?.avatarUrl ? (
-            <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#5B21B6] to-[#0D9488] text-white text-2xl font-bold">{profile?.displayName?.[0] || user?.profile?.displayName?.[0] || 'U'}</div>
-          )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-            {uploadingAvatar ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />}
+          {/* Edit + Share + Privacy */}
+          <div className="flex items-center gap-2 mb-1">
+            <PrivacyToggle isPrivate={isPrivate} onToggle={() => togglePrivacy.mutate(!isPrivate)} isPending={togglePrivacy.isPending} />
+            <button onClick={() => router.push('/settings')} className="px-3 py-1.5 glass-card text-xs font-bold text-[#3D2B6B] hover:bg-[#F5F2FF] transition-colors flex items-center gap-1.5 rounded-full">
+              <Settings className="w-3.5 h-3.5" /> <span className="font-bangla">এডিট</span>
+            </button>
+            <button onClick={() => { const url = `https://bondhu.app/u/${profile?.handle || user?.profile?.handle}`; if (navigator.share) navigator.share({ title: 'Bondhu Profile', url }); else { navigator.clipboard.writeText(url); addToast('লিংক কপি হয়েছে!', 'success'); } }} className="p-1.5 glass-card hover:bg-[#F5F2FF] transition-colors rounded-full" title="Share Profile">
+              <Share2 className="w-3.5 h-3.5 text-[#5B21B6]" />
+            </button>
           </div>
-          <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
         </div>
 
-        {/* Edit + Share buttons (NO notification bell here) */}
-        <div className="mb-2 flex items-center gap-2">
-          <button onClick={() => router.push('/settings')} className="px-4 py-2 glass-card text-sm font-semibold text-[#3D2B6B] hover:bg-[#F5F2FF] transition-colors flex items-center gap-2">
-            <Settings className="w-4 h-4" /> Edit Profile
-          </button>
-          <button onClick={() => { const url = `https://bondhu.app/u/${profile?.handle || user?.profile?.handle}`; if (navigator.share) navigator.share({ title: 'Bondhu Profile', url }); else { navigator.clipboard.writeText(url); addToast('লিংক কপি হয়েছে!', 'success'); } }} className="p-2 glass-card hover:bg-[#F5F2FF] transition-colors" title="Share Profile">
-            <Share2 className="w-4 h-4 text-[#5B21B6]" />
-          </button>
-          <button onClick={() => logout()} className="p-2 glass-card hover:bg-red-50 transition-colors" title="Logout">
-            <LogOut className="w-4 h-4 text-red-400" />
-          </button>
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="px-1 space-y-1">
-        <h1 className="text-xl font-bold text-[#0F0A1E] font-bangla">{profile?.displayName || user?.profile?.displayName}</h1>
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-[#6B5E8A] text-sm">@{profile?.handle || user?.profile?.handle}</p>
-          {/* Phone verified badge */}
-          {user?.phoneVerified && (
-            <span className="inline-flex items-center gap-1 text-xs bg-[#E1F5EE] text-[#0F6E56] px-2 py-0.5 rounded-full font-medium">
-              <Check className="w-3 h-3" /> ফোন যাচাইকৃত
-            </span>
-          )}
-          {/* Private/Public badge */}
-          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${isPrivate ? 'bg-red-50 text-red-500' : 'bg-[#E1F5EE] text-[#0F6E56]'}`}>
-            {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-            {isPrivate ? 'প্রাইভেট' : 'পাবলিক'}
-          </span>
-        </div>
-
-        {/* Points & Rank badge */}
-        <div className="flex items-center gap-3 py-2 px-1 flex-wrap">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: myBadge.color + '22', color: myBadge.color }}>
-            {myBadge.icon} {myBadge.labelBn} · {myPoints.toLocaleString('bn-BD')} পয়েন্ট
-          </span>
-          {myStreak > 0 && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-orange-500 bg-orange-50 px-3 py-1.5 rounded-full">
-              🔥 {myStreak} দিনের স্ট্রীক
-            </span>
-          )}
-          <button onClick={() => router.push('/leaderboard')} className="text-xs text-[#5B21B6] underline font-medium font-bangla">লিডারবোর্ড দেখুন →</button>
+        {/* Name + Handle */}
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold text-[#0F0A1E] font-bangla">{profile?.displayName || user?.profile?.displayName}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-[#6B5E8A] text-sm">@{profile?.handle || user?.profile?.handle}</p>
+            {user?.phoneVerified && (
+              <span className="inline-flex items-center gap-1 text-xs bg-[#E1F5EE] text-[#0F6E56] px-2 py-0.5 rounded-full font-medium"><Check className="w-3 h-3" /> ফোন যাচাইকৃত</span>
+            )}
+          </div>
         </div>
 
         {/* Bio */}
         {editingBio ? (
-          <div className="mt-2 space-y-2">
-            <textarea value={bioText} onChange={(e) => setBioText(e.target.value)} placeholder="Write your bio..." rows={3} maxLength={150} className="w-full px-3 py-2 glass-input text-sm resize-none font-bangla" />
+          <div className="space-y-2">
+            <textarea value={bioText} onChange={(e) => setBioText(e.target.value)} placeholder="আপনার সম্পর্কে লিখুন..." rows={3} maxLength={160} className="w-full px-3 py-2 glass-input text-sm resize-none font-bangla" />
             <div className="flex items-center gap-2">
-              <button onClick={() => updateBio.mutate(bioText)} disabled={updateBio.isPending} className="flex items-center gap-1 px-3 py-1.5 bondhu-gradient text-white text-xs font-medium rounded-lg">
-                <Check className="w-3 h-3" /> Save
-              </button>
-              <button onClick={() => { setEditingBio(false); setBioText(displayBio); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#F5F2FF] text-[#6B5E8A] text-xs font-medium rounded-lg">
-                <X className="w-3 h-3" /> Cancel
-              </button>
+              <button onClick={() => updateBio.mutate(bioText)} disabled={updateBio.isPending} className="flex items-center gap-1 px-3 py-1.5 bondhu-gradient text-white text-xs font-bold rounded-lg"><Check className="w-3 h-3" /> সংরক্ষণ</button>
+              <button onClick={() => { setEditingBio(false); setBioText(displayBio); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#F5F2FF] text-[#6B5E8A] text-xs font-bold rounded-lg"><X className="w-3 h-3" /> বাতিল</button>
             </div>
           </div>
         ) : (
-          <div className="mt-2">
-            {displayBio ? <p className="text-sm text-[#0F0A1E] font-bangla">{displayBio}</p> : <p className="text-sm text-[#9B8FC0] italic font-bangla">No bio yet. Tap to add one.</p>}
-            <button onClick={() => { setBioText(displayBio); setEditingBio(true); }} className="mt-1 text-xs text-[#5B21B6] font-medium hover:underline">{displayBio ? 'Edit Bio' : 'Add Bio'}</button>
+          <div>
+            {displayBio ? <p className="text-sm text-[#0F0A1E] font-bangla leading-relaxed">{displayBio}</p> : <p className="text-sm text-[#9B8FC0] italic font-bangla">কোনো বায়ো নেই — সম্পাদনা করতে ট্যাপ করুন</p>}
+            <button onClick={() => { setBioText(displayBio); setEditingBio(true); }} className="mt-1 text-xs text-[#5B21B6] font-bold hover:underline font-bangla">{displayBio ? 'বায়ো সম্পাদনা করুন' : 'বায়ো যোগ করুন'}</button>
           </div>
         )}
 
-        {/* Location & Links */}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-[#6B5E8A] mt-2">
-          {/* Location — tappable */}
+        {/* Location + Links Row */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#6B5E8A]">
           {profile?.district ? (
-            <button onClick={() => router.push('/settings')} className="flex items-center gap-1 hover:text-[#5B21B6] transition-colors font-bangla">
-              <MapPin className="w-3.5 h-3.5" />{profile.district.nameBn} <span className="text-[10px] text-[#9B8FC0]">(পরিবর্তন করুন)</span>
-            </button>
+            <button onClick={() => router.push('/settings')} className="flex items-center gap-1 hover:text-[#5B21B6] transition-colors font-bangla"><MapPin className="w-3.5 h-3.5" />{profile.district.nameBn}</button>
           ) : (
-            <button onClick={() => router.push('/settings')} className="flex items-center gap-1 text-[#5B21B6] hover:underline font-bangla">
-              <MapPin className="w-3.5 h-3.5" />অবস্থান যোগ করুন
-            </button>
+            <button onClick={() => router.push('/settings')} className="flex items-center gap-1 text-[#5B21B6] hover:underline font-bangla"><MapPin className="w-3.5 h-3.5" />অবস্থান যোগ করুন</button>
           )}
-          {/* Member Since */}
           {user?.createdAt && (
-            <span className="flex items-center gap-1 font-bangla">
-              <Calendar className="w-3.5 h-3.5" />যোগ দিয়েছেন {new Date(user.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long' })}
-            </span>
+            <span className="flex items-center gap-1 font-bangla"><Calendar className="w-3.5 h-3.5" />যোগ দিয়েছেন {new Date(user.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long' })}</span>
           )}
-          <span className="flex items-center gap-1">
-            <Link2 className="w-3.5 h-3.5" />bondhu.app/u/{profile?.handle || user?.profile?.handle}
-          </span>
-          {/* Website & WhatsApp */}
+          <span className="flex items-center gap-1"><Link2 className="w-3.5 h-3.5" />bondhu.app/u/{profile?.handle || user?.profile?.handle}</span>
           {profile?.websiteUrl && (
-            <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[#5B21B6] hover:underline">
-              <Link2 className="w-3.5 h-3.5" />{profile.websiteUrl.replace(/^https?:\/\//, '')}
-            </a>
+            <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[#5B21B6] hover:underline"><Link2 className="w-3.5 h-3.5" />{profile.websiteUrl.replace(/^https?:\/\//, '')}</a>
           )}
           {profile?.whatsappNumber && (
-            <a href={`https://wa.me/${profile.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-green-600 hover:underline">
-              <Phone className="w-3.5 h-3.5" />WhatsApp
-            </a>
+            <a href={`https://wa.me/${profile.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-green-600 hover:underline"><Phone className="w-3.5 h-3.5" />WhatsApp</a>
           )}
         </div>
 
-        {/* Private/Public Toggle */}
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            onClick={() => togglePrivacy.mutate(!isPrivate)}
-            disabled={togglePrivacy.isPending}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-              isPrivate
-                ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
-                : 'bg-[#E1F5EE] text-[#0F6E56] border-[#0D9488]/20 hover:bg-[#D1EDE5]'
-            }`}
-          >
-            {isPrivate ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
-            <span className="font-bangla">
-              {isPrivate ? '🔒 প্রাইভেট অ্যাকাউন্ট — ফলো রিকোয়েস্ট লাগবে' : '🌐 পাবলিক অ্যাকাউন্ট — সরাসরি ফলো করা যাবে'}
-            </span>
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-6 py-3">
-          <button className="flex items-center gap-1.5 hover:underline">
-            <span className="font-bold text-[#0F0A1E]">{formatNumber(profile?.postCount || 0)}</span>
-            <span className="text-[#6B5E8A] text-sm">Posts</span>
-          </button>
+        {/* Follower/Following/Posts count */}
+        <div className="flex items-center gap-5 pt-1 border-t border-[#DDD6F3]/30">
           <button className="flex items-center gap-1.5 hover:underline" onClick={() => openSheet('followList', { userId: user.id, type: 'followers' })}>
             <span className="font-bold text-[#0F0A1E]">{formatNumber(profile?.followerCount || 0)}</span>
-            <span className="text-[#6B5E8A] text-sm">Followers</span>
+            <span className="text-[#6B5E8A] text-xs font-bangla">ফলোয়ার</span>
           </button>
           <button className="flex items-center gap-1.5 hover:underline" onClick={() => openSheet('followList', { userId: user.id, type: 'following' })}>
             <span className="font-bold text-[#0F0A1E]">{formatNumber(profile?.followingCount || 0)}</span>
-            <span className="text-[#6B5E8A] text-sm">Following</span>
+            <span className="text-[#6B5E8A] text-xs font-bangla">ফলোয়িং</span>
           </button>
+          <span className="flex items-center gap-1.5">
+            <span className="font-bold text-[#0F0A1E]">{formatNumber(profile?.postCount || 0)}</span>
+            <span className="text-[#6B5E8A] text-xs font-bangla">পোস্ট</span>
+          </span>
         </div>
       </div>
 
-      {/* 5 Tabs */}
+      {/* ═══════ STATS ROW ═══════ */}
+      <div className="grid grid-cols-4 gap-2">
+        <StatCard icon={Heart} label="Likes" labelBn="পছন্দ পেয়েছেন" value={myPoints.toLocaleString('bn-BD')} color="#E85D75" />
+        <StatCard icon={MessageCircle} label="Comments" labelBn="মন্তব্য পেয়েছেন" value={posts.reduce((sum: number, p: Post) => sum + (p.commentCount || 0), 0).toLocaleString('bn-BD')} color="#5B21B6" />
+        <StatCard icon={Eye} label="Views" labelBn="ভিউ পেয়েছেন" value={posts.reduce((sum: number, p: Post) => sum + (p.viewCount || 0), 0).toLocaleString('bn-BD')} color="#0D9488" />
+        <StatCard icon={Award} label="Points" labelBn="বন্ধু পয়েন্ট" value={myPoints.toLocaleString('bn-BD')} color="#F59E0B" />
+      </div>
+
+      {/* ═══════ 5 TABS ═══════ */}
       <div className="flex border-b border-[#DDD6F3]/50 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn('flex-shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors min-w-[64px]', activeTab === tab.id ? 'border-[#5B21B6] text-[#5B21B6]' : 'border-transparent text-[#6B5E8A] hover:text-[#3D2B6B]')}>
@@ -620,21 +414,31 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* Tab Content */}
+      {/* ═══════ TAB CONTENT ═══════ */}
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <div key={i} className="aspect-square bg-[#F5F2FF] rounded-lg animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-24 bg-[#F5F2FF] rounded-xl animate-pulse" />)}
         </div>
       ) : activeTab === 'posts' ? (
         <div className="space-y-4">
-          {textPosts.length > 0 && renderTextCards(textPosts)}
-          {mediaPosts.length > 0 && renderMediaGrid(mediaPosts)}
-          {textPosts.length === 0 && mediaPosts.length === 0 && <EmptyState icon="📝" text="কোনো পোস্ট পাওয়া যায়নি" textEn="No posts yet" cta="পোস্ট তৈরি করুন" href="/create" />}
+          {/* Use PostCard for WORKING likes, comments, shares */}
+          {textPosts.length > 0 && textPosts.map((post: Post) => <PostCard key={post.id} post={post} />)}
+          {mediaPosts.length > 0 && mediaPosts.map((post: Post) => <PostCard key={post.id} post={post} />)}
+          {textPosts.length === 0 && mediaPosts.length === 0 && <EmptyState icon="📝" text="কোনো পোস্ট পাওয়া যায়নি" textEn="No posts yet" cta="পোস্ট তৈরি করুন" href="/create" router={router} />}
         </div>
       ) : activeTab === 'media' ? (
-        mediaPosts.length > 0 ? renderMediaGrid(mediaPosts) : <EmptyState icon="📷" text="কোনো মিডিয়া পোস্ট নেই" textEn="No media posts yet" cta="পোস্ট তৈরি করুন" href="/create" />
+        mediaPosts.length > 0
+          ? <div className="grid grid-cols-3 gap-1">{mediaPosts.map((post: Post) => (
+              <button key={post.id} onClick={() => router.push(`/p/${post.id}`)} className="aspect-square bg-muted rounded-lg overflow-hidden relative group">
+                <img src={post.mediaAssets![0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                {post.mediaAssets!.length > 1 && <div className="absolute top-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">{post.mediaAssets!.length}</div>}
+              </button>
+            ))}</div>
+          : <EmptyState icon="📷" text="কোনো মিডিয়া পোস্ট নেই" textEn="No media posts yet" cta="পোস্ট তৈরি করুন" href="/create" router={router} />
       ) : activeTab === 'saved' ? (
-        (savedPosts || []).length > 0 ? renderTextCards(savedPosts || []) : <EmptyState icon="🔖" text="কোনো সংরক্ষিত পোস্ট নেই" textEn="No saved posts yet" cta={null} href={null} />
+        (savedPosts || []).length > 0
+          ? (savedPosts || []).map((post: Post) => <PostCard key={post.id} post={post} />)
+          : <EmptyState icon="🔖" text="কোনো সংরক্ষিত পোস্ট নেই" textEn="No saved posts yet" router={router} />
       ) : activeTab === 'shop' ? (
         <ShopTabContent />
       ) : activeTab === 'jobs' ? (
