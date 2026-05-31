@@ -99,12 +99,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-20 lg:pb-0">
       {/* Stories Row */}
-      <div className="px-4 py-3 border-b border-[#E8F0EC]">
+      <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(180, 210, 205, 0.35)' }}>
         <StoryBar />
       </div>
 
       {/* Filter Chips */}
-      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b border-[#E8F0EC]">
+      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b" style={{ borderColor: 'rgba(180, 210, 205, 0.35)' }}>
         {filterChips.map((chip) => (
           <button
             key={chip.id}
@@ -132,23 +132,23 @@ export default function HomePage() {
             {isLoading ? (
               <div className="space-y-3 px-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                  <div key={i} className="rounded-2xl p-4 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.8)', border: '1px solid rgba(180,210,205,0.3)' }}>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-[#F0F5F2]" />
+                      <div className="w-10 h-10 rounded-full bg-[#E8F0EE]" />
                       <div className="flex-1 space-y-1.5">
-                        <div className="h-3 bg-[#F0F5F2] rounded w-24" />
-                        <div className="h-2 bg-[#F0F5F2] rounded w-16" />
+                        <div className="h-3 bg-[#E8F0EE] rounded w-24" />
+                        <div className="h-2 bg-[#E8F0EE] rounded w-16" />
                       </div>
                     </div>
-                    <div className="h-3 bg-[#F0F5F2] rounded w-full mb-2" />
-                    <div className="h-3 bg-[#F0F5F2] rounded w-3/4" />
+                    <div className="h-3 bg-[#E8F0EE] rounded w-full mb-2" />
+                    <div className="h-3 bg-[#E8F0EE] rounded w-3/4" />
                   </div>
                 ))}
               </div>
             ) : currentPosts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="font-bangla text-lg text-[#8BA08A]">কোনো পোস্ট পাওয়া যায়নি</p>
-                <p className="text-sm text-[#8BA08A] mt-1">Follow people to see content here</p>
+                <p className="font-bangla text-lg text-[#8B9D8F]">কোনো পোস্ট পাওয়া যায়নি</p>
+                <p className="text-sm text-[#8B9D8F] mt-1">Follow people to see content here</p>
               </div>
             ) : (
               <>
@@ -164,7 +164,7 @@ export default function HomePage() {
                 })}
                 {isLoadingMore && (
                   <div className="flex justify-center py-4">
-                    <div className="w-6 h-6 border-2 border-[#D4E5DC] border-t-[#7BA08A] rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#C4D8CE] border-t-[#5F7A61] rounded-full animate-spin" />
                   </div>
                 )}
               </>

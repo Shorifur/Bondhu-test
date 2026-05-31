@@ -4,41 +4,42 @@
 
 @layer base {
   :root {
-    /* Warm cream + sage green palette matching reference image */
-    --background: 40 20% 98%;
-    --foreground: 220 15% 15%;
+    /* Glassmorphism — iridescent holographic palette */
+    --background: 170 25% 96%;
+    --foreground: 215 25% 27%;
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
+    --card-foreground: 215 25% 27%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
-    --primary: 150 25% 55%;
+    --popover-foreground: 215 25% 27%;
+    --primary: 145 18% 49%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 260 30% 96%;
-    --secondary-foreground: 220 15% 15%;
-    --muted: 40 15% 95%;
-    --muted-foreground: 260 15% 60%;
+    --secondary: 170 20% 95%;
+    --secondary-foreground: 215 25% 27%;
+    --muted: 170 15% 95%;
+    --muted-foreground: 150 12% 55%;
     --accent: 172 72% 62%;
-    --accent-foreground: 220 15% 15%;
+    --accent-foreground: 215 25% 27%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 260 20% 92%;
-    --input: 260 20% 92%;
-    --ring: 150 25% 55%;
+    --border: 170 20% 88%;
+    --input: 170 20% 88%;
+    --ring: 145 18% 49%;
     --radius: 0.75rem;
     --font-sans: 'Inter', 'Noto Sans Bengali', 'SolaimanLipi', system-ui, sans-serif;
     --font-bangla: 'Noto Sans Bengali', 'Baloo Da 2', 'SolaimanLipi', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-    /* Custom Bondhu colors */
-    --bondhu-sage: #7BA08A;
+    /* Glassmorphism Bondhu colors */
+    --bondhu-sage: #5F7A61;
     --bondhu-sage-light: #A3C4B2;
-    --bondhu-cream: #FAF8F5;
-    --bondhu-cream-dark: #F5F2EC;
-    --bondhu-lavender: #B8A9D9;
-    --bondhu-lavender-light: #E8E0F5;
-    --bondhu-purple: #A78BFA;
-    --bondhu-text: #1F2937;
-    --bondhu-text-muted: #9CA3AF;
+    --bondhu-cream: #F0F5F4;
+    --bondhu-cream-dark: #E8F0EE;
+    --bondhu-olive: #7A927D;
+    --bondhu-slate: #2D3748;
+    --bondhu-slate-light: #4A5568;
+    --bondhu-border: rgba(180, 210, 205, 0.4);
+    --bondhu-card-bg: rgba(255, 255, 255, 0.9);
+    --bondhu-like-red: #E85D75;
   }
 
   .dark {
@@ -74,27 +75,34 @@
 
   body {
     @apply text-foreground antialiased;
-    background-color: #FAF8F5;
+    background: linear-gradient(135deg, #E2F1F1 0%, #EAE5F7 40%, #F5EBF2 70%, #E8F0EE 100%);
+    background-attachment: fixed;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
   .feed-card {
-    @apply rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md;
-    border: none;
+    @apply rounded-2xl transition-all duration-200;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(180, 210, 205, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+
+  .feed-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
   }
 
   .gradient-chip-active {
     @apply px-4 py-1.5 rounded-full text-white text-xs font-medium;
-    background: linear-gradient(135deg, #A78BFA 0%, #818CF8 100%);
+    background: linear-gradient(135deg, #7BA08A 0%, #5F7A61 100%);
   }
 
   .gradient-chip-inactive {
-    @apply px-4 py-1.5 rounded-full text-xs font-medium border;
-    background: #FFFFFF;
-    border-color: #E8E4F0;
-    color: #8B80A5;
+    @apply px-4 py-1.5 rounded-full text-xs font-medium;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(180, 210, 205, 0.35);
+    color: #8B9D8F;
   }
 
   .story-ring {
@@ -111,7 +119,7 @@
 
   .post-content p {
     @apply leading-relaxed;
-    color: #1a1a2e;
+    color: #2D3748;
     font-size: 15px;
   }
 
@@ -148,7 +156,7 @@
   }
 
   .shimmer-bg {
-    background: linear-gradient(90deg, #F0EEF8 25%, #E8E4F5 50%, #F0EEF8 75%);
+    background: linear-gradient(90deg, #E8F0EE 25%, #E2F1F1 50%, #E8F0EE 75%);
     background-size: 200% 100%;
   }
 
@@ -157,15 +165,15 @@
   }
 
   .bondhu-gradient {
-    background: linear-gradient(135deg, #A78BFA 0%, #5EEAD4 100%);
+    background: linear-gradient(135deg, #A3C4B2 0%, #7BA08A 100%);
   }
 
-  .bondhu-gradient-purple {
-    background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  .bondhu-gradient-sage {
+    background: linear-gradient(135deg, #5F7A61 0%, #A3C4B2 100%);
   }
 
   .bottom-nav-shadow {
-    box-shadow: 0 -2px 20px rgba(124, 58, 237, 0.08);
+    box-shadow: 0 -2px 20px rgba(95, 122, 97, 0.1);
   }
 }
 
