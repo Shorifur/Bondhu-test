@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { storyService } from '@/services/story.service';
+import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/lib/utils';
+import { StoryCreationModal } from './StoryCreationModal';
 import type { Story } from '@bondhu/shared-types';
 
 interface StoryRingProps {
@@ -54,6 +57,8 @@ function StoryRing({ story, onClick }: StoryRingProps) {
 export function StoryBar() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data: storiesRes, isLoading } = useQuery({
     queryKey: ['stories-feed'],
@@ -107,18 +112,28 @@ export function StoryBar() {
 
   return (
     <div className="flex gap-3 overflow-x-auto scrollbar-hide py-2 px-1">
-      {/* Add Story button */}
+      {/* Add Story button — opens modal */}
       <button
-        onClick={() => router.push('/create?mode=story')}
+        onClick={() => setShowCreateModal(true)}
         className="flex flex-col items-center gap-1.5 shrink-0"
       >
-        <div className="w-16 h-16 rounded-full border-2 border-dashed border-[#B8A9E3] flex items-center justify-center bg-[#F5F2FF]">
-          <Plus className="w-6 h-6 text-[#5B21B6]" />
+        <div className="w-16 h-16 rounded-full border-2 border-dashed border-[#B8A9E3] flex items-center justify-center bg-[#F5F2FF] relative">
+          {user?.profile?.avatarUrl ? (
+            <img src={user.profile.avatarUrl} alt="" className="w-full h-full rounded-full object-cover opacity-50" />
+          ) : null}
+          <Plus className={cn('w-6 h-6 text-[#5B21B6]', user?.profile?.avatarUrl && 'absolute')} />
         </div>
-        <span className="text-[11px] font-semibold text-[#5B21B6] truncate max-w-[4rem]">
-          Add Story
+        <span className="text-[11px] font-semibold text-[#5B21B6] truncate max-w-[4rem] font-bangla">
+          আপনার স্টোরি
         </span>
       </button>
+
+      {/* Story Creation Modal */}
+      <StoryCreationModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['stories-feed'] })}
+      />
 
       {userStories.map((story, i) => (
         <motion.div

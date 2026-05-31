@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/lib/utils';
 import {
   HomeIcon,
@@ -39,20 +40,29 @@ const navItems = [
 export function DesktopSidebar() {
   const router = useRouter();
   const pathname = usePathname() || '/';
+  const { user } = useAuthStore();
+
+  const displayName = user?.profile?.displayName || user?.phoneNumber || 'বন্ধু ব্যবহারকারী';
+  const handle = user?.profile?.handle || 'user';
+  const avatarUrl = user?.profile?.avatarUrl;
 
   return (
     <div className="space-y-4">
-      {/* User Profile Card */}
+      {/* User Profile Card — Real Data */}
       <div className="glass-card p-4">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full avatar-ring">
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#5B21B6] to-[#0D9488] flex items-center justify-center text-white font-bold text-sm">
-              U
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-[#5B21B6] to-[#0D9488] flex items-center justify-center text-white font-bold text-sm">
+                {displayName[0]?.toUpperCase() || 'U'}
+              </div>
+            )}
           </div>
-          <div>
-            <h4 className="font-bold text-sm text-[#0F0A1E] font-bangla">বন্ধু ব্যবহারকারী</h4>
-            <p className="text-xs text-[#6B5E8A] font-medium">@bondhu_user</p>
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm text-[#0F0A1E] font-bangla truncate">{displayName}</h4>
+            <p className="text-xs text-[#6B5E8A] font-medium truncate">@{handle}</p>
           </div>
         </div>
 
