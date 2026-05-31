@@ -1,6 +1,16 @@
 'use client';
 
-import { TrendUp, Users, Briefcase, Sparkles } from 'lucide-react';
+import { Users, Briefcase } from 'lucide-react';
+
+/* ── Small inline SVG for Trending (avoids missing lucide icon) ── */
+function TrendingIcon({ className, size = 16 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M23 6l-9 9-5-5L1 18" />
+      <path d="M17 6h6v6" />
+    </svg>
+  );
+}
 
 const trendingTags = [
   { tag: '#ঈদ_মোবারক', posts: '১২.৫k পোস্ট', category: 'উৎসব' },
@@ -22,7 +32,7 @@ export function TrendingSidebar() {
       {/* Trending Topics */}
       <div className="glass-card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <TrendUp className="w-4 h-4 text-[#5B21B6]" />
+          <TrendingIcon className="text-[#5B21B6]" size={16} />
           <h3 className="font-bold text-sm text-[#0F0A1E] font-bangla">ট্রেন্ডিং</h3>
         </div>
         <div className="space-y-3">
