@@ -21,7 +21,7 @@ const mainNavItems = [
   { icon: MoreIcon, label: 'More', href: '#more', isMore: true },
 ];
 
-export default function BottomNav() {
+export function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
