@@ -73,19 +73,8 @@ const COMMUNITY_TYPES: { key: Community['type']; labelBn: string; labelEn: strin
 const INITIAL_BAZAARS: Bazaar[] = [];
 const INITIAL_SHOPS: Shop[] = [];
 
-// Only 2 demo communities so user sees how Adda works
-const INITIAL_COMMUNITIES: Community[] = [
-  {
-    id: 'c1', name: 'মিরপুর বাজার আড্ডা',
-    description: 'মিরপুরের সব খবর, দরদাম আর গল্পের আড্ডা। আজ কোন জিনিস কতো?',
-    type: 'gossip', memberCount: 128,
-  },
-  {
-    id: 'c2', name: 'ঢাকার ফুডি গ্যাং',
-    description: 'কোথায় কী খাওয়া যায়, কোন দোকানে ফ্রেশ মাছ, সব শেয়ার করুন!',
-    type: 'foodie', memberCount: 256,
-  },
-];
+// No demo communities — user creates all
+const INITIAL_COMMUNITIES: Community[] = [];
 
 // ═══════════════════════════════════════════════════════════
 //  DICTIONARY
@@ -269,16 +258,7 @@ export default function BazaarPage() {
     if (veggies.length) trends.push({ label: lang === 'bn' ? 'সবজি' : 'Vegetables', price: veggies[0].price, trend: 'stable' });
     if (fish.length) trends.push({ label: lang === 'bn' ? 'মাছ' : 'Fish', price: fish[0].price, trend: 'up' });
     if (grocery.length) trends.push({ label: lang === 'bn' ? 'চাল' : 'Rice', price: grocery[0].price, trend: 'down' });
-    // Default demo data if no shops exist yet
-    if (trends.length === 0) {
-      return [
-        { label: lang === 'bn' ? 'সবজি' : 'Vegetables', price: '৪০', trend: 'stable' as const },
-        { label: lang === 'bn' ? 'মাছ' : 'Fish', price: '৩৫০', trend: 'up' as const },
-        { label: lang === 'bn' ? 'চাল' : 'Rice', price: '৭২', trend: 'down' as const },
-        { label: lang === 'bn' ? 'ডিম' : 'Eggs', price: '১৪০', trend: 'up' as const },
-        { label: lang === 'bn' ? 'তেল' : 'Oil', price: '১৬৫', trend: 'stable' as const },
-      ];
-    }
+    // No demo data — show empty if no shops exist yet
     return trends;
   }, [shops, lang]);
 
@@ -417,28 +397,30 @@ export default function BazaarPage() {
         </div>
       </div>
 
-      {/* Trending Prices Ticker */}
-      <div className="glass-card p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-[#0D9488]" />
-          <h3 className="text-xs font-extrabold text-[#3D2B6B] uppercase tracking-wider">{t('trendingPrices')}</h3>
+      {/* Trending Prices Ticker — only show if real data exists */}
+      {trendingPrices.length > 0 && (
+        <div className="glass-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-[#0D9488]" />
+            <h3 className="text-xs font-extrabold text-[#3D2B6B] uppercase tracking-wider">{t('trendingPrices')}</h3>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {trendingPrices.map((item, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -2 }}
+                className="shrink-0 px-3 py-2 bg-white/70 rounded-xl border border-[#DDD6F3]/60 flex items-center gap-2"
+              >
+                <TrendIcon trend={item.trend} />
+                <div>
+                  <p className="text-[10px] font-bold text-[#6B5E8A]">{item.label}</p>
+                  <p className="text-sm font-extrabold text-[#0F0A1E] font-bangla">৳{item.price}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {trendingPrices.map((item, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ y: -2 }}
-              className="shrink-0 px-3 py-2 bg-white/70 rounded-xl border border-[#DDD6F3]/60 flex items-center gap-2"
-            >
-              <TrendIcon trend={item.trend} />
-              <div>
-                <p className="text-[10px] font-bold text-[#6B5E8A]">{item.label}</p>
-                <p className="text-sm font-extrabold text-[#0F0A1E] font-bangla">৳{item.price}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Global Product Search Results */}
       <div className="space-y-3">

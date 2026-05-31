@@ -178,9 +178,9 @@ export default function AddaPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
-  // User profile — use Bengali title by default (DICT.bn, not DICT[lang].bn)
+  // User profile — starts empty, user sets via profile modal
   const [userProfile, setUserProfile] = useState({
-    name: 'রহিম মিয়া',
+    name: '',
     title: `👑 ${DICT.bn.title}`,
     avatar: '🕶️',
   });
@@ -238,6 +238,11 @@ export default function AddaPage() {
   const handleAddPost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostText.trim() || !selectedCommunity) return;
+    if (!userProfile.name.trim()) {
+      triggerToast(lang === 'bn' ? 'প্রথমে প্রোফাইলে আপনার নাম দিন! ⚠️' : 'Please set your name in profile first! ⚠️');
+      setShowProfileModal(true);
+      return;
+    }
 
     const newPost: Post = {
       id: `post-${Date.now()}`,
@@ -282,6 +287,11 @@ export default function AddaPage() {
   const handleAddComment = (postId: string) => {
     const text = newCommentTexts[postId];
     if (!text?.trim() || !selectedCommunity) return;
+    if (!userProfile.name.trim()) {
+      triggerToast(lang === 'bn' ? 'প্রথমে প্রোফাইলে আপনার নাম দিন! ⚠️' : 'Please set your name in profile first! ⚠️');
+      setShowProfileModal(true);
+      return;
+    }
 
     const newComment: Comment = {
       id: `comment-${Date.now()}`,

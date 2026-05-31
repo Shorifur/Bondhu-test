@@ -23,6 +23,10 @@ export class ShopsService {
         districtId: dto.districtId,
         logoUrl: dto.logoUrl,
         coverUrl: dto.coverUrl,
+        phone: dto.phone,
+        whatsapp: dto.whatsapp,
+        address: dto.address,
+        businessHours: dto.businessHours,
       },
       include: { owner: { include: { profile: true } }, district: true },
     });
@@ -88,6 +92,10 @@ export class ShopsService {
         stock: dto.stock,
         condition: dto.condition,
         images: dto.images,
+        originalPrice: dto.originalPrice,
+        isNegotiable: dto.isNegotiable,
+        deliveryType: dto.deliveryType,
+        deliveryCharge: dto.deliveryCharge,
       },
     });
     return { data: product };
