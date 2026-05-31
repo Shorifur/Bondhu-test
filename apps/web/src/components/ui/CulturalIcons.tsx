@@ -7,30 +7,78 @@ interface IconProps {
   size?: number;
 }
 
-/* ─────────── HOME — Bangladeshi Rural Hut / Gate ───────────
-   Matches reference: hut-like structure with pillars and curved roof
-*/
+/* ════════════════════════════════════════════
+   1. BONDHU LOGO — Bengali 'ব' in green/teal rounded square
+   ════════════════════════════════════════════ */
+export function BondhuLogo({ className, size = 30 }: IconProps) {
+  return (
+    <div
+      className={cn(
+        'flex items-center justify-center rounded-xl bg-[#E2F2EE] p-2 shrink-0 select-none',
+        className
+      )}
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={size * 0.6}
+        height={size * 0.6}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#2E7D6B"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M6 4h12v4L6 14h12v6H6" />
+        <path d="M18 8v12" />
+      </svg>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════
+   2. HOME — Bangladeshi Rural Hut / Gate
+   ════════════════════════════════════════════ */
 export function HomeIcon({ className, size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      {/* Two pillars */}
       <path d="M6 8v10" />
       <path d="M18 8v10" />
-      {/* Roof arch */}
       <path d="M4 8c0-2 2.5-4 8-4s8 2 8 4" />
-      {/* Top decoration */}
       <circle cx="12" cy="3.5" r="1" fill="currentColor" stroke="none" />
-      {/* Cross beam */}
       <path d="M4 8h16" />
-      {/* Base */}
       <path d="M3 18h18" />
     </svg>
   );
 }
 
-/* ─────────── EXPLORE — Compass in circle ───────────
-   Matches reference: thin compass with needle inside circle
-*/
+/* ════════════════════════════════════════════
+   3. HOME TAB — Grid-style home tab icon
+   ════════════════════════════════════════════ */
+export function HomeTabIcon({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <path d="M3 9h18" />
+      <path d="M9 21V9" />
+      <path d="M15 21V9" />
+    </svg>
+  );
+}
+
+/* ════════════════════════════════════════════
+   4. EXPLORE — Compass in circle
+   ════════════════════════════════════════════ */
 export function ExploreIcon({ className, size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -42,9 +90,9 @@ export function ExploreIcon({ className, size = 24 }: IconProps) {
   );
 }
 
-/* ─────────── CREATE — Pen/pencil ───────────
-   Matches reference: simple pen/pencil icon
-*/
+/* ════════════════════════════════════════════
+   5. CREATE — Pen/pencil
+   ════════════════════════════════════════════ */
 export function CreateIcon({ className, size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -54,9 +102,9 @@ export function CreateIcon({ className, size = 24 }: IconProps) {
   );
 }
 
-/* ─────────── PROFILE — Simple person silhouette ───────────
-   Matches reference: clean human outline
-*/
+/* ════════════════════════════════════════════
+   6. PROFILE — Simple person silhouette
+   ════════════════════════════════════════════ */
 export function ProfileIcon({ className, size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -66,60 +114,71 @@ export function ProfileIcon({ className, size = 24 }: IconProps) {
   );
 }
 
-/* ─────────── MORE — Mandala / Geometric Pattern ───────────
-   Matches reference: 4-fold symmetric geometric pattern
-*/
+/* ════════════════════════════════════════════
+   7. MORE — Mandala / Geometric Pattern
+   ════════════════════════════════════════════ */
 export function MoreIcon({ className, size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      {/* Outer diamond */}
       <path d="M12 3l9 9-9 9-9-9z" />
-      {/* Inner diamond */}
       <path d="M12 7l5 5-5 5-5-5z" />
-      {/* Center dot */}
       <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-      {/* Cross lines */}
       <path d="M3 12h5M16 12h5M12 3v5M12 16v5" opacity={0.5} />
     </svg>
   );
 }
 
-/* ─────────── LIKE — Simple Leaf / পাতা ───────────
-   Matches reference: thin elegant leaf shape
-*/
-export function LeafIcon({ className, size = 22 }: IconProps) {
+/* ════════════════════════════════════════════
+   8. LIKE — Elegant Leaf (matches reference)
+   ════════════════════════════════════════════ */
+export function LeafIcon({ className, size = 16 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2C6 4 3 8.5 3 13s4 9 9 9c.8 0 1.5-.1 2.2-.3L12 22V2z" />
-      <path d="M12 22V8" />
-      <path d="M12 14c-2.5-1-4-3-4-5.5" opacity={0.5} />
-      <path d="M12 11c2.5-1 4-3 4-5.5" opacity={0.5} />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 9.8a7 7 0 0 1-9 8.2z" />
+      <path d="M19 2c-2.26 4.33-5.27 7.14-8 10" />
     </svg>
   );
 }
 
-/* ─────────── COMMENT — Tree with roots / বটগাছ ───────────
-   Matches reference: tree with wide canopy and visible roots
-*/
-export function TreeIcon({ className, size = 22 }: IconProps) {
+/* ════════════════════════════════════════════
+   9. COMMENT — Deciduous tree with fluffy canopy
+   ════════════════════════════════════════════ */
+export function TreeIcon({ className, size = 18 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      {/* Canopy */}
-      <path d="M12 3C7 5 4 9 4 13c0 3 2 5 4 6" />
-      <path d="M12 3c5 2 8 6 8 10 0 3-2 5-4 6" />
-      {/* Horizontal branch line */}
-      <path d="M6 12h12" opacity={0.4} />
-      {/* Trunk */}
-      <path d="M12 19v3" />
-      {/* Roots */}
-      <path d="M9 22c1-1.5 2-2 3-2s2 .5 3 2" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 22V12" />
+      <path d="M12 12c-2-1-4-1-5-3s0-4 2-4 3 2 3 4" />
+      <path d="M12 12c2-1 4-1 5-3s0-4-2-4-3 2-3 4" />
+      <path d="M12 9c-1.5-1.5-2.5-3.5-1-5.5s3.5 0 3.5 2.5" />
+      <path d="M7 16c-1-1.5-1-3.5 1-4.5s3.5.5 3.5 2.5" />
+      <path d="M17 16c1-1.5 1-3.5-1-4.5s-3.5.5-3.5 2.5" />
     </svg>
   );
 }
 
-/* ─────────── SHARE — Three connected nodes ───────────
-   Matches reference: three dots connected by lines
-*/
+/* ════════════════════════════════════════════
+   10. SHARE — Three connected nodes
+   ════════════════════════════════════════════ */
 export function ShareIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -132,9 +191,9 @@ export function ShareIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── BOOKMARK — Simple ribbon ───────────
-   Matches reference: clean bookmark shape
-*/
+/* ════════════════════════════════════════════
+   11. BOOKMARK — Simple ribbon
+   ════════════════════════════════════════════ */
 export function BookmarkIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -143,51 +202,27 @@ export function BookmarkIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── HEADER TREE — Decorative banyan tree ───────────
-   Top right decoration on each post card
-*/
+/* ════════════════════════════════════════════
+   12. HEADER TREE — Decorative banyan
+   ════════════════════════════════════════════ */
 export function HeaderTreeIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">
-      {/* Trunk */}
       <path d="M12 22V10" />
-      {/* Main branches */}
       <path d="M12 14c-3-1-6-1-9 1" />
       <path d="M12 14c3-1 6-1 9 1" />
       <path d="M12 10c-2.5-1.5-5-2-7-1" />
       <path d="M12 10c2.5-1.5 5-2 7-1" />
       <path d="M12 6c-2-1-3.5-1-5 0" />
       <path d="M12 6c2-1 3.5-1 5 0" />
-      {/* Top detail */}
       <circle cx="12" cy="4" r="1.5" fill="currentColor" fillOpacity={0.2} />
     </svg>
   );
 }
 
-/* ─────────── BONDHU LOGO — Bengali 'ব' ───────────
-   Simple gradient square with ব character
-*/
-export function BondhuLogo({ className, size = 30 }: IconProps) {
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-center rounded-lg text-white font-bold shrink-0 select-none',
-        className
-      )}
-      style={{
-        width: size,
-        height: size,
-        background: 'linear-gradient(135deg, #A78BFA 0%, #5EEAD4 100%)',
-        fontSize: size * 0.45,
-        fontFamily: 'var(--font-bangla), "Noto Sans Bengali", sans-serif',
-      }}
-    >
-      ব
-    </div>
-  );
-}
-
-/* ─────────── SEARCH — Magnifying glass ─────────── */
+/* ════════════════════════════════════════════
+   13. SEARCH — Magnifying glass
+   ════════════════════════════════════════════ */
 export function SearchIcon({ className, size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -197,7 +232,9 @@ export function SearchIcon({ className, size = 20 }: IconProps) {
   );
 }
 
-/* ─────────── SETTINGS — Gear ─────────── */
+/* ════════════════════════════════════════════
+   14. SETTINGS — Gear
+   ════════════════════════════════════════════ */
 export function SettingsIcon({ className, size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -207,7 +244,9 @@ export function SettingsIcon({ className, size = 20 }: IconProps) {
   );
 }
 
-/* ─────────── THREE DOTS menu ─────────── */
+/* ════════════════════════════════════════════
+   15. THREE DOTS — Menu
+   ════════════════════════════════════════════ */
 export function ThreeDotsIcon({ className, size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
@@ -218,7 +257,9 @@ export function ThreeDotsIcon({ className, size = 20 }: IconProps) {
   );
 }
 
-/* ─────────── Plus/Add icon ─────────── */
+/* ════════════════════════════════════════════
+   16. PLUS — Add icon
+   ════════════════════════════════════════════ */
 export function PlusIcon({ className, size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -227,8 +268,10 @@ export function PlusIcon({ className, size = 20 }: IconProps) {
   );
 }
 
-/* ─────────── X / Close icon ─────────── */
-export function X({ className, size = 20 }: IconProps) {
+/* ════════════════════════════════════════════
+   17. CLOSE — X icon
+   ════════════════════════════════════════════ */
+export function XIcon({ className, size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 6 6 18M6 6l12 12" />
@@ -236,7 +279,9 @@ export function X({ className, size = 20 }: IconProps) {
   );
 }
 
-/* ─────────── Shop icon ─────────── */
+/* ════════════════════════════════════════════
+   18. SHOP — Storefront
+   ════════════════════════════════════════════ */
 export function ShopIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -247,7 +292,9 @@ export function ShopIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── Bazaar icon ─────────── */
+/* ════════════════════════════════════════════
+   19. BAZAAR — Market basket
+   ════════════════════════════════════════════ */
 export function BazaarIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -257,7 +304,9 @@ export function BazaarIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── Jobs icon ─────────── */
+/* ════════════════════════════════════════════
+   20. JOBS — Briefcase
+   ════════════════════════════════════════════ */
 export function JobsIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -268,7 +317,9 @@ export function JobsIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── Sport icon ─────────── */
+/* ════════════════════════════════════════════
+   21. SPORT — Cricket ball
+   ════════════════════════════════════════════ */
 export function SportIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -279,7 +330,9 @@ export function SportIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── Leaderboard/Trophy icon ─────────── */
+/* ════════════════════════════════════════════
+   22. LEADERBOARD — Trophy
+   ════════════════════════════════════════════ */
 export function LeaderboardIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -290,7 +343,9 @@ export function LeaderboardIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── SOS icon ─────────── */
+/* ════════════════════════════════════════════
+   23. SOS — Alert circle
+   ════════════════════════════════════════════ */
 export function SOSIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -300,164 +355,145 @@ export function SOSIcon({ className, size = 22 }: IconProps) {
   );
 }
 
-/* ─────────── Points/Shapla icon ─────────── */
+/* ════════════════════════════════════════════
+   24. POINTS — Star coin
+   ════════════════════════════════════════════ */
 export function PointsIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
-      <path d="M12 5c-2.5 2-3.5 5-3.5 7.5 0 2 1 3.5 3.5 3.5s3.5-1.5 3.5-3.5C15.5 10 14.5 7 12 5z" />
-      <path d="M12 16V5" opacity={0.4} />
+      <path d="M12 7l1.5 3.5H17l-3 2.5 1 3.5-3-2.5-3 2.5 1-3.5-3-2.5h3.5z" />
     </svg>
   );
 }
 
-/* ─────────── Adda/Tea icon ─────────── */
-export function AddaIcon({ className, size = 22 }: IconProps) {
+/* ════════════════════════════════════════════
+   25. RAIN DROPS — Menu icon
+   ════════════════════════════════════════════ */
+export function RainDropsIcon({ className, size = 18 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 10h12v5a4 4 0 01-4 4H9a4 4 0 01-4-4v-5z" />
-      <path d="M17 12h3a2 2 0 010 4h-3" />
-      <path d="M8 4c0 1.5 1.3 2.5 3 2.5S14 5.5 14 4" opacity={0.5} />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M8 5.5C8 7.4 6.7 9 5 9S2 7.4 2 5.5C2 3.6 5 0 5 0s3 3.6 3 5.5z" opacity={0.75} />
+      <path d="M16 5.5C16 7.4 14.7 9 13 9s-3-1.6-3-3.5C10 3.6 13 0 13 0s3 3.6 3 5.5z" opacity={0.55} />
+      <path d="M12 14.5c0 1.9-1.3 3.5-3 3.5s-3-1.6-3-3.5C6 12.6 9 9 9 9s3 3.6 3 5.5z" opacity={0.45} />
+      <path d="M20 14.5c0 1.9-1.3 3.5-3 3.5s-3-1.6-3-3.5c0-1.9 3-5.5 3-5.5s3 3.6 3 5.5z" opacity={0.65} />
     </svg>
   );
 }
 
-/* ─────────── Cricket icon ─────────── */
+/* ════════════════════════════════════════════
+   26. CRICKET — Ball with seam
+   ════════════════════════════════════════════ */
 export function CricketIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
-      <path d="M4 20l12-12" />
-      <path d="M14 6l4 4" />
-      <circle cx="19" cy="5" r="3" />
+      <path d="M5.5 6.5l2 2M16.5 15.5l2 2M6.5 16.5l-2 2M15.5 5.5l2-2" />
+      <path d="M12 8v8M8 12h8" opacity={0.3} />
     </svg>
   );
 }
 
-/* ─────────── Phone icon ─────────── */
-export function PhoneIcon({ className, size = 20 }: IconProps) {
+/* ════════════════════════════════════════════
+   27. NEWS — Newspaper
+   ════════════════════════════════════════════ */
+export function NewsIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+      <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-4 0v-9h4" />
+      <path d="M10 6h6M10 10h6M10 14h4" />
     </svg>
   );
 }
 
-/* ─────────── Map pin icon ─────────── */
-export function MapPinIcon({ className, size = 16 }: IconProps) {
+/* ════════════════════════════════════════════
+   28. MEDAL — Award medal
+   ════════════════════════════════════════════ */
+export function MedalIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-      <circle cx="12" cy="10" r="3" />
+      <path d="M8.5 14.5A5 5 0 0012 22a5 5 0 003.5-7.5" />
+      <path d="M6 3h3l3 10 3-10h3M6 3l3 10M18 3l-3 10" />
     </svg>
   );
 }
 
-/* ─────────── Clock icon ─────────── */
-export function ClockIcon({ className, size = 16 }: IconProps) {
+/* ════════════════════════════════════════════
+   29. CROWN — Royal crown
+   ════════════════════════════════════════════ */
+export function CrownIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
+      <path d="M3 18h18M4 18V8l4 3 4-6 4 6 4-3v10" />
+      <circle cx="12" cy="5" r="1.5" fill="currentColor" />
     </svg>
   );
 }
 
-/* ─────────── Globe icon ─────────── */
-export function GlobeIcon({ className, size = 14 }: IconProps) {
+/* ════════════════════════════════════════════
+   30. FIRE — Trending flame
+   ════════════════════════════════════════════ */
+export function FireIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10A15.3 15.3 0 0112 2z" />
+      <path d="M12 22c4-2 6-6 6-10 0-3-2-5-2-8-3 2-4 4-4 7 0 0-2-2-2-4-2 2-3 4-2 7 0 0-3-1-4-3 0 0-1 3 0 5s4 6 10 6z" />
     </svg>
   );
 }
 
-/* ─────────── News icon ─────────── */
-export function NewsIcon({ className, size = 16 }: IconProps) {
+/* ════════════════════════════════════════════
+   31. TREND UP — Upward arrow
+   ════════════════════════════════════════════ */
+export function TrendUpIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <path d="M7 8h4M7 12h10M7 16h6" />
+      <path d="M23 6l-9 9-5-5L1 18" />
+      <path d="M17 6h6v6" />
     </svg>
   );
 }
 
-/* ─────────── Crown icon ─────────── */
-export function CrownIcon({ className, size = 18 }: IconProps) {
+/* ════════════════════════════════════════════
+   32. TREND DOWN — Downward arrow
+   ════════════════════════════════════════════ */
+export function TrendDownIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+      <path d="M23 18l-9-9-5 5L1 6" />
+      <path d="M17 18h6v-6" />
     </svg>
   );
 }
 
-/* ─────────── CheckCircle icon ─────────── */
-export function CheckCircleIcon({ className, size = 20 }: IconProps) {
+/* ════════════════════════════════════════════
+   33. PHONE — Call icon
+   ════════════════════════════════════════════ */
+export function PhoneIcon({ className, size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" />
+      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
     </svg>
   );
 }
 
-/* ─────────── Verified icon ─────────── */
-export function VerifiedIcon({ className, size = 14 }: IconProps) {
+/* ════════════════════════════════════════════
+   34. ALERT TRIANGLE — Warning
+   ════════════════════════════════════════════ */
+export function AlertTriangle({ className, size = 22 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <path d="M12 9v4M12 17h.01" />
     </svg>
   );
 }
 
-/* ─────────── Verified Badge (filled) ─────────── */
-export function VerifiedBadge({ className, size = 14 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#3B82F6" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
+/* ════════════════════════════════════════════
+   BACKWARD COMPATIBILITY ALIASES
+   ════════════════════════════════════════════ */
+export { XIcon as X };
 
-/* ─────────── Fire streak icon ─────────── */
-export function FireIcon({ className, size = 16 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z" />
-    </svg>
-  );
-}
-
-/* ─────────── Trend Up icon ─────────── */
-export function TrendUpIcon({ className, size = 14 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
-    </svg>
-  );
-}
-
-/* ─────────── Trend Down icon ─────────── */
-export function TrendDownIcon({ className, size = 14 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-      <polyline points="17 18 23 18 23 12" />
-    </svg>
-  );
-}
-
-/* ─────────── Adventure/Airplane icon ─────────── */
-export function AdventureIcon({ className, size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12h20" opacity={0.3} />
-      <path d="M2 12l3-7 4 7-4 7z" />
-      <path d="M20 12l-3-7-4 7 4 7z" />
-    </svg>
-  );
-}
+/* ════════════════════════════════════════════
+   LEGACY: Re-export from lucide-react for compatibility
+   ════════════════════════════════════════════ */
+export { Briefcase as BriefcaseIcon, MapPin as MapPinIcon, Clock as ClockIcon, CheckCircle2 as CheckCircleIcon } from 'lucide-react';
