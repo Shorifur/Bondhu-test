@@ -40,13 +40,15 @@ interface PostCardProps {
 export function PostCard({ post }: PostCardProps) {
   const router = useRouter();
   const updatePost = useFeedStore((s) => s.updatePost);
+  const openCommentsPostId = useFeedStore((s) => s.openCommentsPostId);
+  const toggleComments = useFeedStore((s) => s.toggleComments);
   const openSheet = useUIStore((s) => s.openSheet);
   const [showReactions, setShowReactions] = useState(false);
   const [liked, setLiked] = useState(!!post.myReaction);
   const [bookmarked, setBookmarked] = useState(!!post.isBookmarked);
   const [localReactionCount, setLocalReactionCount] = useState(post.reactionCount);
   const [expanded, setExpanded] = useState(false);
-  const [commentsOpen, setCommentsOpen] = useState(false);
+  const commentsOpen = openCommentsPostId === post.id;
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const profile = post.user;
@@ -129,7 +131,7 @@ export function PostCard({ post }: PostCardProps) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1">
-              <span className="font-semibold text-[13px] text-[#2D3748] group-hover:text-[#5F7A61] transition-colors">
+              <span className="font-semibold text-[13px] text-[#1A202C] group-hover:text-[#5F7A61] transition-colors">
                 {profile?.displayName}
               </span>
               {verification && <verification.icon className={cn('w-3.5 h-3.5', verification.color)} />}
@@ -181,7 +183,7 @@ export function PostCard({ post }: PostCardProps) {
         <div className="px-4 pb-2">
           <p
             className={cn(
-              'text-[15px] leading-[1.7] text-[#2D3748] whitespace-pre-wrap font-bangla',
+              'text-[15px] leading-[1.7] text-[#1A202C] whitespace-pre-wrap font-bangla',
               !post.mediaAssets?.length && 'pb-2'
             )}
           >
@@ -239,7 +241,7 @@ export function PostCard({ post }: PostCardProps) {
 
           {/* Comment (Evolving Tree) — Inline toggle */}
           <button
-            onClick={() => setCommentsOpen(!commentsOpen)}
+            onClick={() => toggleComments(post.id)}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F9F8] transition-colors"
           >
             <CommentTreeIcon size={19} count={post.commentCount} className="text-[#8B9D8F]" />

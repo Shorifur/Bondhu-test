@@ -7,11 +7,14 @@ interface FeedState {
   posts: Record<string, Post[]>;
   page: Record<string, number>;
   hasMore: Record<string, boolean>;
+  openCommentsPostId: string | null;
   setActiveTab: (tab: FeedState['activeTab']) => void;
   setPosts: (tab: string, posts: Post[], append?: boolean) => void;
   setPage: (tab: string, page: number) => void;
   setHasMore: (tab: string, hasMore: boolean) => void;
   updatePost: (postId: string, updater: (post: Post) => Post) => void;
+  toggleComments: (postId: string) => void;
+  closeComments: () => void;
 }
 
 export const useFeedStore = create<FeedState>()(
@@ -21,6 +24,7 @@ export const useFeedStore = create<FeedState>()(
       posts: {},
       page: {},
       hasMore: {},
+      openCommentsPostId: null,
 
       setActiveTab: (activeTab) => set({ activeTab }),
 
@@ -46,6 +50,13 @@ export const useFeedStore = create<FeedState>()(
           }
           return { posts: newPosts };
         }),
+
+      toggleComments: (postId) =>
+        set((state) => ({
+          openCommentsPostId: state.openCommentsPostId === postId ? null : postId,
+        })),
+
+      closeComments: () => set({ openCommentsPostId: null }),
     }),
     { name: 'bondhu-feed' },
   ),
