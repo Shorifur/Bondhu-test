@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -13,12 +13,7 @@ import type { Post } from '@bondhu/shared-types';
 import type { NewsItem } from '@/components/feed/NewsCard';
 import { fetchBangladeshNews } from '@/lib/api/news';
 import NewsCard from '@/components/feed/NewsCard';
-import LiveScores from '@/components/cricket/LiveScores';
-import {
-  BondhuLogo,
-  SearchIcon,
-  SettingsIcon,
-} from '@/components/ui/CulturalIcons';
+import { BondhuLogo, SearchIcon, SettingsIcon } from '@/components/ui/CulturalIcons';
 
 const filterChips = [
   { id: 'foryou' as const, label: 'For You', labelBn: 'আপনার জন্য' },
@@ -34,41 +29,24 @@ export default function HomePage() {
   const { activeTab, setActiveTab, posts, setPosts, page, setPage, hasMore, setHasMore } = useFeedStore();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [showCricketWidget, setShowCricketWidget] = useState(true);
 
-  // Fetch news
   const { data: newsData } = useQuery({
     queryKey: ['bangladesh-news'],
     queryFn: () => fetchBangladeshNews(8),
     staleTime: 5 * 60 * 1000,
   });
 
-  useEffect(() => {
-    if (newsData) setNewsItems(newsData);
-  }, [newsData]);
+  useEffect(() => { if (newsData) setNewsItems(newsData); }, [newsData]);
 
   const { isLoading } = useQuery({
     queryKey: ['feed', activeTab],
     queryFn: async () => {
       let res;
       switch (activeTab) {
-        case 'foryou':
-          res = await postService.getForYouFeed(1, 20);
-          break;
-        case 'latest':
-          res = await postService.getLatestFeed(1, 20);
-          break;
-        case 'local':
-          res = await postService.getLocalFeed(1, 20);
-          break;
-        case 'friends':
-        case 'trending':
-        case 'nearby':
-          // Fallback to foryou for unimplemented tabs
-          res = await postService.getForYouFeed(1, 20);
-          break;
-        default:
-          res = await postService.getForYouFeed(1, 20);
+        case 'foryou': res = await postService.getForYouFeed(1, 20); break;
+        case 'latest': res = await postService.getLatestFeed(1, 20); break;
+        case 'local': res = await postService.getLocalFeed(1, 20); break;
+        default: res = await postService.getForYouFeed(1, 20); break;
       }
       if (res?.data) {
         setPosts(activeTab, res.data.data);
@@ -86,94 +64,72 @@ export default function HomePage() {
     try {
       let res;
       switch (activeTab) {
-        case 'foryou':
-          res = await postService.getForYouFeed(nextPage, 20);
-          break;
-        case 'latest':
-          res = await postService.getLatestFeed(nextPage, 20);
-          break;
-        case 'local':
-          res = await postService.getLocalFeed(nextPage, 20);
-          break;
-        default:
-          res = await postService.getForYouFeed(nextPage, 20);
+        case 'foryou': res = await postService.getForYouFeed(nextPage, 20); break;
+        case 'latest': res = await postService.getLatestFeed(nextPage, 20); break;
+        case 'local': res = await postService.getLocalFeed(nextPage, 20); break;
+        default: res = await postService.getForYouFeed(nextPage, 20); break;
       }
       if (res?.data) {
         setPosts(activeTab, res.data.data, true);
         setHasMore(activeTab, res.data.meta.hasMore);
         setPage(activeTab, nextPage);
       }
-    } finally {
-      setIsLoadingMore(false);
-    }
+    } finally { setIsLoadingMore(false); }
   };
 
   const lastElementRef = useInfiniteScroll(loadMore, hasMore[activeTab] ?? true, isLoadingMore);
   const currentPosts = posts[activeTab] || [];
 
-  // Mix news into feed (every 4th post)
+  // Mix news into feed every 4th post
   const mixedFeed = (() => {
-    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem } | { type: 'cricket' }> = [];
+    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem }> = [];
     let newsIndex = 0;
-
-    // Show cricket widget at top for For You tab
-    if (activeTab === 'foryou' && showCricketWidget) {
-      items.push({ type: 'cricket' });
-    }
-
     currentPosts.forEach((post, i) => {
       items.push({ type: 'post', data: post });
-      // Insert news every 4th post
       if ((i + 1) % 4 === 0 && newsIndex < newsItems.length) {
         items.push({ type: 'news', data: newsItems[newsIndex] });
         newsIndex++;
       }
     });
-
     return items;
   })();
 
   return (
     <div className="min-h-screen pb-20" style={{ backgroundColor: '#F8F7FF' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-lg border-b border-[#E8E4F5]">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-30 bg-white border-b border-[#F0EBF8]">
         {/* Row 1: Logo + Actions */}
         <div className="flex items-center justify-between px-4 h-12">
-          <div className="flex items-center gap-2">
-            <BondhuLogo size={28} />
-            <span className="font-bold text-[15px] text-[#1a1a2e]">Bondhu</span>
+          <div className="flex items-center gap-2.5">
+            <BondhuLogo size={30} />
+            <span className="font-bold text-[16px] text-[#2D1B69] tracking-tight">Bondhu</span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push('/explore')}
-              className="w-9 h-9 rounded-full bg-[#F0EEF8] flex items-center justify-center hover:bg-[#E8E4F5] transition-colors"
-            >
-              <SearchIcon size={18} className="text-[#6B5B8A]" />
+            <button onClick={() => router.push('/explore')}
+              className="w-9 h-9 rounded-full bg-[#F5F3FF] flex items-center justify-center hover:bg-[#EDE9FE] transition-colors">
+              <SearchIcon size={17} className="text-[#7C3AED]" />
             </button>
-            <button
-              onClick={() => router.push('/settings')}
-              className="w-9 h-9 rounded-full bg-[#F0EEF8] flex items-center justify-center hover:bg-[#E8E4F5] transition-colors"
-            >
-              <SettingsIcon size={18} className="text-[#6B5B8A]" />
+            <button onClick={() => router.push('/settings')}
+              className="w-9 h-9 rounded-full bg-[#F5F3FF] flex items-center justify-center hover:bg-[#EDE9FE] transition-colors">
+              <SettingsIcon size={17} className="text-[#7C3AED]" />
             </button>
           </div>
         </div>
 
         {/* Row 2: Stories */}
-        <div className="px-4 py-2">
+        <div className="px-4 py-2.5">
           <StoryBar />
         </div>
 
         {/* Row 3: Filter Chips */}
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="px-4 pb-2.5 flex gap-2 overflow-x-auto scrollbar-hide">
           {filterChips.map((chip) => (
             <button
               key={chip.id}
               onClick={() => setActiveTab(chip.id)}
-              className={
-                activeTab === chip.id
-                  ? 'gradient-chip-active whitespace-nowrap'
-                  : 'gradient-chip-inactive whitespace-nowrap'
+              className={activeTab === chip.id
+                ? 'gradient-chip-active whitespace-nowrap'
+                : 'gradient-chip-inactive whitespace-nowrap'
               }
             >
               {chip.label}
@@ -198,8 +154,8 @@ export default function HomePage() {
                   <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-[#F0EEF8]" />
-                      <div className="flex-1">
-                        <div className="h-3 bg-[#F0EEF8] rounded w-24 mb-1" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 bg-[#F0EEF8] rounded w-24" />
                         <div className="h-2 bg-[#F0EEF8] rounded w-16" />
                       </div>
                     </div>
@@ -211,51 +167,23 @@ export default function HomePage() {
             ) : currentPosts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="font-bangla text-lg text-[#9B8FC0]">কোনো পোস্ট পাওয়া যায়নি</p>
-                {activeTab === 'local' ? (
-                  <>
-                    <p className="mt-1 text-sm text-[#9B8FC0]">Set your district in settings</p>
-                    <button
-                      onClick={() => router.push('/settings')}
-                      className="mt-3 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-xl"
-                    >
-                      Go to Settings
-                    </button>
-                  </>
-                ) : (
-                  <p className="text-sm text-[#9B8FC0]">Follow people to see content</p>
-                )}
+                <p className="text-sm text-[#9B8FC0] mt-1">Follow people to see content here</p>
               </div>
             ) : (
               <>
                 {mixedFeed.map((item, index) => {
-                  if (item.type === 'cricket') {
-                    return (
-                      <div key="cricket-widget" className="mx-3 mb-3">
-                        <LiveScores compact />
-                      </div>
-                    );
-                  }
                   if (item.type === 'news') {
-                    return (
-                      <NewsCard
-                        key={`news-${item.data.id}`}
-                        news={item.data}
-                        index={index}
-                      />
-                    );
+                    return <NewsCard key={`news-${item.data.id}`} news={item.data} index={index} />;
                   }
                   return (
-                    <div
-                      key={item.data.id}
-                      ref={index === mixedFeed.length - 1 ? lastElementRef : undefined}
-                    >
+                    <div key={item.data.id} ref={index === mixedFeed.length - 1 ? lastElementRef : undefined}>
                       <PostCard post={item.data} />
                     </div>
                   );
                 })}
                 {isLoadingMore && (
                   <div className="flex justify-center py-4">
-                    <div className="w-6 h-6 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#E8E4F5] border-t-[#A78BFA] rounded-full animate-spin" />
                   </div>
                 )}
               </>
