@@ -55,6 +55,7 @@ export interface UserProfile {
   postCount: number;
   websiteUrl?: string | null;
   whatsappNumber?: string | null;
+  isPrivate?: boolean;
   language: AppLanguage;
   theme: AppTheme;
   fontScale: FontScale;

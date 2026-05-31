@@ -5,20 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
-  MapPin, Link2, Settings, Users, FileText, Bookmark, Check, X, Camera, Loader2,
-  Calendar, Share2, Bell, Image, ShoppingBag, Briefcase, TrendingUp, Award, Phone,
-  Send, MoreHorizontal, Heart, MessageCircle,
+  MapPin, Link2, Settings, FileText, Bookmark, Check, X, Camera, Loader2,
+  Calendar, Share2, Image, ShoppingBag, Briefcase, TrendingUp, Award, Phone,
+  Lock, Globe, LogOut,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { postService } from '@/services/post.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { formatNumber, cn } from '@/lib/utils';
+import { InlineCommentSection } from '@/components/feed/InlineCommentSection';
 import type { UserProfile, Post } from '@bondhu/shared-types';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const queryClient = useQueryClient();
   const { openSheet, addToast } = useUIStore();
   const [editingBio, setEditingBio] = useState(false);
@@ -26,8 +27,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'saved' | 'shop' | 'jobs'>('posts');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
-  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
+  const [expandedTextPostIds, setExpandedTextPostIds] = useState<Set<string>>(new Set());
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +67,6 @@ export default function ProfilePage() {
     enabled: !!user?.id && (activeTab === 'saved' || activeTab === 'media'),
   });
 
-  // FIX 5: Points query
   const { data: pointsData } = useQuery({
     queryKey: ['user-points', user?.id],
     queryFn: async () => {
@@ -76,7 +76,6 @@ export default function ProfilePage() {
     enabled: !!user?.id,
   });
 
-  // FIX 10: My Shop query
   const { data: myShop } = useQuery({
     queryKey: ['my-shop', user?.id],
     queryFn: async () => {
@@ -95,7 +94,6 @@ export default function ProfilePage() {
     enabled: !!user?.id && activeTab === 'shop',
   });
 
-  // FIX 11: My Jobs query
   const { data: myJobs } = useQuery({
     queryKey: ['my-jobs', user?.id],
     queryFn: async () => {
@@ -103,17 +101,6 @@ export default function ProfilePage() {
       return (res.data as any)?.data || [];
     },
     enabled: !!user?.id && activeTab === 'jobs',
-  });
-
-  // FIX 12: Unread notifications
-  const { data: unreadCount } = useQuery({
-    queryKey: ['unread-notifications', user?.id],
-    queryFn: async () => {
-      const res = await api.get('notifications/unread-count');
-      return (res.data as any)?.count || 0;
-    },
-    enabled: !!user?.id,
-    refetchInterval: 30000,
   });
 
   // ═══════════════════════════════════════════════════════════
@@ -134,6 +121,19 @@ export default function ProfilePage() {
       }
       setEditingBio(false);
     },
+  });
+
+  // Private/Public toggle mutation
+  const togglePrivacy = useMutation({
+    mutationFn: async (isPrivate: boolean) => {
+      const res = await api.patch('users/me', { isPrivate });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      addToast('প্রাইভেসি সেটিংস আপডেট হয়েছে', 'success');
+    },
+    onError: () => addToast('আপডেট ব্যর্থ হয়েছে', 'error'),
   });
 
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -187,8 +187,6 @@ export default function ProfilePage() {
   // ═══════════════════════════════════════════════════════════
   //  HELPERS
   // ═══════════════════════════════════════════════════════════
-
-  // FIX 4: Profile completion
   const getProfileCompletion = () => {
     const checks = [
       { done: !!(profile?.avatarUrl), label: 'প্রোফাইল ছবি যোগ করুন', labelEn: 'Add profile photo', points: 20 },
@@ -205,7 +203,6 @@ export default function ProfilePage() {
   };
   const completion = getProfileCompletion();
 
-  // FIX 5: Badge calculation
   const getBadge = (points: number) => {
     if (points >= 10000) return { label: 'Legend', labelBn: 'কিংবদন্তি', icon: '👑', color: '#A78BFA' };
     if (points >= 5000) return { label: 'Diamond', labelBn: 'হীরা', icon: '💎', color: '#7DD3FC' };
@@ -217,7 +214,6 @@ export default function ProfilePage() {
   const myBadge = getBadge(myPoints);
   const myStreak = pointsData?.streak || 0;
 
-  // FIX 8: 5 tabs
   const tabs = [
     { id: 'posts' as const, label: 'পোস্ট', labelEn: 'Posts', icon: FileText },
     { id: 'media' as const, label: 'মিডিয়া', labelEn: 'Media', icon: Image },
@@ -226,7 +222,8 @@ export default function ProfilePage() {
     { id: 'jobs' as const, label: 'চাকরি', labelEn: 'Jobs', icon: Briefcase },
   ];
 
-  // FIX 9: Empty state
+  const isPrivate = (profile as any)?.isPrivate ?? (user?.profile as any)?.isPrivate ?? false;
+
   const EmptyState = ({ icon, text, textEn, cta, href }: { icon: string; text: string; textEn: string; cta: string | null; href: string | null }) => (
     <div className="flex flex-col items-center justify-center py-16 gap-4">
       <span className="text-5xl">{icon}</span>
@@ -271,149 +268,115 @@ export default function ProfilePage() {
     return `${Math.floor(diff / 86400)} দিন আগে`;
   };
 
-  const handleLikePost = async (postId: string) => {
-    try { await api.post(`posts/${postId}/react`, { type: 'LIKE' }); } catch { /* noop */ }
-  };
-
-  const handleBookmarkPost = async (postId: string, isBookmarked?: boolean) => {
-    try {
-      if (isBookmarked) await api.delete(`posts/${postId}/bookmark`);
-      else await api.post(`posts/${postId}/bookmark`);
-    } catch { /* noop */ }
-  };
-
-  const handlePostComment = async (postId: string) => {
-    const text = commentTexts[postId];
-    if (!text?.trim()) return;
-    try {
-      await api.post(`posts/${postId}/comments`, { content: text });
-      setCommentTexts((prev) => ({ ...prev, [postId]: '' }));
-      addToast('মন্তব্য যোগ করা হয়েছে', 'success');
-    } catch { addToast('মন্তব্য যোগ করতে ব্যর্থ', 'error'); }
-  };
-
-  // ── Text posts rendered as Adda-style cards ──
+  // ── Text posts rendered as Adda-style cards with comments ──
   const renderTextCards = (items: Post[]) => (
     <div className="space-y-4">
       {items.map((post: Post) => {
-        const isExpanded = expandedPostId === post.id;
+        const showComments = openCommentsPostId === post.id;
         const hasLongText = (post.content?.length || 0) > 300;
+        const isTextExpanded = expandedTextPostIds.has(post.id);
+        const displayText = (hasLongText && !isTextExpanded) ? `${post.content?.slice(0, 300)}...` : post.content;
         return (
           <motion.div
             key={post.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-5 space-y-4"
+            className="glass-card overflow-hidden"
           >
-            {/* ── Author Row ── */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                {post.user?.avatarUrl ? (
-                  <img src={post.user.avatarUrl} className="w-10 h-10 rounded-xl object-cover border border-[#DDD6F3]/50" alt="" />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-[#F5F2FF] border border-[#DDD6F3]/50 flex items-center justify-center text-lg font-bold text-[#5B21B6]">
-                    {post.user?.displayName?.[0] || 'U'}
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className="font-extrabold text-xs text-[#0F0A1E] font-bangla">
-                      {post.user?.displayName || post.user?.legalName || 'Bondhu User'}
-                    </h4>
-                    <span className="text-[9px] bg-[#F5F2FF] text-[#5B21B6] font-extrabold px-1.5 py-0.5 rounded-sm">
-                      @{post.user?.handle || 'user'}
+            <div className="p-5 space-y-4">
+              {/* ── Author Row ── */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  {post.user?.avatarUrl ? (
+                    <img src={post.user.avatarUrl} className="w-10 h-10 rounded-xl object-cover border border-[#DDD6F3]/50" alt="" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-[#F5F2FF] border border-[#DDD6F3]/50 flex items-center justify-center text-lg font-bold text-[#5B21B6]">
+                      {post.user?.displayName?.[0] || 'U'}
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-extrabold text-xs text-[#0F0A1E] font-bangla">
+                        {post.user?.displayName || post.user?.legalName || 'Bondhu User'}
+                      </h4>
+                      <span className="text-[9px] bg-[#F5F2FF] text-[#5B21B6] font-extrabold px-1.5 py-0.5 rounded-sm">
+                        @{post.user?.handle || 'user'}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-[#6B5E8A] font-semibold block mt-0.5 font-bangla">
+                      {formatTimeAgo(post.createdAt)}
                     </span>
                   </div>
-                  <span className="text-[9px] text-[#6B5E8A] font-semibold block mt-0.5 font-bangla">
-                    {formatTimeAgo(post.createdAt)}
-                  </span>
                 </div>
               </div>
-              <button className="text-[#DDD6F3] hover:text-[#6B5E8A] transition-all">
-                <MoreHorizontal className="w-3.5 h-3.5" />
-              </button>
-            </div>
 
-            {/* ── Post Body ── */}
-            <p className="text-xs sm:text-sm font-semibold text-[#0F0A1E] leading-relaxed whitespace-pre-line font-bangla">
-              {hasLongText && !isExpanded ? `${post.content?.slice(0, 300)}...` : post.content}
-              {hasLongText && !isExpanded && (
-                <button onClick={() => setExpandedPostId(post.id)} className="text-[#5B21B6] font-bold ml-1 hover:underline">
-                  আরো দেখুন
+              {/* ── Post Body ── */}
+              <p className="text-xs sm:text-sm font-semibold text-[#0F0A1E] leading-relaxed whitespace-pre-line font-bangla">
+                {displayText}
+                {hasLongText && !isTextExpanded && (
+                  <button onClick={() => setExpandedTextPostIds((prev) => new Set(prev).add(post.id))} className="text-[#5B21B6] font-bold ml-1 hover:underline">
+                    আরো দেখুন
+                  </button>
+                )}
+              </p>
+
+              {/* ── Reaction Bar ── */}
+              <div className="flex items-center gap-3 border-y border-[#DDD6F3]/50 py-2.5">
+                <button
+                  onClick={async () => { try { await api.post(`posts/${post.id}/react`, { type: 'LIKE' }); } catch {} }}
+                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                    post.myReaction
+                      ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
+                      : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span className="font-bangla">পছন্দ ({post.reactionCount || 0})</span>
                 </button>
-              )}
-            </p>
 
-            {/* ── Reaction Bar ── */}
-            <div className="flex items-center gap-3 border-y border-[#DDD6F3]/50 py-2.5">
-              <button
-                onClick={() => handleLikePost(post.id)}
-                className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                  post.myReaction
-                    ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
-                    : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5" />
-                <span className="font-bangla">পছন্দ ({post.reactionCount})</span>
-              </button>
+                <button
+                  onClick={() => setOpenCommentsPostId(showComments ? null : post.id)}
+                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                    showComments
+                      ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
+                      : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span className="font-bangla">মন্তব্য ({post.commentCount || 0})</span>
+                </button>
 
-              <button
-                onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF] transition-all"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span className="font-bangla">মন্তব্য ({post.commentCount})</span>
-              </button>
+                <button
+                  onClick={() => { const url = `https://bondhu.app/p/${post.id}`; if (navigator.share) navigator.share({ title: post.content?.slice(0, 50), url }); else { navigator.clipboard.writeText(url); addToast('লিংক কপি হয়েছে!', 'success'); } }}
+                  className="ml-auto flex items-center gap-1 text-xs font-bold px-2 py-1.5 text-[#9B8FC0] hover:text-[#5B21B6] transition-all"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                </button>
 
-              <button className="ml-auto flex items-center gap-1 text-xs font-bold px-2 py-1.5 text-[#9B8FC0] hover:text-[#5B21B6] transition-all">
-                <Share2 className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => handleBookmarkPost(post.id, post.isBookmarked)}
-                className={`flex items-center gap-1 text-xs font-bold px-2 py-1.5 transition-all ${
-                  post.isBookmarked ? 'text-[#5B21B6]' : 'text-[#9B8FC0] hover:text-[#5B21B6]'
-                }`}
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  onClick={async () => { try { if (post.isBookmarked) await api.delete(`posts/${post.id}/bookmark`); else await api.post(`posts/${post.id}/bookmark`); } catch {} }}
+                  className={`flex items-center gap-1 text-xs font-bold px-2 py-1.5 transition-all ${
+                    post.isBookmarked ? 'text-[#5B21B6]' : 'text-[#9B8FC0] hover:text-[#5B21B6]'
+                  }`}
+                >
+                  <Bookmark className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {/* ── Comments Section (when expanded) ── */}
-            {isExpanded && (
-              <div className="space-y-3 pt-1">
-                <h5 className="text-[10px] font-black uppercase text-[#9B8FC0] flex items-center gap-1">
-                  <MessageCircle className="w-3.5 h-3.5" /> মন্তব্য ({post.commentCount})
-                </h5>
-
-                {/* Comment input */}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="মন্তব্য করুন..."
-                    value={commentTexts[post.id] || ''}
-                    onChange={(e) => setCommentTexts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                    onKeyDown={(e) => e.key === 'Enter' && handlePostComment(post.id)}
-                    className="flex-grow text-xs px-3 py-2 rounded-xl border border-[#DDD6F3] outline-none focus:border-[#5B21B6] font-medium bg-white/60 font-bangla"
-                  />
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handlePostComment(post.id)}
-                    className="px-3 bg-[#F5F2FF] hover:bg-[#EDE9FF] text-[#5B21B6] border border-[#DDD6F3] rounded-xl transition-all"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                  </motion.button>
-                </div>
-              </div>
-            )}
+            {/* ── Comments Section (InlineCommentSection) ── */}
+            <InlineCommentSection
+              postId={post.id}
+              commentCount={post.commentCount || 0}
+              isOpen={showComments}
+            />
           </motion.div>
         );
       })}
     </div>
   );
 
-  // FIX 10: Shop tab content
+  // Shop tab content
   const ShopTabContent = () => {
     if (!myShop) {
       return <EmptyState icon="🏪" text="আপনার এখনো কোনো দোকান নেই" textEn="No shop yet" cta="দোকান তৈরি করুন" href="/shop/create" />;
@@ -433,7 +396,7 @@ export default function ProfilePage() {
     );
   };
 
-  // FIX 11: Jobs tab content
+  // Jobs tab content
   const JobsTabContent = () => {
     const jobs = myJobs || [];
     if (jobs.length === 0) {
@@ -474,7 +437,7 @@ export default function ProfilePage() {
   return (
     <div className="py-4 space-y-4 relative z-10">
 
-      {/* FIX 4: Profile Completion Progress Bar */}
+      {/* Profile Completion Progress Bar */}
       {completion.percent < 100 && (
         <div className="glass-card p-4">
           <div className="flex items-center justify-between mb-2">
@@ -513,7 +476,7 @@ export default function ProfilePage() {
           <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
         </div>
 
-        {/* FIX 6: Edit + Share + Notification buttons */}
+        {/* Edit + Share buttons (NO notification bell here) */}
         <div className="mb-2 flex items-center gap-2">
           <button onClick={() => router.push('/settings')} className="px-4 py-2 glass-card text-sm font-semibold text-[#3D2B6B] hover:bg-[#F5F2FF] transition-colors flex items-center gap-2">
             <Settings className="w-4 h-4" /> Edit Profile
@@ -521,12 +484,8 @@ export default function ProfilePage() {
           <button onClick={() => { const url = `https://bondhu.app/u/${profile?.handle || user?.profile?.handle}`; if (navigator.share) navigator.share({ title: 'Bondhu Profile', url }); else { navigator.clipboard.writeText(url); addToast('লিংক কপি হয়েছে!', 'success'); } }} className="p-2 glass-card hover:bg-[#F5F2FF] transition-colors" title="Share Profile">
             <Share2 className="w-4 h-4 text-[#5B21B6]" />
           </button>
-          {/* FIX 12: Notification bell */}
-          <button onClick={() => router.push('/notifications')} className="relative p-2 glass-card hover:bg-[#F5F2FF] transition-colors">
-            <Bell className="w-4 h-4 text-[#5B21B6]" />
-            {(unreadCount || 0) > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{(unreadCount || 0) > 9 ? '9+' : unreadCount}</span>
-            )}
+          <button onClick={() => logout()} className="p-2 glass-card hover:bg-red-50 transition-colors" title="Logout">
+            <LogOut className="w-4 h-4 text-red-400" />
           </button>
         </div>
       </div>
@@ -536,15 +495,20 @@ export default function ProfilePage() {
         <h1 className="text-xl font-bold text-[#0F0A1E] font-bangla">{profile?.displayName || user?.profile?.displayName}</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[#6B5E8A] text-sm">@{profile?.handle || user?.profile?.handle}</p>
-          {/* FIX 3: Phone verified badge */}
+          {/* Phone verified badge */}
           {user?.phoneVerified && (
             <span className="inline-flex items-center gap-1 text-xs bg-[#E1F5EE] text-[#0F6E56] px-2 py-0.5 rounded-full font-medium">
               <Check className="w-3 h-3" /> ফোন যাচাইকৃত
             </span>
           )}
+          {/* Private/Public badge */}
+          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${isPrivate ? 'bg-red-50 text-red-500' : 'bg-[#E1F5EE] text-[#0F6E56]'}`}>
+            {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+            {isPrivate ? 'প্রাইভেট' : 'পাবলিক'}
+          </span>
         </div>
 
-        {/* FIX 5: Points & Rank badge */}
+        {/* Points & Rank badge */}
         <div className="flex items-center gap-3 py-2 px-1 flex-wrap">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: myBadge.color + '22', color: myBadge.color }}>
             {myBadge.icon} {myBadge.labelBn} · {myPoints.toLocaleString('bn-BD')} পয়েন্ট
@@ -579,17 +543,17 @@ export default function ProfilePage() {
 
         {/* Location & Links */}
         <div className="flex flex-wrap items-center gap-3 text-sm text-[#6B5E8A] mt-2">
-          {/* FIX 13: Location tappable */}
+          {/* Location — tappable */}
           {profile?.district ? (
             <button onClick={() => router.push('/settings')} className="flex items-center gap-1 hover:text-[#5B21B6] transition-colors font-bangla">
               <MapPin className="w-3.5 h-3.5" />{profile.district.nameBn} <span className="text-[10px] text-[#9B8FC0]">(পরিবর্তন করুন)</span>
             </button>
           ) : (
             <button onClick={() => router.push('/settings')} className="flex items-center gap-1 text-[#5B21B6] hover:underline font-bangla">
-              <MapPin className="w-3.5 h-3.5" />অবস্থান যোগ করুন (+10 পয়েন্ট)
+              <MapPin className="w-3.5 h-3.5" />অবস্থান যোগ করুন
             </button>
           )}
-          {/* FIX 2: Member Since */}
+          {/* Member Since */}
           {user?.createdAt && (
             <span className="flex items-center gap-1 font-bangla">
               <Calendar className="w-3.5 h-3.5" />যোগ দিয়েছেন {new Date(user.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long' })}
@@ -598,7 +562,7 @@ export default function ProfilePage() {
           <span className="flex items-center gap-1">
             <Link2 className="w-3.5 h-3.5" />bondhu.app/u/{profile?.handle || user?.profile?.handle}
           </span>
-          {/* FIX 7: Website & WhatsApp */}
+          {/* Website & WhatsApp */}
           {profile?.websiteUrl && (
             <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[#5B21B6] hover:underline">
               <Link2 className="w-3.5 h-3.5" />{profile.websiteUrl.replace(/^https?:\/\//, '')}
@@ -609,6 +573,24 @@ export default function ProfilePage() {
               <Phone className="w-3.5 h-3.5" />WhatsApp
             </a>
           )}
+        </div>
+
+        {/* Private/Public Toggle */}
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            onClick={() => togglePrivacy.mutate(!isPrivate)}
+            disabled={togglePrivacy.isPending}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+              isPrivate
+                ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
+                : 'bg-[#E1F5EE] text-[#0F6E56] border-[#0D9488]/20 hover:bg-[#D1EDE5]'
+            }`}
+          >
+            {isPrivate ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
+            <span className="font-bangla">
+              {isPrivate ? '🔒 প্রাইভেট অ্যাকাউন্ট — ফলো রিকোয়েস্ট লাগবে' : '🌐 পাবলিক অ্যাকাউন্ট — সরাসরি ফলো করা যাবে'}
+            </span>
+          </button>
         </div>
 
         {/* Stats */}
@@ -628,7 +610,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* FIX 8: 5 Tabs */}
+      {/* 5 Tabs */}
       <div className="flex border-b border-[#DDD6F3]/50 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={cn('flex-shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors min-w-[64px]', activeTab === tab.id ? 'border-[#5B21B6] text-[#5B21B6]' : 'border-transparent text-[#6B5E8A] hover:text-[#3D2B6B]')}>

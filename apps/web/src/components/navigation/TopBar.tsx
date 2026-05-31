@@ -1,13 +1,29 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
+import { api } from '@/lib/api';
 import { BondhuLogo, ExploreIcon, SettingsIcon } from '@/components/ui/CulturalIcons';
-import { Search } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 export function TopBar() {
   const router = useRouter();
   const { user } = useAuthStore();
+
+  const { data: unreadCount } = useQuery({
+    queryKey: ['unread-notifications', user?.id],
+    queryFn: async () => {
+      try {
+        const res = await api.get('notifications/unread-count');
+        return (res.data as any)?.count || 0;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: !!user?.id,
+    refetchInterval: 30000,
+  });
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#DDD6F3]/50">
@@ -37,6 +53,19 @@ export function TopBar() {
             className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
           >
             <ExploreIcon size={20} className="text-[#5B21B6]" />
+          </button>
+
+          {/* Notification Bell — Universal */}
+          <button
+            onClick={() => router.push('/notifications')}
+            className="relative w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
+          >
+            <Bell className="w-5 h-5 text-[#5B21B6]" />
+            {(unreadCount || 0) > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {(unreadCount || 0) > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           <button
