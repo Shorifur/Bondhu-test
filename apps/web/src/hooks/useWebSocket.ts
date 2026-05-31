@@ -49,8 +49,13 @@ export function useWebSocket() {
       console.log('[WS] Disconnected:', reason);
     });
 
+    let errorCount = 0;
     socket.on('connect_error', (err) => {
-      console.error('[WS] Connection error:', err.message);
+      errorCount++;
+      // Only log first 3 errors to avoid console spam when API is offline
+      if (errorCount <= 3) {
+        console.warn('[WS] Connection error (is API running?):', err.message);
+      }
     });
 
     // Presence
