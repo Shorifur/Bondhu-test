@@ -60,7 +60,7 @@ export default function SOSPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <SOSIcon size={24} className="text-[#E11D48]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">জরুরি সেবা</h1>
+            <h1 className="font-bold text-[15px] font-bold font-bangla leading-tight">জরুরি সেবা</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Emergency SOS</p>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function SOSPage() {
 
       {/* Emergency Numbers */}
       <div className="px-4 pt-8">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-3 font-bangla">জরুরি নম্বর</h2>
+        <h2 className="text-sm font-bold font-bold mb-3 font-bangla">জরুরি নম্বর</h2>
         <div className="grid grid-cols-2 gap-2">
           {EMERGENCY_NUMBERS.map((em) => (
             <a
@@ -143,7 +143,7 @@ export default function SOSPage() {
       {/* Trusted Contacts */}
       <div className="px-4 pt-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-[#2D1B69] font-bangla">বিশ্বস্ত পরিচিতজন</h2>
+          <h2 className="text-sm font-bold font-bold font-bangla">বিশ্বস্ত পরিচিতজন</h2>
           <button onClick={() => setShowAddContact(true)}
             className="w-7 h-7 rounded-full bg-[#F5F3FF] flex items-center justify-center">
             <PlusIcon size={14} className="text-[#7C3AED]" />
@@ -226,7 +226,7 @@ export default function SOSPage() {
               className="bg-white rounded-t-3xl p-6 w-full max-w-lg"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-[#2D1B69] font-bangla">পরিচিতজন যোগ করুন</h3>
+                <h3 className="font-bold font-bold font-bangla">পরিচিতজন যোগ করুন</h3>
                 <button onClick={() => setShowAddContact(false)} className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center">
                   <X size={14} className="text-[#7C3AED]" />
                 </button>

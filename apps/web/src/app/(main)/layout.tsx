@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { TopBar } from '@/components/navigation/TopBar';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { PostMenuSheet } from '@/components/sheets/PostMenuSheet';
 import { ShareDrawer } from '@/components/sheets/ShareDrawer';
@@ -32,8 +31,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-bondhu-green border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F8F7FF' }}>
+        <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -45,18 +44,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <Providers>
       <WebSocketProvider>
-        <div className="min-h-screen bg-background pb-20">
-          <TopBar />
-          <main className="max-w-2xl mx-auto pt-16 px-4">{children}</main>
-          <BottomNav />
-          <PostMenuSheet />
-          <ShareDrawer />
-          <FintechDrawer />
-          <EditPostSheet />
-          <ReportSheet />
-          <FollowListSheet />
-          <CreateCommunitySheet />
-          <ToastContainer />
+        {/* Full-screen lavender background */}
+        <div className="min-h-screen w-full flex justify-center" style={{ backgroundColor: '#F2EFFF' }}>
+          {/* Phone-like centered container */}
+          <div className="w-full max-w-[430px] relative shadow-2xl" style={{ backgroundColor: '#F8F7FF' }}>
+            <main className="w-full">{children}</main>
+            <BottomNav />
+            <PostMenuSheet />
+            <ShareDrawer />
+            <FintechDrawer />
+            <EditPostSheet />
+            <ReportSheet />
+            <FollowListSheet />
+            <CreateCommunitySheet />
+            <ToastContainer />
+          </div>
         </div>
       </WebSocketProvider>
     </Providers>

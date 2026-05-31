@@ -102,7 +102,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center gap-2.5">
             <BondhuLogo size={30} />
-            <span className="font-bold text-[16px] text-[#2D1B69] tracking-tight">Bondhu</span>
+            <span className="font-bold text-[16px] tracking-tight" style={{ color: '#5B8C7F' }}>Bondhu</span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => router.push('/explore')}

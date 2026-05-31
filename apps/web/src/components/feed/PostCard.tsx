@@ -13,7 +13,7 @@ import type { Post, ReactionType } from '@bondhu/shared-types';
 import { MediaCarousel } from './MediaCarousel';
 import { ReactionPicker } from './ReactionPicker';
 import {
-  LeafIcon, TreeIcon, ShareIcon, BookmarkIcon, ThreeDotsIcon,
+  LeafIcon, TreeIcon, ShareIcon, BookmarkIcon, ThreeDotsIcon, HeaderTreeIcon,
 } from '@/components/ui/CulturalIcons';
 
 const reactionEmoji: Record<ReactionType, string> = {
@@ -135,16 +135,18 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </button>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {post.visibility === 'PUBLIC' && <Globe className="w-3 h-3 text-[#D4CCE8]" title="সকলের জন্য" />}
           {post.visibility === 'FOLLOWERS' && <Users className="w-3 h-3 text-[#D4CCE8]" title="অনুসারীদের জন্য" />}
           {post.visibility === 'PRIVATE' && <Lock className="w-3 h-3 text-[#D4CCE8]" title="ব্যক্তিগত" />}
           <button
             onClick={() => openSheet('postMenu', { postId: post.id, userId: post.userId, content: post.content, createdAt: post.createdAt })}
-            className="p-1.5 hover:bg-[#F5F3FF] rounded-full transition-colors ml-1"
+            className="p-1.5 hover:bg-[#F5F3FF] rounded-full transition-colors"
           >
             <ThreeDotsIcon className="text-[#C4B5E0]" size={18} />
           </button>
+          {/* Decorative banyan tree */}
+          <HeaderTreeIcon size={22} className="text-[#D4CCE8] opacity-60" />
         </div>
       </div>
 

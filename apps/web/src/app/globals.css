@@ -62,8 +62,8 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    background-color: #F8F7FF;
+    @apply text-foreground antialiased;
+    background-color: #F2EFFF;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -81,9 +81,9 @@
 
   .gradient-chip-inactive {
     @apply px-4 py-1.5 rounded-full text-xs font-medium border;
-    background: #FAFAFF;
-    border-color: #E8E4F5;
-    color: #6B5B8A;
+    background: #FFFFFF;
+    border-color: #E8E0F5;
+    color: #8B7DB5;
   }
 
   .story-ring {

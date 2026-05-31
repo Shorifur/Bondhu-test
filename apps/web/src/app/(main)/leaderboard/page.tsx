@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <LeaderboardIcon size={24} className="text-[#D97706]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">লিডারবোর্ড</h1>
+            <h1 className="font-bold text-[15px] font-bold font-bangla leading-tight">লিডারবোর্ড</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Leaderboard</p>
           </div>
         </div>
@@ -105,12 +105,12 @@ export default function LeaderboardPage() {
 
       {/* Top 3 Podium */}
       <div className="px-4 pt-4">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-3 font-bangla">শীর্ষ ৩</h2>
+        <h2 className="text-sm font-bold font-bold mb-3 font-bangla">শীর্ষ ৩</h2>
         <div className="flex items-end justify-center gap-3 pb-2">
           {/* 2nd */}
           <div className="flex flex-col items-center">
             <div className="w-14 h-14 rounded-full p-[2px] mb-2" style={{ background: `linear-gradient(135deg, ${RANK_COLORS[1]}, #E8E4F5)` }}>
-              <div className="w-full h-full rounded-full bg-[#F0EEF8] flex items-center justify-center font-bold text-sm text-[#2D1B69]">
+              <div className="w-full h-full rounded-full bg-[#F0EEF8] flex items-center justify-center font-bold text-sm font-bold">
                 {top3[1].name[0]}
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function LeaderboardPage() {
           <div className="flex flex-col items-center -mt-2">
             <CrownIcon size={20} className="text-amber-400 mb-1" />
             <div className="w-16 h-16 rounded-full p-[2.5px] mb-2" style={{ background: `linear-gradient(135deg, ${RANK_COLORS[0]}, #FFE4A1)` }}>
-              <div className="w-full h-full rounded-full bg-amber-50 flex items-center justify-center font-bold text-lg text-[#2D1B69]">
+              <div className="w-full h-full rounded-full bg-amber-50 flex items-center justify-center font-bold text-lg font-bold">
                 {top3[0].name[0]}
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function LeaderboardPage() {
           {/* 3rd */}
           <div className="flex flex-col items-center">
             <div className="w-14 h-14 rounded-full p-[2px] mb-2" style={{ background: `linear-gradient(135deg, ${RANK_COLORS[2]}, #F5E6D3)` }}>
-              <div className="w-full h-full rounded-full bg-orange-50 flex items-center justify-center font-bold text-sm text-[#2D1B69]">
+              <div className="w-full h-full rounded-full bg-orange-50 flex items-center justify-center font-bold text-sm font-bold">
                 {top3[2].name[0]}
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function LeaderboardPage() {
 
       {/* Rest of Leaderboard */}
       <div className="px-4 pt-4 space-y-2">
-        <h2 className="text-sm font-bold text-[#2D1B69] font-bangla">র‍্যাঙ্কিং</h2>
+        <h2 className="text-sm font-bold font-bold font-bangla">র‍্যাঙ্কিং</h2>
         {rest.map((entry, i) => {
           const badge = getBadge(entry.points);
           const isUp = entry.weeklyChange > 0;
@@ -179,7 +179,7 @@ export default function LeaderboardPage() {
                 <p className="text-[10px] text-[#9B8FC0]">{entry.district} · {entry.posts} posts · {entry.friends} friends</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-[#2D1B69]">{entry.points.toLocaleString()}</p>
+                <p className="text-sm font-bold font-bold">{entry.points.toLocaleString()}</p>
                 <div className="flex items-center gap-0.5 justify-end">
                   {isUp ? <TrendUpIcon size={12} className="text-green-500" /> : <TrendDownIcon size={12} className="text-red-400" />}
                   <span className={`text-[10px] ${isUp ? 'text-green-500' : 'text-red-400'}`}>{isUp ? '+' : ''}{entry.weeklyChange}</span>

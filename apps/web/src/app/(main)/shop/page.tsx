@@ -42,7 +42,7 @@ export default function ShopPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <ShopIcon size={24} className="text-[#7C3AED]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">দোকান</h1>
+            <h1 className="font-bold text-[15px] font-bangla leading-tight" style={{ color: '#5B8C7F' }}>দোকান</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Shop</p>
           </div>
           <div className="flex-1" />

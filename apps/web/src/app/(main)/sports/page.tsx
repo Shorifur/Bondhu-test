@@ -38,7 +38,7 @@ export default function SportsPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <SportIcon size={24} className="text-[#DC2626]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">খেলাধুলা</h1>
+            <h1 className="font-bold text-[15px] font-bold font-bangla leading-tight">খেলাধুলা</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Sports</p>
           </div>
           {liveMatches.length > 0 && (
@@ -69,7 +69,7 @@ export default function SportsPage() {
       {/* Live Now Section */}
       {liveMatches.length > 0 && (
         <div className="px-4 pt-3">
-          <h2 className="text-sm font-bold text-[#2D1B69] mb-2 flex items-center gap-1.5">
+          <h2 className="text-sm font-bold font-bold mb-2 flex items-center gap-1.5">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute h-full w-full rounded-full bg-red-400 opacity-75" />
               <span className="relative rounded-full h-2.5 w-2.5 bg-red-500" />
@@ -112,7 +112,7 @@ export default function SportsPage() {
 
       {/* Recent Results */}
       <div className="px-4 pt-3">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-2 font-bangla">সাম্প্রতিক ফলাফল</h2>
+        <h2 className="text-sm font-bold font-bold mb-2 font-bangla">সাম্প্রতিক ফলাফল</h2>
         {matches.filter((m) => m.status === 'RESULT').map((match) => (
           <div key={match.id} className="bg-white rounded-2xl p-3 mb-2 shadow-sm" style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.06)' }}>
             <div className="flex items-center justify-between mb-1.5">
@@ -143,7 +143,7 @@ export default function SportsPage() {
 
       {/* Upcoming */}
       <div className="px-4 pt-3 pb-4">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-2 font-bangla">আসন্ন খেলা</h2>
+        <h2 className="text-sm font-bold font-bold mb-2 font-bangla">আসন্ন খেলা</h2>
         {matches.filter((m) => m.status === 'UPCOMING').map((match) => (
           <div key={match.id} className="bg-white rounded-2xl p-3 mb-2 shadow-sm" style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.06)' }}>
             <div className="flex items-center justify-between mb-1.5">

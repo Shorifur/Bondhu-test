@@ -40,7 +40,7 @@ export default function BazaarPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <BazaarIcon size={24} className="text-[#059669]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">বাজার খুঁজুন</h1>
+            <h1 className="font-bold text-[15px] font-bold font-bangla leading-tight">বাজার খুঁজুন</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Find Your Local Bazaar</p>
           </div>
         </div>

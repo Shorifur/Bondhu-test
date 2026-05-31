@@ -44,7 +44,7 @@ export default function PointsPage() {
         <div className="flex items-center gap-3 px-4 h-14">
           <PointsIcon size={24} className="text-[#7C3AED]" />
           <div>
-            <h1 className="font-bold text-[15px] text-[#2D1B69] font-bangla leading-tight">বন্ধু পয়েন্ট</h1>
+            <h1 className="font-bold text-[15px] font-bold font-bangla leading-tight">বন্ধু পয়েন্ট</h1>
             <p className="text-[10px] text-[#9B8FC0] -mt-0.5">Bondhu Points</p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function PointsPage() {
 
       {/* Activity History */}
       <div className="px-4 pt-5">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-3 font-bangla">পয়েন্ট ইতিহাস</h2>
+        <h2 className="text-sm font-bold font-bold mb-3 font-bangla">পয়েন্ট ইতিহাস</h2>
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.06)' }}>
           {POINTS_ACTIVITIES.map((activity, i) => (
             <div key={i} className={`flex items-center gap-3 px-4 py-3 ${i < POINTS_ACTIVITIES.length - 1 ? 'border-b border-[#F5F3FF]' : ''}`}>
@@ -142,7 +142,7 @@ export default function PointsPage() {
 
       {/* How to Earn More */}
       <div className="px-4 pt-5 pb-6">
-        <h2 className="text-sm font-bold text-[#2D1B69] mb-3 font-bangla">আরও পয়েন্ট অর্জন</h2>
+        <h2 className="text-sm font-bold font-bold mb-3 font-bangla">আরও পয়েন্ট অর্জন</h2>
         <div className="space-y-2">
           {EARN_MORE.map((item, i) => (
             <div key={i} className="bg-white rounded-xl p-3 flex items-center justify-between shadow-sm"
