@@ -81,17 +81,23 @@ export function DesktopSidebar() {
           }
 
           if (item.isAction) {
+            const isActive = pathname === item.href;
             return (
               <button
                 key={item.label}
                 onClick={() => router.push(item.href)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white font-bold transition-all hover:brightness-110 active:scale-[0.98] my-1"
-                style={{ background: 'linear-gradient(135deg, #5B21B6, #0D9488)' }}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all active:scale-[0.98] my-1',
+                  isActive
+                    ? 'text-white'
+                    : 'text-[#3D2B6B] bg-white border border-[#DDD6F3] hover:bg-[#F5F2FF]'
+                )}
+                style={isActive ? { background: 'linear-gradient(135deg, #5B21B6, #0D9488)' } : undefined}
               >
-                <item.icon size={20} />
+                <item.icon size={20} className={isActive ? 'text-white' : 'text-[#5B21B6]'} />
                 <div>
                   <span className="text-[14px]">{item.label}</span>
-                  <span className="block text-[10px] font-bangla opacity-80 -mt-0.5">{item.labelBn}</span>
+                  <span className={cn('block text-[10px] font-bangla -mt-0.5', isActive ? 'opacity-80' : 'text-[#6B5E8A]')}>{item.labelBn}</span>
                 </div>
               </button>
             );
