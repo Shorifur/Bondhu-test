@@ -291,4 +291,5 @@ export default function CreateShopPage() {
         )}
       </div>
     </div>
-  )
+  );
+}
