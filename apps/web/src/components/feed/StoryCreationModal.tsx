@@ -68,27 +68,37 @@ export function StoryCreationModal({ isOpen, onClose, onSuccess }: StoryCreation
       let mediaUrl: string | undefined;
 
       if (storyType === 'image' && imagePreview) {
-        // Convert preview to file and upload
         const response = await fetch(imagePreview);
         const blob = await response.blob();
         const file = new File([blob], 'story.jpg', { type: 'image/jpeg' });
         mediaUrl = await uploadImage(file) || undefined;
       }
 
-      const payload: any = {
-        type: storyType === 'text' ? 'TEXT' : 'IMAGE',
-        content: storyType === 'text' ? textContent : undefined,
-        gradient: storyType === 'text' ? selectedGradient : undefined,
-        textColor: storyType === 'text' ? selectedTextColor : undefined,
-        mediaUrl,
-      };
+      // Build payload matching backend DTO exactly — only include expected fields
+      let payload: Record<string, any>;
+      if (storyType === 'text') {
+        payload = {
+          type: 'TEXT',
+          content: textContent.trim(),
+          gradient: selectedGradient,
+          textColor: selectedTextColor,
+        };
+      } else {
+        payload = {
+          type: 'IMAGE',
+          mediaUrl,
+          // Do NOT include content, gradient, textColor for IMAGE type
+        };
+      }
 
       await api.post('stories', payload);
       onSuccess?.();
       handleReset();
       onClose();
-    } catch (err) {
-      console.warn('[StoryCreation] Submit failed:', err);
+    } catch (err: any) {
+      console.warn('[StoryCreation] Submit failed:', err?.message || err);
+      // Show error to user via toast
+      alert(err?.message || 'স্টোরি আপলোড ব্যর্থ হয়েছে');
     } finally {
       setIsSubmitting(false);
     }

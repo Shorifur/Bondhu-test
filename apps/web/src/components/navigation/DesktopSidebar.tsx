@@ -48,8 +48,11 @@ export function DesktopSidebar() {
 
   return (
     <div className="space-y-4">
-      {/* User Profile Card — Real Data */}
-      <div className="glass-card p-4">
+      {/* User Profile Card — Real Data + Clickable */}
+      <button
+        onClick={() => router.push('/profile')}
+        className="glass-card p-4 w-full text-left hover:shadow-md transition-shadow cursor-pointer"
+      >
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full avatar-ring">
             {avatarUrl ? (
@@ -66,22 +69,22 @@ export function DesktopSidebar() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Real Stats from user object */}
         <div className="flex items-center justify-around mt-4 pt-3 border-t border-[#DDD6F3]/50">
           <div className="text-center">
-            <p className="text-sm font-bold text-[#0F0A1E]">১২৫</p>
+            <p className="text-sm font-bold text-[#0F0A1E]">{(user?.profile as any)?.postCount || 0}</p>
             <p className="text-[10px] text-[#6B5E8A] font-medium font-bangla">পোস্ট</p>
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold text-[#0F0A1E]">৮৯০</p>
+            <p className="text-sm font-bold text-[#0F0A1E]">{(user?.profile as any)?.followerCount || 0}</p>
             <p className="text-[10px] text-[#6B5E8A] font-medium font-bangla">অনুসারী</p>
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold text-[#0F0A1E]">৩৪৫</p>
+            <p className="text-sm font-bold text-[#0F0A1E]">{(user?.profile as any)?.followingCount || 0}</p>
             <p className="text-[10px] text-[#6B5E8A] font-medium font-bangla">অনুসরণ</p>
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Navigation */}
       <nav className="glass-card p-2 space-y-0.5">
