@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import {
   MapPin, Link2, Settings, Users, FileText, Bookmark, Check, X, Camera, Loader2,
   Calendar, Share2, Bell, Image, ShoppingBag, Briefcase, TrendingUp, Award, Phone,
+  Send, MoreHorizontal, Heart, MessageCircle,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { postService } from '@/services/post.service';
@@ -25,6 +26,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'saved' | 'shop' | 'jobs'>('posts');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -258,14 +261,155 @@ export default function ProfilePage() {
     </div>
   );
 
+  const formatTimeAgo = (date: string) => {
+    const now = Date.now();
+    const then = new Date(date).getTime();
+    const diff = Math.floor((now - then) / 1000);
+    if (diff < 60) return 'এইমাত্র';
+    if (diff < 3600) return `${Math.floor(diff / 60)} মিনিট আগে`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} ঘণ্টা আগে`;
+    return `${Math.floor(diff / 86400)} দিন আগে`;
+  };
+
+  const handleLikePost = async (postId: string) => {
+    try { await api.post(`posts/${postId}/react`, { type: 'LIKE' }); } catch { /* noop */ }
+  };
+
+  const handleBookmarkPost = async (postId: string, isBookmarked?: boolean) => {
+    try {
+      if (isBookmarked) await api.delete(`posts/${postId}/bookmark`);
+      else await api.post(`posts/${postId}/bookmark`);
+    } catch { /* noop */ }
+  };
+
+  const handlePostComment = async (postId: string) => {
+    const text = commentTexts[postId];
+    if (!text?.trim()) return;
+    try {
+      await api.post(`posts/${postId}/comments`, { content: text });
+      setCommentTexts((prev) => ({ ...prev, [postId]: '' }));
+      addToast('মন্তব্য যোগ করা হয়েছে', 'success');
+    } catch { addToast('মন্তব্য যোগ করতে ব্যর্থ', 'error'); }
+  };
+
+  // ── Text posts rendered as Adda-style cards ──
   const renderTextCards = (items: Post[]) => (
-    <div className="space-y-3">
-      {items.map((post: Post) => (
-        <button key={post.id} onClick={() => router.push(`/p/${post.id}`)} className="w-full text-left p-4 glass-card-hover">
-          <p className="text-sm line-clamp-4 whitespace-pre-wrap font-bangla text-[#0F0A1E]">{post.content}</p>
-          <p className="text-xs text-[#6B5E8A] mt-2">{new Date(post.createdAt).toLocaleDateString()}</p>
-        </button>
-      ))}
+    <div className="space-y-4">
+      {items.map((post: Post) => {
+        const isExpanded = expandedPostId === post.id;
+        const hasLongText = (post.content?.length || 0) > 300;
+        return (
+          <motion.div
+            key={post.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card p-5 space-y-4"
+          >
+            {/* ── Author Row ── */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                {post.user?.avatarUrl ? (
+                  <img src={post.user.avatarUrl} className="w-10 h-10 rounded-xl object-cover border border-[#DDD6F3]/50" alt="" />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-[#F5F2FF] border border-[#DDD6F3]/50 flex items-center justify-center text-lg font-bold text-[#5B21B6]">
+                    {post.user?.displayName?.[0] || 'U'}
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h4 className="font-extrabold text-xs text-[#0F0A1E] font-bangla">
+                      {post.user?.displayName || post.user?.legalName || 'Bondhu User'}
+                    </h4>
+                    <span className="text-[9px] bg-[#F5F2FF] text-[#5B21B6] font-extrabold px-1.5 py-0.5 rounded-sm">
+                      @{post.user?.handle || 'user'}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-[#6B5E8A] font-semibold block mt-0.5 font-bangla">
+                    {formatTimeAgo(post.createdAt)}
+                  </span>
+                </div>
+              </div>
+              <button className="text-[#DDD6F3] hover:text-[#6B5E8A] transition-all">
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* ── Post Body ── */}
+            <p className="text-xs sm:text-sm font-semibold text-[#0F0A1E] leading-relaxed whitespace-pre-line font-bangla">
+              {hasLongText && !isExpanded ? `${post.content?.slice(0, 300)}...` : post.content}
+              {hasLongText && !isExpanded && (
+                <button onClick={() => setExpandedPostId(post.id)} className="text-[#5B21B6] font-bold ml-1 hover:underline">
+                  আরো দেখুন
+                </button>
+              )}
+            </p>
+
+            {/* ── Reaction Bar ── */}
+            <div className="flex items-center gap-3 border-y border-[#DDD6F3]/50 py-2.5">
+              <button
+                onClick={() => handleLikePost(post.id)}
+                className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                  post.myReaction
+                    ? 'bg-[#F5F2FF] text-[#5B21B6] border-[#5B21B6]/30'
+                    : 'bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF]'
+                }`}
+              >
+                <Heart className="w-3.5 h-3.5" />
+                <span className="font-bangla">পছন্দ ({post.reactionCount})</span>
+              </button>
+
+              <button
+                onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border bg-white/60 text-[#6B5E8A] border-[#DDD6F3] hover:bg-[#F5F2FF] transition-all"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span className="font-bangla">মন্তব্য ({post.commentCount})</span>
+              </button>
+
+              <button className="ml-auto flex items-center gap-1 text-xs font-bold px-2 py-1.5 text-[#9B8FC0] hover:text-[#5B21B6] transition-all">
+                <Share2 className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => handleBookmarkPost(post.id, post.isBookmarked)}
+                className={`flex items-center gap-1 text-xs font-bold px-2 py-1.5 transition-all ${
+                  post.isBookmarked ? 'text-[#5B21B6]' : 'text-[#9B8FC0] hover:text-[#5B21B6]'
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* ── Comments Section (when expanded) ── */}
+            {isExpanded && (
+              <div className="space-y-3 pt-1">
+                <h5 className="text-[10px] font-black uppercase text-[#9B8FC0] flex items-center gap-1">
+                  <MessageCircle className="w-3.5 h-3.5" /> মন্তব্য ({post.commentCount})
+                </h5>
+
+                {/* Comment input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="মন্তব্য করুন..."
+                    value={commentTexts[post.id] || ''}
+                    onChange={(e) => setCommentTexts((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && handlePostComment(post.id)}
+                    className="flex-grow text-xs px-3 py-2 rounded-xl border border-[#DDD6F3] outline-none focus:border-[#5B21B6] font-medium bg-white/60 font-bangla"
+                  />
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handlePostComment(post.id)}
+                    className="px-3 bg-[#F5F2FF] hover:bg-[#EDE9FF] text-[#5B21B6] border border-[#DDD6F3] rounded-xl transition-all"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </motion.button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
     </div>
   );
 
