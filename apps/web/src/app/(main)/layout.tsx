@@ -46,7 +46,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <Providers>
       <WebSocketProvider>
-        <div className="min-h-screen w-full" style={{ backgroundColor: '#F8F7FF' }}>
+        <div className="min-h-screen w-full" style={{ backgroundColor: '#FAF8F5' }}>
           {/* Desktop: Show TopBar + Sidebar layout */}
           {/* Mobile: Show TopBar + BottomNav */}
           

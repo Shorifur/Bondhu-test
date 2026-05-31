@@ -4,30 +4,41 @@
 
 @layer base {
   :root {
-    /* New Bondhu lavender/purple palette matching reference */
-    --background: 252 33% 98%;
-    --foreground: 240 20% 12%;
+    /* Warm cream + sage green palette matching reference image */
+    --background: 40 20% 98%;
+    --foreground: 220 15% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 240 20% 12%;
+    --card-foreground: 220 15% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 20% 12%;
-    --primary: 262 70% 58%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 150 25% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 252 30% 95%;
-    --secondary-foreground: 240 20% 12%;
-    --muted: 252 20% 94%;
-    --muted-foreground: 252 15% 55%;
+    --secondary: 260 30% 96%;
+    --secondary-foreground: 220 15% 15%;
+    --muted: 40 15% 95%;
+    --muted-foreground: 260 15% 60%;
     --accent: 172 72% 62%;
-    --accent-foreground: 240 20% 12%;
+    --accent-foreground: 220 15% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 252 25% 90%;
-    --input: 252 25% 90%;
-    --ring: 262 70% 58%;
+    --border: 260 20% 92%;
+    --input: 260 20% 92%;
+    --ring: 150 25% 55%;
     --radius: 0.75rem;
     --font-sans: 'Inter', 'Noto Sans Bengali', 'SolaimanLipi', system-ui, sans-serif;
     --font-bangla: 'Noto Sans Bengali', 'Baloo Da 2', 'SolaimanLipi', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Custom Bondhu colors */
+    --bondhu-sage: #7BA08A;
+    --bondhu-sage-light: #A3C4B2;
+    --bondhu-cream: #FAF8F5;
+    --bondhu-cream-dark: #F5F2EC;
+    --bondhu-lavender: #B8A9D9;
+    --bondhu-lavender-light: #E8E0F5;
+    --bondhu-purple: #A78BFA;
+    --bondhu-text: #1F2937;
+    --bondhu-text-muted: #9CA3AF;
   }
 
   .dark {
@@ -63,7 +74,7 @@
 
   body {
     @apply text-foreground antialiased;
-    background-color: #F8F7FF;
+    background-color: #FAF8F5;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -76,24 +87,24 @@
 
   .gradient-chip-active {
     @apply px-4 py-1.5 rounded-full text-white text-xs font-medium;
-    background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+    background: linear-gradient(135deg, #A78BFA 0%, #818CF8 100%);
   }
 
   .gradient-chip-inactive {
     @apply px-4 py-1.5 rounded-full text-xs font-medium border;
     background: #FFFFFF;
-    border-color: #E8E0F5;
-    color: #8B7DB5;
+    border-color: #E8E4F0;
+    color: #8B80A5;
   }
 
   .story-ring {
-    background: linear-gradient(135deg, #A78BFA 0%, #5EEAD4 50%, #7C3AED 100%);
+    background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 50%, #818CF8 100%);
     padding: 2.5px;
     border-radius: 50%;
   }
 
   .story-ring-viewed {
-    background: linear-gradient(135deg, #E8E4F5 0%, #D4D0E8 100%);
+    background: linear-gradient(135deg, #E5E0F0 0%, #D4CCE8 100%);
     padding: 2.5px;
     border-radius: 50%;
   }

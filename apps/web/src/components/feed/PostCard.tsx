@@ -95,8 +95,8 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <article
-      className="bg-white rounded-2xl shadow-sm mx-3 mb-3 overflow-hidden"
-      style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.08)' }}
+      className="bg-white rounded-2xl mx-3 mb-3 overflow-hidden"
+      style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
@@ -215,9 +215,9 @@ export function PostCard({ post }: PostCardProps) {
             {liked ? (
               <span className="text-base">{reactionEmoji[post.myReaction || 'LIKE']}</span>
             ) : (
-              <LeafIcon size={19} className="text-[#B8A9D9]" />
+              <LeafIcon size={19} className="text-[#A3B5A8]" />
             )}
-            <span className={cn('text-[13px] font-medium', liked ? 'text-purple-600' : 'text-[#9B8FC0]')}>
+            <span className={cn('text-[13px] font-medium', liked ? 'text-[#7BA08A]' : 'text-[#A3B5A8]')}>
               {localReactionCount}
             </span>
           </button>
@@ -233,8 +233,8 @@ export function PostCard({ post }: PostCardProps) {
             onClick={() => router.push(`/p/${post.id}`)}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F3FF] transition-colors"
           >
-            <TreeIcon size={19} className="text-[#B8A9D9]" />
-            <span className="text-[13px] font-medium text-[#9B8FC0]">{post.commentCount}</span>
+            <TreeIcon size={19} className="text-[#A3B5A8]" />
+            <span className="text-[13px] font-medium text-[#A3B5A8]">{post.commentCount}</span>
           </button>
 
           {/* Share */}
@@ -242,8 +242,8 @@ export function PostCard({ post }: PostCardProps) {
             onClick={() => openSheet('share', { postId: post.id })}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F3FF] transition-colors"
           >
-            <ShareIcon size={19} className="text-[#B8A9D9]" />
-            <span className="text-[13px] font-medium text-[#9B8FC0]">{post.shareCount}</span>
+            <ShareIcon size={19} className="text-[#A3B5A8]" />
+            <span className="text-[13px] font-medium text-[#A3B5A8]">{post.shareCount}</span>
           </button>
         </div>
 
@@ -254,7 +254,7 @@ export function PostCard({ post }: PostCardProps) {
         >
           <BookmarkIcon
             size={19}
-            className={cn('transition-colors', bookmarked ? 'text-purple-500' : 'text-[#B8A9D9]')}
+            className={cn('transition-colors', bookmarked ? 'text-[#7BA08A]' : 'text-[#A3B5A8]')}
           />
         </button>
       </div>

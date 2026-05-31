@@ -11,7 +11,7 @@ export function TopBar() {
   return (
     <header
       className="fixed top-0 left-0 right-0 z-50 border-b border-[#F0EBF8] lg:left-64"
-      style={{ backgroundColor: 'rgba(248,247,255,0.95)', backdropFilter: 'blur(12px)' }}
+      style={{ backgroundColor: 'rgba(250,248,245,0.95)', backdropFilter: 'blur(12px)' }}
     >
       <div className="h-14 flex items-center justify-between px-4">
         {/* Left: Logo */}
