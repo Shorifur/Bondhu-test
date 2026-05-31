@@ -38,7 +38,7 @@ function StoryRing({ story, onClick }: StoryRingProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-bondhu-green text-white font-bold text-lg">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#E8D5F5] to-[#D4F1E0] text-[#5B21B6] font-bold text-lg">
               {profile?.displayName?.[0] || 'U'}
             </div>
           )}
@@ -97,8 +97,8 @@ export function StoryBar() {
       <div className="flex gap-3 overflow-x-auto scrollbar-hide py-2">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex flex-col items-center gap-1.5 shrink-0">
-            <div className="w-16 h-16 rounded-full bg-muted animate-pulse" />
-            <div className="w-10 h-2 rounded bg-muted animate-pulse" />
+            <div className="w-16 h-16 rounded-full bg-[#F5F2FF] animate-pulse" />
+            <div className="w-10 h-2 rounded bg-[#F5F2FF] animate-pulse" />
           </div>
         ))}
       </div>
@@ -112,8 +112,8 @@ export function StoryBar() {
         onClick={() => router.push('/create?mode=story')}
         className="flex flex-col items-center gap-1.5 shrink-0"
       >
-        <div className="w-16 h-16 rounded-full border-2 border-dashed border-bondhu-green flex items-center justify-center bg-bondhu-green/5">
-          <Plus className="w-6 h-6 text-bondhu-green" />
+        <div className="w-16 h-16 rounded-full border-2 border-dashed border-[#B8A9E3] flex items-center justify-center bg-[#F5F2FF]">
+          <Plus className="w-6 h-6 text-[#5B21B6]" />
         </div>
         <span className="text-[11px] font-semibold text-[#5B21B6] truncate max-w-[4rem]">
           Add Story

@@ -3,25 +3,35 @@
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { BondhuLogo, ExploreIcon, SettingsIcon } from '@/components/ui/CulturalIcons';
+import { Search } from 'lucide-react';
 
 export function TopBar() {
   const router = useRouter();
   const { user } = useAuthStore();
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#DDD6F3] lg:left-64"
-      style={{ backdropFilter: 'blur(12px)' }}
-    >
-      <div className="h-14 flex items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#DDD6F3]/50">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Left: Logo */}
-        <button onClick={() => router.push('/')} className="flex items-center gap-2 shrink-0">
-          <BondhuLogo size={30} />
-          <span className="font-bold text-[18px] hidden sm:block text-[#0F0A1E] tracking-tight">Bondhu</span>
+        <button onClick={() => router.push('/')} className="flex items-center gap-2.5 shrink-0">
+          <BondhuLogo size={32} />
+          <span className="font-bold text-lg text-[#0F0A1E] tracking-tight hidden sm:block">Bondhu</span>
         </button>
 
-        {/* Right: Action Icons */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Center: Search (hidden on very small screens) */}
+        <div className="hidden sm:flex flex-1 max-w-md mx-4">
+          <div className="w-full glass-input flex items-center gap-2 px-3 py-2 rounded-xl">
+            <Search className="w-4 h-4 text-[#9B8FC0] shrink-0" />
+            <input
+              type="text"
+              placeholder="খুঁজুন..."
+              className="bg-transparent text-sm text-[#0F0A1E] placeholder:text-[#9B8FC0] outline-none w-full font-bangla"
+            />
+          </div>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => router.push('/explore')}
             className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
@@ -38,7 +48,7 @@ export function TopBar() {
 
           <button
             onClick={() => router.push('/profile')}
-            className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#DDD6F3] ml-1"
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#DDD6F3] ml-1 avatar-ring"
           >
             {user?.profile?.avatarUrl ? (
               <img src={user.profile.avatarUrl} alt="" className="w-full h-full object-cover" />

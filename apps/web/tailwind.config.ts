@@ -52,21 +52,30 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Bondhu brand colors
+        // ── Iridescent pastel palette ──
+        iridescent: {
+          lavender: '#E8D5F5',
+          mint: '#D4F1E0',
+          peach: '#FDE1D0',
+          sky: '#D0E8F9',
+          rose: '#F5D0D8',
+          cream: '#F9F6F0',
+        },
+        // ── Bondhu brand ──
         bondhu: {
+          purple: '#5B21B6',
+          'purple-light': '#7C3AED',
+          teal: '#0D9488',
           green: '#00A86B',
-          'green-light': '#00C77E',
-          'green-dark': '#007A4F',
           red: '#E63946',
           gold: '#FFB703',
-          blue: '#0077B6',
-          orange: '#FB8500',
         },
-        // Verification badges
-        badge: {
-          blue: '#1DA1F2',
-          green: '#00A86B',
-          orange: '#FB8500',
+        // ── High-contrast text ──
+        ink: {
+          DEFAULT: '#0F0A1E',
+          secondary: '#3D2B6B',
+          muted: '#6B5E8A',
+          placeholder: '#9B8FC0',
         },
       },
       borderRadius: {
@@ -75,8 +84,8 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-        bangla: ['var(--font-bangla)', 'Noto Sans Bengali', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Hind Siliguri', 'var(--font-sans)', 'system-ui', 'sans-serif'],
+        bangla: ['Hind Siliguri', 'var(--font-bangla)', 'Noto Sans Bengali', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],
       },
       fontSize: {
@@ -124,6 +133,10 @@ const config: Config = {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -135,9 +148,15 @@ const config: Config = {
         'scale-in': 'scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         'pulse-ring': 'pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
         'shimmer': 'shimmer 2s linear infinite',
+        'float': 'float 3s ease-in-out infinite',
       },
       transitionTimingFunction: {
         'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      backgroundImage: {
+        'iridescent-card': 'linear-gradient(135deg, rgba(232,213,245,0.4) 0%, rgba(212,241,224,0.3) 50%, rgba(208,232,249,0.4) 100%)',
+        'iridescent-radial': 'radial-gradient(ellipse at 30% 20%, rgba(232,213,245,0.5) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(212,241,224,0.4) 0%, transparent 50%)',
+        'iridescent-story': 'conic-gradient(from 180deg at 50% 50%, #E8D5F5 0deg, #D4F1E0 72deg, #D0E8F9 144deg, #FDE1D0 216deg, #F5D0D8 288deg, #E8D5F5 360deg)',
       },
     },
   },

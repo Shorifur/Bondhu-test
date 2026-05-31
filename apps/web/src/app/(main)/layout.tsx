@@ -16,6 +16,7 @@ import { CreateCommunitySheet } from '@/components/sheets/CreateCommunitySheet';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { Providers } from '@/app/providers';
 import { WebSocketProvider } from '@/components/providers/WebSocketProvider';
+import { TrendingSidebar } from '@/components/navigation/TrendingSidebar';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,8 +34,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F0EDFB' }}>
-        <div className="w-8 h-8 border-4 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F7F6]">
+        <div className="w-10 h-10 border-4 border-[#DDD6F3] border-t-[#5B21B6] rounded-full animate-spin" />
       </div>
     );
   }
@@ -46,52 +47,47 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <Providers>
       <WebSocketProvider>
-        <div className="min-h-screen w-full" style={{ backgroundColor: '#F0EDFB' }}>
-          {/* Desktop: Show TopBar + Sidebar layout */}
-          {/* Mobile: Show TopBar + BottomNav */}
-          
-          {/* Top Header Bar - visible on all screens */}
-          <TopBar />
-
-          <div className="flex">
-            {/* Desktop Sidebar - hidden on mobile, visible on lg+ */}
-            <div className="hidden lg:block">
-              <DesktopSidebar />
-            </div>
-
-            {/* Main Content */}
-            <main className="flex-1 w-full lg:ml-0 pb-20 lg:pb-8 pt-14">
-              {/* Mobile: full width with px-4 */}
-              {/* Desktop: max-w-2xl centered */}
-              <div className="w-full lg:max-w-2xl lg:mx-auto">
-                {children}
-              </div>
-            </main>
-
-            {/* Desktop Right Sidebar - hidden on mobile */}
-            <div className="hidden xl:block w-80 p-4 pt-16">
-              <div className="sticky top-20 space-y-4">
-                {/* Trending topics or suggestions can go here */}
-                <div className="bg-white rounded-2xl p-4 border border-[#DDD6F3]">
-                  <h3 className="font-bold text-sm text-[#5B21B6] mb-3 font-bangla">ট্রেন্ডিং</h3>
-                  <div className="space-y-3">
-                    {['#ঈদ_উল_ফিতর', '#বাংলাদেশ_ক্রিকেট', '#পদ্মা_সেতু', '#ডিজিটাল_বাংলাদেশ'].map((tag) => (
-                      <div key={tag} className="flex items-center justify-between">
-                        <span className="text-sm text-[#5B21B6] font-semibold">{tag}</span>
-                        <span className="text-[10px] text-[#6B5E8A]">2.4k posts</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* ── Page Background with subtle iridescent radial gradient ── */}
+        <div className="min-h-screen w-full bg-[#F4F7F6] relative">
+          {/* Subtle iridescent background blobs */}
+          <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#E8D5F5]/20 blur-[120px]" />
+            <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#D4F1E0]/20 blur-[100px]" />
+            <div className="absolute -bottom-[10%] left-[20%] w-[35%] h-[35%] rounded-full bg-[#D0E8F9]/20 blur-[90px]" />
           </div>
 
-          {/* Mobile Bottom Nav - hidden on desktop */}
-          <div className="lg:hidden">
+          {/* Top Header — visible on all screens */}
+          <TopBar />
+
+          {/* ── 3-Column Grid Layout ── */}
+          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6 pt-20 pb-24 lg:pb-8 relative z-10">
+
+            {/* LEFT: Desktop Navigation Sidebar (3 cols) */}
+            <aside className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-20">
+                <DesktopSidebar />
+              </div>
+            </aside>
+
+            {/* CENTER: Main Feed (6 cols on desktop, full on mobile) */}
+            <main className="col-span-1 lg:col-span-6 space-y-4 min-w-0">
+              {children}
+            </main>
+
+            {/* RIGHT: Trending / Discover (3 cols) */}
+            <aside className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-20">
+                <TrendingSidebar />
+              </div>
+            </aside>
+          </div>
+
+          {/* Mobile Bottom Nav — hidden on desktop */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
             <BottomNav />
           </div>
 
+          {/* Global overlays */}
           <PostMenuSheet />
           <ShareDrawer />
           <FintechDrawer />

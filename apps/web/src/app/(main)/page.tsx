@@ -147,8 +147,8 @@ export default function HomePage() {
               </div>
             ) : currentPosts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="font-bangla text-lg text-[#8B9D8F]">কোনো পোস্ট পাওয়া যায়নি</p>
-                <p className="text-sm text-[#8B9D8F] mt-1">Follow people to see content here</p>
+                <p className="font-bangla text-lg text-[#6B5E8A] font-semibold">কোনো পোস্ট পাওয়া যায়নি</p>
+                <p className="text-sm text-[#9B8FC0] mt-1">Follow people to see content here</p>
               </div>
             ) : (
               <>
@@ -164,7 +164,7 @@ export default function HomePage() {
                 })}
                 {isLoadingMore && (
                   <div className="flex justify-center py-4">
-                    <div className="w-6 h-6 border-2 border-[#C4D8CE] border-t-[#5F7A61] rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#DDD6F3] border-t-[#5B21B6] rounded-full animate-spin" />
                   </div>
                 )}
               </>
