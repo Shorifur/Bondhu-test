@@ -152,16 +152,18 @@ export default function HomePage() {
               </div>
             ) : (
               <>
-                {mixedFeed.map((item, index) => {
-                  if (item.type === 'news') {
-                    return <NewsCard key={`news-${item.data.id}`} news={item.data} index={index} />;
-                  }
-                  return (
-                    <div key={item.data.id} ref={index === mixedFeed.length - 1 ? lastElementRef : undefined}>
-                      <PostCard post={item.data} />
-                    </div>
-                  );
-                })}
+                <div className="space-y-4">
+                  {mixedFeed.map((item, index) => {
+                    if (item.type === 'news') {
+                      return <NewsCard key={`news-${item.data.id}`} news={item.data} index={index} />;
+                    }
+                    return (
+                      <div key={item.data.id} ref={index === mixedFeed.length - 1 ? lastElementRef : undefined}>
+                        <PostCard post={item.data} />
+                      </div>
+                    );
+                  })}
+                </div>
                 {isLoadingMore && (
                   <div className="flex justify-center py-4">
                     <div className="w-6 h-6 border-2 border-[#DDD6F3] border-t-[#5B21B6] rounded-full animate-spin" />
