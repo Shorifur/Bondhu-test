@@ -13,8 +13,9 @@ import type { Post, ReactionType } from '@bondhu/shared-types';
 import { MediaCarousel } from './MediaCarousel';
 import { ReactionPicker } from './ReactionPicker';
 import {
-  LeafIcon, TreeIcon, ShareIcon, BookmarkIcon, ThreeDotsIcon, HeaderTreeIcon,
-} from '@/components/ui/CulturalIcons';
+  LikeLeafIcon, CommentTreeIcon, ShareRootIcon, SaveSeedIcon, RainDropsIcon, HeaderTreeIcon,
+  getEvolutionStage,
+} from '@/components/ui/NatureIcons';
 
 const reactionEmoji: Record<ReactionType, string> = {
   LIKE: '❤️',
@@ -107,14 +108,14 @@ export function PostCard({ post }: PostCardProps) {
           <div
             className={cn(
               'w-10 h-10 rounded-full p-[2px]',
-              'bg-gradient-to-br from-[#A78BFA] to-[#5EEAD4]'
+              'bg-gradient-to-br from-[#A3C4B2] to-[#7BA08A]'
             )}
           >
             <div className="w-full h-full rounded-full bg-white p-[1.5px] overflow-hidden">
               {profile?.avatarUrl ? (
                 <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
               ) : (
-                <div className="w-full h-full rounded-full bg-[#F0EEF8] flex items-center justify-center font-bold text-sm text-[#7C3AED]">
+                <div className="w-full h-full rounded-full bg-[#F0F5F2] flex items-center justify-center font-bold text-sm text-[#7BA08A]">
                   {profile?.displayName?.[0] || 'U'}
                 </div>
               )}
@@ -122,37 +123,37 @@ export function PostCard({ post }: PostCardProps) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1">
-              <span className="font-semibold text-[13px] text-[#1a1a2e] group-hover:text-[#7C3AED] transition-colors">
+              <span className="font-semibold text-[13px] text-[#1a1a2e] group-hover:text-[#7BA08A] transition-colors">
                 {profile?.displayName}
               </span>
               {verification && <verification.icon className={cn('w-3.5 h-3.5', verification.color)} />}
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-[#9B8FC0]">@{profile?.handle}</span>
-              <span className="text-[11px] text-[#C4B5E0]">·</span>
-              <span className="text-[11px] text-[#9B8FC0]">{formatTimeAgo(post.createdAt, 'bn')}</span>
+              <span className="text-[11px] text-[#8BA08A]">@{profile?.handle}</span>
+              <span className="text-[11px] text-[#B8D4C8]">·</span>
+              <span className="text-[11px] text-[#8BA08A]">{formatTimeAgo(post.createdAt, 'bn')}</span>
             </div>
           </div>
         </button>
 
         <div className="flex items-center gap-1.5">
-          {post.visibility === 'PUBLIC' && <Globe className="w-3 h-3 text-[#D4CCE8]" title="সকলের জন্য" />}
-          {post.visibility === 'FOLLOWERS' && <Users className="w-3 h-3 text-[#D4CCE8]" title="অনুসারীদের জন্য" />}
-          {post.visibility === 'PRIVATE' && <Lock className="w-3 h-3 text-[#D4CCE8]" title="ব্যক্তিগত" />}
+          {post.visibility === 'PUBLIC' && <Globe className="w-3 h-3 text-[#C8DDD4]" title="সকলের জন্য" />}
+          {post.visibility === 'FOLLOWERS' && <Users className="w-3 h-3 text-[#C8DDD4]" title="অনুসারীদের জন্য" />}
+          {post.visibility === 'PRIVATE' && <Lock className="w-3 h-3 text-[#C8DDD4]" title="ব্যক্তিগত" />}
           <button
             onClick={() => openSheet('postMenu', { postId: post.id, userId: post.userId, content: post.content, createdAt: post.createdAt })}
-            className="p-1.5 hover:bg-[#F5F3FF] rounded-full transition-colors"
+            className="p-1.5 hover:bg-[#F0F5F2] rounded-full transition-colors"
           >
-            <ThreeDotsIcon className="text-[#C4B5E0]" size={18} />
+            <RainDropsIcon className="text-[#8BA08A]" size={18} />
           </button>
           {/* Decorative banyan tree */}
-          <HeaderTreeIcon size={22} className="text-[#D4CCE8] opacity-60" />
+          <HeaderTreeIcon size={22} className="text-[#C8DDD4] opacity-60" />
         </div>
       </div>
 
       {/* Bengali date */}
       <div className="px-4 -mt-1 mb-1">
-        <span className="text-[10px] text-[#C4B5E0] font-bangla">
+        <span className="text-[10px] text-[#B8D4C8] font-bangla">
           {toBengaliDate(post.createdAt).formatted}
         </span>
       </div>
@@ -183,7 +184,7 @@ export function PostCard({ post }: PostCardProps) {
             {hasLongText && !expanded && (
               <button
                 onClick={() => setExpanded(true)}
-                className="text-[#7C3AED] font-medium ml-1 hover:underline"
+                className="text-[#7BA08A] font-medium ml-1 hover:underline"
               >
                 আরো দেখুন
               </button>
@@ -200,9 +201,9 @@ export function PostCard({ post }: PostCardProps) {
       )}
 
       {/* Action Bar */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-t border-[#F5F3FF]">
+      <div className="flex items-center justify-between px-3 py-2.5 border-t border-[#F0F5F2]">
         <div className="flex items-center gap-0.5 relative">
-          {/* Like (Leaf) */}
+          {/* Like (Evolving Leaf) */}
           <button
             onClick={handleLike}
             onMouseDown={startLongPress}
@@ -210,14 +211,17 @@ export function PostCard({ post }: PostCardProps) {
             onTouchStart={startLongPress}
             onTouchEnd={endLongPress}
             onContextMenu={(e) => e.preventDefault()}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F3FF] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0F5F2] transition-colors"
           >
             {liked ? (
               <span className="text-base">{reactionEmoji[post.myReaction || 'LIKE']}</span>
             ) : (
-              <LeafIcon size={19} className="text-[#A3B5A8]" />
+              <LikeLeafIcon size={19} count={localReactionCount} className="text-[#A3B5A8]" />
             )}
-            <span className={cn('text-[13px] font-medium', liked ? 'text-[#7BA08A]' : 'text-[#A3B5A8]')}>
+            <span
+              className="text-[13px] font-medium"
+              style={{ color: liked ? '#7BA08A' : getEvolutionStage(localReactionCount).color }}
+            >
               {localReactionCount}
             </span>
           </button>
@@ -228,32 +232,43 @@ export function PostCard({ post }: PostCardProps) {
             )}
           </AnimatePresence>
 
-          {/* Comment (Tree) */}
+          {/* Comment (Evolving Tree) */}
           <button
             onClick={() => router.push(`/p/${post.id}`)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F3FF] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0F5F2] transition-colors"
           >
-            <TreeIcon size={19} className="text-[#A3B5A8]" />
-            <span className="text-[13px] font-medium text-[#A3B5A8]">{post.commentCount}</span>
+            <CommentTreeIcon size={19} count={post.commentCount} className="text-[#A3B5A8]" />
+            <span
+              className="text-[13px] font-medium"
+              style={{ color: getEvolutionStage(post.commentCount).color }}
+            >
+              {post.commentCount}
+            </span>
           </button>
 
-          {/* Share */}
+          {/* Share (Evolving Roots) */}
           <button
             onClick={() => openSheet('share', { postId: post.id })}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F3FF] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F0F5F2] transition-colors"
           >
-            <ShareIcon size={19} className="text-[#A3B5A8]" />
-            <span className="text-[13px] font-medium text-[#A3B5A8]">{post.shareCount}</span>
+            <ShareRootIcon size={19} count={post.shareCount} className="text-[#A3B5A8]" />
+            <span
+              className="text-[13px] font-medium"
+              style={{ color: getEvolutionStage(post.shareCount).color }}
+            >
+              {post.shareCount}
+            </span>
           </button>
         </div>
 
-        {/* Bookmark */}
+        {/* Save (Evolving Seed) */}
         <button
           onClick={handleBookmark}
-          className="p-2 rounded-xl hover:bg-[#F5F3FF] transition-colors"
+          className="p-2 rounded-xl hover:bg-[#F0F5F2] transition-colors"
         >
-          <BookmarkIcon
+          <SaveSeedIcon
             size={19}
+            count={bookmarked ? 1 : 0}
             className={cn('transition-colors', bookmarked ? 'text-[#7BA08A]' : 'text-[#A3B5A8]')}
           />
         </button>

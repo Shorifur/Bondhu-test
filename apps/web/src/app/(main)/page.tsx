@@ -13,7 +13,7 @@ import type { Post } from '@bondhu/shared-types';
 import type { NewsItem } from '@/components/feed/NewsCard';
 import { fetchBangladeshNews } from '@/lib/api/news';
 import NewsCard from '@/components/feed/NewsCard';
-import LiveScores from '@/components/cricket/LiveScores';
+
 
 const filterChips = [
   { id: 'foryou' as const, label: 'For You', labelBn: 'আপনার জন্য' },
@@ -80,14 +80,10 @@ export default function HomePage() {
   const lastElementRef = useInfiniteScroll(loadMore, hasMore[activeTab] ?? true, isLoadingMore);
   const currentPosts = posts[activeTab] || [];
 
-  // Mix news into feed every 4th post
+  // Mix news into feed every 4th post (NO cricket scores here — sports section only)
   const mixedFeed = (() => {
-    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem } | { type: 'cricket' }> = [];
+    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem }> = [];
     let newsIndex = 0;
-
-    if (activeTab === 'foryou') {
-      items.push({ type: 'cricket' });
-    }
 
     currentPosts.forEach((post, i) => {
       items.push({ type: 'post', data: post });
@@ -103,12 +99,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-20 lg:pb-0">
       {/* Stories Row */}
-      <div className="px-4 py-3 border-b border-[#F0EBF8]">
+      <div className="px-4 py-3 border-b border-[#E8F0EC]">
         <StoryBar />
       </div>
 
       {/* Filter Chips */}
-      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b border-[#F0EBF8]">
+      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b border-[#E8F0EC]">
         {filterChips.map((chip) => (
           <button
             key={chip.id}
@@ -138,32 +134,25 @@ export default function HomePage() {
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-[#F0EEF8]" />
+                      <div className="w-10 h-10 rounded-full bg-[#F0F5F2]" />
                       <div className="flex-1 space-y-1.5">
-                        <div className="h-3 bg-[#F0EEF8] rounded w-24" />
-                        <div className="h-2 bg-[#F0EEF8] rounded w-16" />
+                        <div className="h-3 bg-[#F0F5F2] rounded w-24" />
+                        <div className="h-2 bg-[#F0F5F2] rounded w-16" />
                       </div>
                     </div>
-                    <div className="h-3 bg-[#F0EEF8] rounded w-full mb-2" />
-                    <div className="h-3 bg-[#F0EEF8] rounded w-3/4" />
+                    <div className="h-3 bg-[#F0F5F2] rounded w-full mb-2" />
+                    <div className="h-3 bg-[#F0F5F2] rounded w-3/4" />
                   </div>
                 ))}
               </div>
             ) : currentPosts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="font-bangla text-lg text-[#9B8FC0]">কোনো পোস্ট পাওয়া যায়নি</p>
-                <p className="text-sm text-[#9B8FC0] mt-1">Follow people to see content here</p>
+                <p className="font-bangla text-lg text-[#8BA08A]">কোনো পোস্ট পাওয়া যায়নি</p>
+                <p className="text-sm text-[#8BA08A] mt-1">Follow people to see content here</p>
               </div>
             ) : (
               <>
                 {mixedFeed.map((item, index) => {
-                  if (item.type === 'cricket') {
-                    return (
-                      <div key="cricket-widget" className="mx-3 mb-3">
-                        <LiveScores compact />
-                      </div>
-                    );
-                  }
                   if (item.type === 'news') {
                     return <NewsCard key={`news-${item.data.id}`} news={item.data} index={index} />;
                   }
@@ -175,7 +164,7 @@ export default function HomePage() {
                 })}
                 {isLoadingMore && (
                   <div className="flex justify-center py-4">
-                    <div className="w-6 h-6 border-2 border-[#E8E4F5] border-t-[#A78BFA] rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#D4E5DC] border-t-[#7BA08A] rounded-full animate-spin" />
                   </div>
                 )}
               </>
