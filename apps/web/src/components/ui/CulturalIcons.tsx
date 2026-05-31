@@ -489,6 +489,17 @@ export function AlertTriangle({ className, size = 22 }: IconProps) {
 }
 
 /* ════════════════════════════════════════════
+   35. ADDA ICON — Community/Tong
+   ════════════════════════════════════════════ */
+export function AddaIcon({ className, size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 2v3M10 2v3M14 2v3" />
+    </svg>
+  );
+}
+
+/* ════════════════════════════════════════════
    BACKWARD COMPATIBILITY ALIASES
    ════════════════════════════════════════════ */
 export { XIcon as X };

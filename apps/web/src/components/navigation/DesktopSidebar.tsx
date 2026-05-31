@@ -15,6 +15,7 @@ import {
   SOSIcon,
   PointsIcon,
   SettingsIcon,
+  AddaIcon,
   BondhuLogo,
 } from '@/components/ui/CulturalIcons';
 
@@ -26,6 +27,7 @@ const navItems = [
   { icon: null, label: '', href: '', isDivider: true },
   { icon: ShopIcon, label: 'Shop', labelBn: 'দোকান', href: '/shop' },
   { icon: BazaarIcon, label: 'Bazaar', labelBn: 'বাজার', href: '/bazaar' },
+  { icon: AddaIcon, label: 'Adda', labelBn: 'আড্ডা', href: '/adda' },
   { icon: JobsIcon, label: 'Jobs', labelBn: 'চাকরি', href: '/jobs' },
   { icon: SportIcon, label: 'Sports', labelBn: 'খেলাধুলা', href: '/sports' },
   { icon: LeaderboardIcon, label: 'Leaderboard', labelBn: 'লিডারবোর্ড', href: '/leaderboard' },
