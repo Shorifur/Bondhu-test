@@ -174,6 +174,18 @@ export default function SettingsPage() {
     }
   };
 
+  const [websiteUrl, setWebsiteUrl] = useState(user?.profile?.websiteUrl || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(user?.profile?.whatsappNumber || '');
+
+  const saveProfileField = async (field: string, value: string) => {
+    try {
+      await api.patch('users/me', { [field]: value });
+      addToast('সংরক্ষণ করা হয়েছে', 'success');
+    } catch {
+      addToast('সংরক্ষণ ব্যর্থ হয়েছে', 'error');
+    }
+  };
+
   const sections = [
     {
       id: 'profile',
@@ -183,6 +195,38 @@ export default function SettingsPage() {
         { label: 'Edit Bio', labelBn: 'বায়ো সম্পাদনা', action: () => router.push('/profile') },
         { label: 'Change Avatar', labelBn: 'অবতার পরিবর্তন', action: () => router.push('/profile') },
         { label: 'Update Handle', labelBn: 'হ্যান্ডেল আপডেট', action: () => alert('Handle changes are locked for 30 days after creation') },
+        {
+          label: 'Website URL',
+          labelBn: 'ওয়েবসাইট',
+          control: (
+            <div className="flex gap-2 w-full max-w-xs">
+              <input
+                type="url"
+                placeholder="https://yourwebsite.com"
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                onBlur={() => saveProfileField('websiteUrl', websiteUrl)}
+                className="flex-1 px-3 py-1.5 bg-card border rounded-lg text-xs focus:outline-none focus:border-bondhu-green"
+              />
+            </div>
+          ),
+        },
+        {
+          label: 'WhatsApp Number',
+          labelBn: 'হোয়াটসঅ্যাপ নম্বর',
+          control: (
+            <div className="flex gap-2 w-full max-w-xs">
+              <input
+                type="tel"
+                placeholder="01XXXXXXXXX"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                onBlur={() => saveProfileField('whatsappNumber', whatsappNumber)}
+                className="flex-1 px-3 py-1.5 bg-card border rounded-lg text-xs focus:outline-none focus:border-bondhu-green"
+              />
+            </div>
+          ),
+        },
       ],
     },
     {

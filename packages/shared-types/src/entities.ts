@@ -53,6 +53,8 @@ export interface UserProfile {
   followerCount: number;
   followingCount: number;
   postCount: number;
+  websiteUrl?: string | null;
+  whatsappNumber?: string | null;
   language: AppLanguage;
   theme: AppTheme;
   fontScale: FontScale;
