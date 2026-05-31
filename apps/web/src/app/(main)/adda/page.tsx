@@ -178,10 +178,10 @@ export default function AddaPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
-  // User profile
+  // User profile — use Bengali title by default (DICT.bn, not DICT[lang].bn)
   const [userProfile, setUserProfile] = useState({
-    name: lang === 'bn' ? 'রহিম মিয়া' : 'Rahim',
-    title: `👑 ${DICT[lang].bn.title}`,
+    name: 'রহিম মিয়া',
+    title: `👑 ${DICT.bn.title}`,
     avatar: '🕶️',
   });
 

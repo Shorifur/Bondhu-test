@@ -97,7 +97,7 @@ export function DesktopSidebar() {
             );
           }
 
-          const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
+          const isActive = pathname === item.href;
           const Icon = item.icon!;
 
           return (
