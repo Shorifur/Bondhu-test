@@ -1059,6 +1059,10 @@ model Shop {
   coverUrl        String?     @map("cover_url")
   category        String
   districtId      Int?        @map("district_id")
+  phone           String?
+  whatsapp        String?
+  address         String?
+  businessHours   String?     @map("business_hours")
   followerCount   Int         @default(0) @map("follower_count")
   isVerified      Boolean     @default(false) @map("is_verified")
   createdAt       DateTime    @default(now()) @map("created_at")
@@ -1081,6 +1085,10 @@ model ShopProduct {
   stock           Int         @default(0)
   condition       ItemCondition
   images          String[]
+  originalPrice   Decimal?    @db.Decimal(12, 2) @map("original_price")
+  isNegotiable    Boolean     @default(false) @map("is_negotiable")
+  deliveryType    DeliveryType @default(PICKUP) @map("delivery_type")
+  deliveryCharge  Decimal?    @db.Decimal(12, 2) @map("delivery_charge")
   status          ProductStatus @default(AVAILABLE)
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
@@ -1480,6 +1488,12 @@ enum ProductStatus {
   AVAILABLE
   SOLD
   RESERVED
+}
+
+enum DeliveryType {
+  PICKUP
+  DELIVERY
+  BOTH
 }
 
 enum PriceItemType {

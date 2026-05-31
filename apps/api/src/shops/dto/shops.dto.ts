@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsInt, IsNumber, Min, IsEnum } from 'class-validator';
-import { ItemCondition, ProductStatus } from '@prisma/client';
+import { IsString, IsOptional, IsInt, IsNumber, Min, IsEnum, IsBoolean } from 'class-validator';
+import { ItemCondition, ProductStatus, DeliveryType } from '@prisma/client';
 
 export class CreateShopDto {
   @IsString()
@@ -24,6 +24,22 @@ export class CreateShopDto {
   @IsOptional()
   @IsString()
   coverUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  businessHours?: string;
 }
 
 export class UpdateShopDto {
@@ -50,6 +66,22 @@ export class UpdateShopDto {
   @IsOptional()
   @IsString()
   coverUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  businessHours?: string;
 }
 
 export class CreateProductDto {
@@ -64,6 +96,11 @@ export class CreateProductDto {
   @Min(0)
   price: number;
 
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalPrice?: number;
+
   @IsInt()
   @Min(0)
   stock: number;
@@ -73,6 +110,19 @@ export class CreateProductDto {
 
   @IsString({ each: true })
   images: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  isNegotiable?: boolean;
+
+  @IsOptional()
+  @IsEnum(DeliveryType)
+  deliveryType?: DeliveryType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  deliveryCharge?: number;
 }
 
 export class UpdateProductDto {
@@ -90,9 +140,35 @@ export class UpdateProductDto {
   price?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalPrice?: number;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   stock?: number;
+
+  @IsOptional()
+  @IsEnum(ItemCondition)
+  condition?: ItemCondition;
+
+  @IsOptional()
+  @IsString({ each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  isNegotiable?: boolean;
+
+  @IsOptional()
+  @IsEnum(DeliveryType)
+  deliveryType?: DeliveryType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  deliveryCharge?: number;
 
   @IsOptional()
   @IsEnum(ProductStatus)

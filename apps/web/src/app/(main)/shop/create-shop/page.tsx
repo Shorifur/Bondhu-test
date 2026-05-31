@@ -8,16 +8,11 @@ import { X, Camera, MapPin, Phone, Clock, Store, ChevronDown } from 'lucide-reac
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { ShopIcon } from '@/components/ui/CulturalIcons';
+import { districts } from '@/lib/districts';
 
 const SHOP_CATEGORIES = [
   'খাদ্য ও পানীয়', 'পোশাক ও ফ্যাশন', 'ইলেকট্রনিক্স', 'হস্তশিল্প',
   'কৃষি পণ্য', 'বই ও শিক্ষা', 'সেবা', 'আসবাবপত্র', 'গৃহস্থালি', 'সৌন্দর্য পণ্য', 'অন্যান্য',
-];
-
-const DISTRICTS = [
-  'ঢাকা', 'চট্টগ্রাম', 'রাজশাহী', 'খুলনা', 'বরিশাল', 'সিলেট', 'রংপুর', 'ময়মনসিংহ',
-  'কুমিল্লা', 'ফেনী', 'ব্রাহ্মণবাড়িয়া', 'নোয়াখালী', 'চাঁদপুর', 'লক্ষ্মীপুর',
-  'খাগড়াছড়ি', 'কক্সবাজার', 'বান্দরবান', 'রাঙ্গামাটি', 'নেত্রকোনা', 'জামালপুর',
 ];
 
 /* ── Image compression helper ── */
@@ -53,7 +48,7 @@ export default function CreateShopPage() {
   const [category, setCategory] = useState('');
   const [phone, setPhone] = useState(user?.phoneNumber || '');
   const [whatsapp, setWhatsapp] = useState('');
-  const [district, setDistrict] = useState('');
+  const [districtId, setDistrictId] = useState('');
   const [address, setAddress] = useState('');
   const [businessHours, setBusinessHours] = useState('সকাল ৯টা — রাত ৯টা');
 
@@ -110,6 +105,7 @@ export default function CreateShopPage() {
         whatsapp: whatsapp || undefined,
         address: address || undefined,
         businessHours: businessHours || undefined,
+        districtId: districtId ? Number(districtId) : undefined,
       };
       if (logoUrl) payload.logoUrl = logoUrl;
       if (coverUrl) payload.coverUrl = coverUrl;
@@ -225,10 +221,10 @@ export default function CreateShopPage() {
             <div className="space-y-1">
               <label className="text-xs font-bold text-[#3D2B6B] font-bangla flex items-center gap-1"><MapPin className="w-3 h-3" /> জেলা *</label>
               <div className="relative">
-                <select value={district} onChange={(e) => setDistrict(e.target.value)}
+                <select value={districtId} onChange={(e) => setDistrictId(e.target.value)}
                   className="w-full px-3 py-2.5 bg-white border border-[#DDD6F3] rounded-xl text-sm outline-none focus:border-[#5B21B6] appearance-none font-bangla">
                   <option value="">জেলা নির্বাচন করুন</option>
-                  {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                  {districts.map((d) => <option key={d.id} value={d.id}>{d.nameBn}</option>)}
                 </select>
                 <ChevronDown className="w-4 h-4 text-[#9B8FC0] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -250,7 +246,7 @@ export default function CreateShopPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="flex-1 py-3 bg-[#F5F2FF] text-[#5B21B6] rounded-xl text-sm font-bold font-bangla">← ফিরে যান</button>
-              <button onClick={() => setStep(3)} disabled={!phone || phone.length < 11 || !district}
+              <button onClick={() => setStep(3)} disabled={!phone || phone.length < 11 || !districtId}
                 className="flex-1 py-3 bondhu-gradient text-white rounded-xl text-sm font-bold shadow-md disabled:opacity-40 font-bangla">পরবর্তী →</button>
             </div>
           </motion.div>
@@ -277,7 +273,7 @@ export default function CreateShopPage() {
                 <div className="mt-3 space-y-1 text-xs text-[#6B5E8A]">
                   <p className="font-bangla">📞 {phone}</p>
                   {whatsapp && <p className="font-bangla">💬 WhatsApp: {whatsapp}</p>}
-                  <p className="font-bangla">📍 {district}{address ? `, ${address}` : ''}</p>
+                  <p className="font-bangla">📍 {districts.find(d => String(d.id) === districtId)?.nameBn || ''}{address ? `, ${address}` : ''}</p>
                   <p className="font-bangla">🕐 {businessHours}</p>
                   {description && <p className="font-bangla mt-2 text-[#3D2B6B]">{description}</p>}
                 </div>
@@ -295,5 +291,4 @@ export default function CreateShopPage() {
         )}
       </div>
     </div>
-  );
-}
+  )
