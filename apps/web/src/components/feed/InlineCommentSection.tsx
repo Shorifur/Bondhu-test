@@ -92,16 +92,16 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
                 <div className="space-y-2 py-2">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="flex gap-2.5 animate-pulse">
-                      <div className="w-7 h-7 rounded-full bg-[#F0F5F3] flex-shrink-0" />
+                      <div className="w-7 h-7 rounded-full bg-[#F5F2FF] flex-shrink-0" />
                       <div className="flex-1 space-y-1.5 py-0.5">
-                        <div className="h-2.5 bg-[#F0F5F3] rounded w-3/4" />
-                        <div className="h-2 bg-[#F0F5F3] rounded w-1/2" />
+                        <div className="h-2.5 bg-[#F5F2FF] rounded w-3/4" />
+                        <div className="h-2 bg-[#F5F2FF] rounded w-1/2" />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : comments.length === 0 ? (
-                <p className="text-center text-[13px] text-[#A3B5A8] py-4 font-bangla">
+                <p className="text-center text-[13px] text-[#6B5E8A] py-4 font-bangla font-medium">
                   প্রথম মন্তব্য করুন... ✨
                 </p>
               ) : (
@@ -118,7 +118,7 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
                         {comment.user?.avatarUrl ? (
                           <img src={comment.user.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
                         ) : (
-                          <div className="w-full h-full rounded-full bg-[#F0F5F3] flex items-center justify-center text-[10px] font-bold text-[#7BA08A]">
+                          <div className="w-full h-full rounded-full bg-[#F5F2FF] flex items-center justify-center text-[10px] font-bold text-[#5B21B6]">
                             {comment.user?.displayName?.[0] || 'U'}
                           </div>
                         )}
@@ -126,28 +126,28 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="bg-[#F5F9F8] rounded-2xl rounded-tl-sm px-3 py-2 inline-block max-w-full">
+                      <div className="bg-[#F5F2FF] rounded-2xl rounded-tl-sm px-3 py-2 inline-block max-w-full">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[12px] font-semibold text-[#2D3748]">
+                          <span className="text-[12px] font-semibold text-[#0F0A1E]">
                             {comment.user?.displayName || 'User'}
                           </span>
-                          <span className="text-[10px] text-[#A3B5A8]">
+                          <span className="text-[10px] text-[#6B5E8A] font-medium">
                             {formatTimeAgo(comment.createdAt, 'bn')}
                           </span>
                         </div>
-                        <p className="text-[13px] text-[#4A5568] leading-relaxed whitespace-pre-wrap">
+                        <p className="text-[13px] text-[#3D2B6B] leading-relaxed whitespace-pre-wrap">
                           {comment.content}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 mt-1 ml-1">
-                        <button className="text-[11px] text-[#A3B5A8] hover:text-[#7BA08A] transition-colors font-medium">
+                        <button className="text-[11px] text-[#6B5E8A] hover:text-[#5B21B6] transition-colors font-semibold">
                           Like
                         </button>
-                        <button className="text-[11px] text-[#A3B5A8] hover:text-[#7BA08A] transition-colors font-medium">
+                        <button className="text-[11px] text-[#6B5E8A] hover:text-[#5B21B6] transition-colors font-semibold">
                           Reply
                         </button>
                         {comment.likeCount > 0 && (
-                          <span className="text-[11px] text-[#A3B5A8]">{comment.likeCount} likes</span>
+                          <span className="text-[11px] text-[#6B5E8A] font-medium">{comment.likeCount} likes</span>
                         )}
                       </div>
                     </div>
@@ -159,7 +159,7 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#A3C4B2] to-[#7BA08A] p-[1.5px] flex-shrink-0">
                 <div className="w-full h-full rounded-full bg-white overflow-hidden">
-                  <div className="w-full h-full rounded-full bg-[#F0F5F3] flex items-center justify-center text-[10px] font-bold text-[#7BA08A]">
+                  <div className="w-full h-full rounded-full bg-[#F5F2FF] flex items-center justify-center text-[10px] font-bold text-[#5B21B6]">
                     U
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="মন্তব্য করুন... 💭"
-                  className="w-full bg-[#F5F9F8] rounded-full px-4 py-2 text-[13px] text-[#2D3748] placeholder:text-[#A3B5A8] focus:outline-none focus:ring-2 focus:ring-[#A3C4B2]/40 transition-all"
+                  className="w-full bg-[#F5F2FF] rounded-full px-4 py-2 text-[13px] text-[#0F0A1E] placeholder:text-[#9B8FC0] focus:outline-none focus:ring-2 focus:ring-[#5B21B6]/30 transition-all"
                 />
               </div>
               <button

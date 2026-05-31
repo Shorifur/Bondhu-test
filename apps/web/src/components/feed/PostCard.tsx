@@ -100,12 +100,8 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <article
-      className="rounded-2xl mx-3 mb-3 overflow-hidden transition-all duration-200 hover:shadow-md"
-      style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        border: '1px solid rgba(180, 210, 205, 0.4)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-      }}
+      className="bg-white rounded-2xl mx-3 mb-3 overflow-hidden border border-[#DDD6F3] transition-all duration-200 hover:shadow-md"
+      style={{ boxShadow: '0 2px 12px rgba(91,33,182,0.04)' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
@@ -116,14 +112,14 @@ export function PostCard({ post }: PostCardProps) {
           <div
             className={cn(
               'w-10 h-10 rounded-full p-[2px]',
-              'bg-gradient-to-br from-[#A3C4B2] to-[#7BA08A]'
+              'bg-gradient-to-br from-[#5B21B6] to-[#0D9488]'
             )}
           >
             <div className="w-full h-full rounded-full bg-white p-[1.5px] overflow-hidden">
               {profile?.avatarUrl ? (
                 <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
               ) : (
-                <div className="w-full h-full rounded-full bg-[#F0F5F3] flex items-center justify-center font-bold text-sm text-[#5F7A61]">
+                <div className="w-full h-full rounded-full bg-[#F5F2FF] flex items-center justify-center font-bold text-sm text-[#5B21B6]">
                   {profile?.displayName?.[0] || 'U'}
                 </div>
               )}
@@ -131,36 +127,36 @@ export function PostCard({ post }: PostCardProps) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1">
-              <span className="font-semibold text-[13px] text-[#1A202C] group-hover:text-[#5F7A61] transition-colors">
-                {profile?.displayName}
+              <span className="font-semibold text-[13px] text-[#0F0A1E] group-hover:text-[#5B21B6] transition-colors">
+                {profile?.displayName || 'User'}
               </span>
               {verification && <verification.icon className={cn('w-3.5 h-3.5', verification.color)} />}
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-[#8B9D8F]">@{profile?.handle}</span>
-              <span className="text-[11px] text-[#C4D8CE]">\u00B7</span>
-              <span className="text-[11px] text-[#8B9D8F]">{formatTimeAgo(post.createdAt, 'bn')}</span>
+              <span className="text-[11px] text-[#6B5E8A] font-medium">@{profile?.handle || 'user'}</span>
+              <span className="text-[11px] text-[#B8A9E3]">&middot;</span>
+              <span className="text-[11px] text-[#6B5E8A]">{formatTimeAgo(post.createdAt, 'bn')}</span>
             </div>
           </div>
         </button>
 
         <div className="flex items-center gap-1.5">
-          {post.visibility === 'PUBLIC' && <Globe className="w-3 h-3 text-[#C4D8CE]" title="\u09B8\u0995\u09B2\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF" />}
-          {post.visibility === 'FOLLOWERS' && <Users className="w-3 h-3 text-[#C4D8CE]" title="\u0985\u09A8\u09C1\u09B8\u09BE\u09B0\u09C0\u09A6\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF" />}
-          {post.visibility === 'PRIVATE' && <Lock className="w-3 h-3 text-[#C4D8CE]" title="\u09AC\u09CD\u09AF\u0995\u09CD\u09A4\u09BF\u0997\u09A4" />}
+          {post.visibility === 'PUBLIC' && <Globe className="w-3 h-3 text-[#B8A9E3]" title="সকলের জন্য" />}
+          {post.visibility === 'FOLLOWERS' && <Users className="w-3 h-3 text-[#B8A9E3]" title="অনুসারীদের জন্য" />}
+          {post.visibility === 'PRIVATE' && <Lock className="w-3 h-3 text-[#B8A9E3]" title="ব্যক্তিগত" />}
           <button
             onClick={() => openSheet('postMenu', { postId: post.id, userId: post.userId, content: post.content, createdAt: post.createdAt })}
-            className="p-1.5 hover:bg-[#F0F5F3] rounded-full transition-colors"
+            className="p-1.5 hover:bg-[#F5F2FF] rounded-full transition-colors"
           >
-            <RainDropsIcon className="text-[#8B9D8F]" size={18} />
+            <RainDropsIcon className="text-[#7C6AAE]" size={18} />
           </button>
-          <HeaderTreeIcon size={20} className="text-[#C4D8CE] opacity-60" />
+          <HeaderTreeIcon size={20} className="text-[#B8A9E3] opacity-60" />
         </div>
       </div>
 
       {/* Bengali date */}
       <div className="px-4 -mt-1 mb-1">
-        <span className="text-[10px] text-[#A3B5A8] font-bangla">
+        <span className="text-[10px] text-[#6B5E8A] font-medium font-bangla">
           {toBengaliDate(post.createdAt).formatted}
         </span>
       </div>
@@ -168,10 +164,10 @@ export function PostCard({ post }: PostCardProps) {
       {/* Rumor Warning */}
       {(post as any).rumorFlags >= 5 && (
         <div className="mx-4 mb-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-          <span className="text-base">\u26A0\uFE0F</span>
+          <span className="text-base">⚠️</span>
           <div>
-            <p className="text-[11px] font-medium text-amber-800 font-bangla leading-tight">
-              \u098F\u0987 \u09AA\u09CB\u09B8\u09CD\u099F\u099F\u09BF \u09AF\u09BE\u099A\u09BE\u0987 \u0995\u09B0\u09BE \u09B9\u09DF\u09A8\u09BF
+            <p className="text-[11px] font-semibold text-amber-800 font-bangla leading-tight">
+              এই পোস্টটি যাচাই করা হয়নি
             </p>
             <p className="text-[10px] text-amber-600 leading-tight">This post is unverified</p>
           </div>
@@ -183,7 +179,7 @@ export function PostCard({ post }: PostCardProps) {
         <div className="px-4 pb-2">
           <p
             className={cn(
-              'text-[15px] leading-[1.7] text-[#1A202C] whitespace-pre-wrap font-bangla',
+              'text-[15px] leading-[1.7] text-[#0F0A1E] whitespace-pre-wrap font-bangla',
               !post.mediaAssets?.length && 'pb-2'
             )}
           >
@@ -191,9 +187,9 @@ export function PostCard({ post }: PostCardProps) {
             {hasLongText && !expanded && (
               <button
                 onClick={() => setExpanded(true)}
-                className="text-[#5F7A61] font-medium ml-1 hover:underline"
+                className="text-[#5B21B6] font-semibold ml-1 hover:underline"
               >
-                \u0986\u09B0\u09CB \u09A6\u09C7\u0996\u09C1\u09A8
+                আরো দেখুন
               </button>
             )}
           </p>
@@ -208,9 +204,9 @@ export function PostCard({ post }: PostCardProps) {
       )}
 
       {/* Action Bar */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-t" style={{ borderColor: 'rgba(180, 210, 205, 0.3)' }}>
+      <div className="flex items-center justify-between px-3 py-2.5 border-t border-[#F5F2FF]">
         <div className="flex items-center gap-0.5 relative">
-          {/* Like (Evolving Leaf-Heart) */}
+          {/* Like (Evolving Leaf) */}
           <button
             onClick={handleLike}
             onMouseDown={startLongPress}
@@ -218,15 +214,15 @@ export function PostCard({ post }: PostCardProps) {
             onTouchStart={startLongPress}
             onTouchEnd={endLongPress}
             onContextMenu={(e) => e.preventDefault()}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F9F8] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F2FF] transition-colors"
           >
             {liked ? (
               <LikeLeafIcon size={19} count={localReactionCount} active className="text-[#E85D75]" />
             ) : (
-              <LikeLeafIcon size={19} count={localReactionCount} className="text-[#8B9D8F]" />
+              <LikeLeafIcon size={19} count={localReactionCount} className="text-[#4C3A8A]" />
             )}
             <span
-              className="text-[13px] font-medium"
+              className="text-[13px] font-semibold"
               style={{ color: liked ? '#E85D75' : getEvolutionStage(localReactionCount).color }}
             >
               {localReactionCount}
@@ -242,11 +238,11 @@ export function PostCard({ post }: PostCardProps) {
           {/* Comment (Evolving Tree) — Inline toggle */}
           <button
             onClick={() => toggleComments(post.id)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F9F8] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F2FF] transition-colors"
           >
-            <CommentTreeIcon size={19} count={post.commentCount} className="text-[#8B9D8F]" />
+            <CommentTreeIcon size={19} count={post.commentCount} className="text-[#4C3A8A]" />
             <span
-              className="text-[13px] font-medium"
+              className="text-[13px] font-semibold"
               style={{ color: getEvolutionStage(post.commentCount).color }}
             >
               {post.commentCount}
@@ -256,11 +252,11 @@ export function PostCard({ post }: PostCardProps) {
           {/* Share (Evolving Roots) */}
           <button
             onClick={() => openSheet('share', { postId: post.id })}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F9F8] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl hover:bg-[#F5F2FF] transition-colors"
           >
-            <ShareRootIcon size={19} count={post.shareCount} className="text-[#8B9D8F]" />
+            <ShareRootIcon size={19} count={post.shareCount} className="text-[#4C3A8A]" />
             <span
-              className="text-[13px] font-medium"
+              className="text-[13px] font-semibold"
               style={{ color: getEvolutionStage(post.shareCount).color }}
             >
               {post.shareCount}
@@ -271,13 +267,13 @@ export function PostCard({ post }: PostCardProps) {
         {/* Save (Evolving Seed) */}
         <button
           onClick={handleBookmark}
-          className="p-2 rounded-xl hover:bg-[#F5F9F8] transition-colors"
+          className="p-2 rounded-xl hover:bg-[#F5F2FF] transition-colors"
         >
           <SaveSeedIcon
             size={19}
             count={bookmarked ? 1 : 0}
             active={bookmarked}
-            className={cn('transition-colors', bookmarked ? 'text-[#5F7A61]' : 'text-[#8B9D8F]')}
+            className={cn('transition-colors', bookmarked ? 'text-[#5B21B6]' : 'text-[#4C3A8A]')}
           />
         </button>
       </div>

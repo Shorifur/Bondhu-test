@@ -44,7 +44,7 @@ function StoryRing({ story, onClick }: StoryRingProps) {
           )}
         </div>
       </div>
-      <span className="text-[10px] font-medium text-muted-foreground truncate max-w-[4rem]">
+      <span className="text-[11px] font-semibold text-[#0F0A1E] truncate max-w-[4rem]">
         {profile?.displayName || 'User'}
       </span>
     </button>
@@ -115,7 +115,7 @@ export function StoryBar() {
         <div className="w-16 h-16 rounded-full border-2 border-dashed border-bondhu-green flex items-center justify-center bg-bondhu-green/5">
           <Plus className="w-6 h-6 text-bondhu-green" />
         </div>
-        <span className="text-[10px] font-medium text-muted-foreground truncate max-w-[4rem]">
+        <span className="text-[11px] font-semibold text-[#5B21B6] truncate max-w-[4rem]">
           Add Story
         </span>
       </button>

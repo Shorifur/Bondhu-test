@@ -10,43 +10,40 @@ export function TopBar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 border-b border-[#F0EBF8] lg:left-64"
-      style={{ backgroundColor: 'rgba(250,248,245,0.95)', backdropFilter: 'blur(12px)' }}
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#DDD6F3] lg:left-64"
+      style={{ backdropFilter: 'blur(12px)' }}
     >
       <div className="h-14 flex items-center justify-between px-4">
         {/* Left: Logo */}
         <button onClick={() => router.push('/')} className="flex items-center gap-2 shrink-0">
           <BondhuLogo size={30} />
-          <span className="font-bold text-[17px] hidden sm:block" style={{ color: '#5B8C7F' }}>Bondhu</span>
+          <span className="font-bold text-[18px] hidden sm:block text-[#0F0A1E] tracking-tight">Bondhu</span>
         </button>
 
         {/* Right: Action Icons */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Explore / Compass */}
           <button
             onClick={() => router.push('/explore')}
-            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F0EEF8] transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
           >
-            <ExploreIcon size={20} className="text-[#7C3AED]" />
+            <ExploreIcon size={20} className="text-[#5B21B6]" />
           </button>
 
-          {/* Settings / Gear */}
           <button
             onClick={() => router.push('/settings')}
-            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F0EEF8] transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
           >
-            <SettingsIcon size={20} className="text-[#7C3AED]" />
+            <SettingsIcon size={20} className="text-[#4C3A8A]" />
           </button>
 
-          {/* User Avatar */}
           <button
             onClick={() => router.push('/profile')}
-            className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#E8E4F5] ml-1"
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#DDD6F3] ml-1"
           >
             {user?.profile?.avatarUrl ? (
               <img src={user.profile.avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#A78BFA] to-[#5EEAD4] text-white text-xs font-bold">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#5B21B6] to-[#0D9488] text-white text-xs font-bold">
                 {user?.profile?.displayName?.[0] || 'U'}
               </div>
             )}

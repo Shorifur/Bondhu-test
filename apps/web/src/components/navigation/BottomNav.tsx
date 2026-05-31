@@ -31,8 +31,7 @@ export function BottomNav() {
   return (
     <>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-t border-[#EDE8E0] safe-bottom"
-        style={{ boxShadow: '0 -2px 20px rgba(123,160,138,0.08)' }}
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DDD6F3] safe-bottom bottom-nav-shadow"
       >
         <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-1">
           {navItems.map((item) => {
@@ -49,8 +48,8 @@ export function BottomNav() {
                     whileTap={{ scale: 0.92 }}
                     className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                     style={{
-                      background: 'linear-gradient(135deg, #7BA08A 0%, #A3C4B2 100%)',
-                      boxShadow: '0 4px 20px rgba(123,160,138,0.4)',
+                      background: 'linear-gradient(135deg, #5B21B6 0%, #0D9488 100%)',
+                      boxShadow: '0 4px 20px rgba(91,33,182,0.4)',
                     }}
                   >
                     <item.icon size={24} className="text-white" />
@@ -72,20 +71,19 @@ export function BottomNav() {
                   size={22}
                   className={cn(
                     'transition-colors',
-                    active ? 'text-[#7BA08A]' : 'text-[#C4C9D0]'
+                    active ? 'text-[#5B21B6]' : 'text-[#4C3A8A]'
                   )}
                 />
                 <span className={cn(
-                  'text-[10px] font-medium transition-colors',
-                  active ? 'text-[#7BA08A]' : 'text-[#C4C9D0]'
+                  'text-[10px] transition-colors',
+                  active ? 'text-[#5B21B6] font-bold' : 'text-[#4C3A8A] font-semibold'
                 )}>
                   {item.label}
                 </span>
                 {active && (
                   <motion.div
                     layoutId="bottomNavIndicator"
-                    className="absolute -bottom-0.5 w-5 h-0.5 rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #7BA08A, #A3C4B2)' }}
+                    className="absolute -bottom-0.5 w-5 h-0.5 rounded-full bg-[#5B21B6]"
                   />
                 )}
               </button>

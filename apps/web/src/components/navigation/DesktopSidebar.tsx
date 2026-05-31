@@ -40,30 +40,29 @@ export function DesktopSidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-14 bottom-0 w-64 overflow-y-auto border-r border-[#F0EBF8] px-4 py-4 hidden lg:block"
-      style={{ backgroundColor: '#F8F7FF' }}
+      className="fixed left-0 top-14 bottom-0 w-64 overflow-y-auto border-r border-[#DDD6F3] px-3 py-4 hidden lg:block"
+      style={{ backgroundColor: '#FFFFFF' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-2 mb-6">
+      <div className="flex items-center gap-2.5 px-3 mb-6">
         <BondhuLogo size={32} />
-        <span className="font-bold text-xl" style={{ color: '#5B8C7F' }}>Bondhu</span>
+        <span className="font-bold text-xl text-[#0F0A1E]">Bondhu</span>
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-1">
+      <nav className="space-y-0.5">
         {navItems.map((item) => {
           if (item.isDivider) {
-            return <div key="divider" className="my-2 border-t border-[#F0EBF8]" />;
+            return <div key="divider" className="my-2 border-t border-[#F5F2FF]" />;
           }
 
           if (item.isAction) {
-            // Create button - prominent
             return (
               <button
                 key={item.label}
                 onClick={() => router.push(item.href)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white font-semibold transition-all hover:opacity-90 mb-3"
-                style={{ background: 'linear-gradient(135deg, #A78BFA, #5EEAD4)' }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white font-semibold transition-all hover:opacity-90 mb-2"
+                style={{ background: 'linear-gradient(135deg, #5B21B6, #0D9488)' }}
               >
                 <item.icon size={20} />
                 <span>{item.label}</span>
@@ -79,16 +78,35 @@ export function DesktopSidebar() {
               key={item.label}
               onClick={() => router.push(item.href)}
               className={cn(
-                'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-left',
+                'w-full flex items-center gap-3 px-4 py-2.5 transition-all text-left',
                 isActive
-                  ? 'bg-white text-purple-600 font-semibold shadow-sm'
-                  : 'text-[#8B7DB5] hover:bg-white/60'
+                  ? 'bg-[#EDE9FF] border-l-[3px] border-[#5B21B6] rounded-r-xl'
+                  : 'hover:bg-[#F5F2FF] rounded-xl'
               )}
             >
-              {Icon && <Icon size={20} className={isActive ? 'text-purple-500' : ''} />}
+              {Icon && (
+                <Icon
+                  size={20}
+                  className={isActive ? 'text-[#5B21B6]' : 'text-[#4C3A8A]'}
+                />
+              )}
               <div>
-                <span className="text-sm">{item.label}</span>
-                <span className="block text-[10px] font-bangla opacity-60 -mt-0.5">{item.labelBn}</span>
+                <span
+                  className={cn(
+                    'text-[15px] block',
+                    isActive ? 'text-[#5B21B6] font-bold' : 'text-[#0F0A1E] font-semibold'
+                  )}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className={cn(
+                    'block text-[11px] font-bangla font-medium -mt-0.5',
+                    isActive ? 'text-[#5B21B6]' : 'text-[#6B5E8A]'
+                  )}
+                >
+                  {item.labelBn}
+                </span>
               </div>
             </button>
           );

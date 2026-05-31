@@ -99,12 +99,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-20 lg:pb-0">
       {/* Stories Row */}
-      <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(180, 210, 205, 0.35)' }}>
+      <div className="px-4 py-3 border-b border-[#DDD6F3] bg-white/50">
         <StoryBar />
       </div>
 
       {/* Filter Chips */}
-      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b" style={{ borderColor: 'rgba(180, 210, 205, 0.35)' }}>
+      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b border-[#DDD6F3] bg-white/50">
         {filterChips.map((chip) => (
           <button
             key={chip.id}
@@ -132,16 +132,16 @@ export default function HomePage() {
             {isLoading ? (
               <div className="space-y-3 px-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="rounded-2xl p-4 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.8)', border: '1px solid rgba(180,210,205,0.3)' }}>
+                  <div key={i} className="bg-white rounded-2xl p-4 animate-pulse border border-[#F5F2FF]">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-[#E8F0EE]" />
+                      <div className="w-10 h-10 rounded-full bg-[#F5F2FF]" />
                       <div className="flex-1 space-y-1.5">
-                        <div className="h-3 bg-[#E8F0EE] rounded w-24" />
-                        <div className="h-2 bg-[#E8F0EE] rounded w-16" />
+                        <div className="h-3 bg-[#F5F2FF] rounded w-24" />
+                        <div className="h-2 bg-[#F5F2FF] rounded w-16" />
                       </div>
                     </div>
-                    <div className="h-3 bg-[#E8F0EE] rounded w-full mb-2" />
-                    <div className="h-3 bg-[#E8F0EE] rounded w-3/4" />
+                    <div className="h-3 bg-[#F5F2FF] rounded w-full mb-2" />
+                    <div className="h-3 bg-[#F5F2FF] rounded w-3/4" />
                   </div>
                 ))}
               </div>

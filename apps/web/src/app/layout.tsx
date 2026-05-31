@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Noto_Sans_Bengali } from 'next/font/google';
+import { Inter, Noto_Sans_Bengali, Hind_Siliguri } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -12,6 +12,13 @@ const inter = Inter({
 });
 
 const notoBengali = Noto_Sans_Bengali({
+  subsets: ['bengali'],
+  variable: '--font-bangla-fallback',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+});
+
+const hindSiliguri = Hind_Siliguri({
   subsets: ['bengali'],
   variable: '--font-bangla',
   display: 'swap',
@@ -44,8 +51,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#00A86B' },
-    { media: '(prefers-color-scheme: dark)', color: '#00A86B' },
+    { media: '(prefers-color-scheme: light)', color: '#5B21B6' },
+    { media: '(prefers-color-scheme: dark)', color: '#5B21B6' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -63,7 +70,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${notoBengali.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${notoBengali.variable} ${hindSiliguri.variable}`}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
