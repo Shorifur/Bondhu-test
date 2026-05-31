@@ -13,7 +13,7 @@ import type { Post } from '@bondhu/shared-types';
 import type { NewsItem } from '@/components/feed/NewsCard';
 import { fetchBangladeshNews } from '@/lib/api/news';
 import NewsCard from '@/components/feed/NewsCard';
-import { BondhuLogo, SearchIcon, SettingsIcon } from '@/components/ui/CulturalIcons';
+import LiveScores from '@/components/cricket/LiveScores';
 
 const filterChips = [
   { id: 'foryou' as const, label: 'For You', labelBn: 'আপনার জন্য' },
@@ -82,8 +82,13 @@ export default function HomePage() {
 
   // Mix news into feed every 4th post
   const mixedFeed = (() => {
-    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem }> = [];
+    const items: Array<{ type: 'post'; data: Post } | { type: 'news'; data: NewsItem } | { type: 'cricket' }> = [];
     let newsIndex = 0;
+
+    if (activeTab === 'foryou') {
+      items.push({ type: 'cricket' });
+    }
+
     currentPosts.forEach((post, i) => {
       items.push({ type: 'post', data: post });
       if ((i + 1) % 4 === 0 && newsIndex < newsItems.length) {
@@ -91,52 +96,32 @@ export default function HomePage() {
         newsIndex++;
       }
     });
+
     return items;
   })();
 
   return (
-    <div className="min-h-screen pb-20" style={{ backgroundColor: '#F8F7FF' }}>
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-30 bg-white border-b border-[#F0EBF8]">
-        {/* Row 1: Logo + Actions */}
-        <div className="flex items-center justify-between px-4 h-12">
-          <div className="flex items-center gap-2.5">
-            <BondhuLogo size={30} />
-            <span className="font-bold text-[16px] tracking-tight" style={{ color: '#5B8C7F' }}>Bondhu</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/explore')}
-              className="w-9 h-9 rounded-full bg-[#F5F3FF] flex items-center justify-center hover:bg-[#EDE9FE] transition-colors">
-              <SearchIcon size={17} className="text-[#7C3AED]" />
-            </button>
-            <button onClick={() => router.push('/settings')}
-              className="w-9 h-9 rounded-full bg-[#F5F3FF] flex items-center justify-center hover:bg-[#EDE9FE] transition-colors">
-              <SettingsIcon size={17} className="text-[#7C3AED]" />
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen pb-20 lg:pb-0">
+      {/* Stories Row */}
+      <div className="px-4 py-3 border-b border-[#F0EBF8]">
+        <StoryBar />
+      </div>
 
-        {/* Row 2: Stories */}
-        <div className="px-4 py-2.5">
-          <StoryBar />
-        </div>
-
-        {/* Row 3: Filter Chips */}
-        <div className="px-4 pb-2.5 flex gap-2 overflow-x-auto scrollbar-hide">
-          {filterChips.map((chip) => (
-            <button
-              key={chip.id}
-              onClick={() => setActiveTab(chip.id)}
-              className={activeTab === chip.id
-                ? 'gradient-chip-active whitespace-nowrap'
-                : 'gradient-chip-inactive whitespace-nowrap'
-              }
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
-      </header>
+      {/* Filter Chips */}
+      <div className="px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide border-b border-[#F0EBF8]">
+        {filterChips.map((chip) => (
+          <button
+            key={chip.id}
+            onClick={() => setActiveTab(chip.id)}
+            className={activeTab === chip.id
+              ? 'gradient-chip-active whitespace-nowrap'
+              : 'gradient-chip-inactive whitespace-nowrap'
+            }
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
 
       {/* Feed */}
       <main className="pt-3">
@@ -172,6 +157,13 @@ export default function HomePage() {
             ) : (
               <>
                 {mixedFeed.map((item, index) => {
+                  if (item.type === 'cricket') {
+                    return (
+                      <div key="cricket-widget" className="mx-3 mb-3">
+                        <LiveScores compact />
+                      </div>
+                    );
+                  }
                   if (item.type === 'news') {
                     return <NewsCard key={`news-${item.data.id}`} news={item.data} index={index} />;
                   }

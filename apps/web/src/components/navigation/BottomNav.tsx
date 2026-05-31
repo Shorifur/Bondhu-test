@@ -30,7 +30,10 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#F0EBF8] bottom-nav-shadow safe-bottom w-full max-w-[430px]">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#F0EBF8] safe-bottom"
+        style={{ boxShadow: '0 -2px 20px rgba(124,58,237,0.08)' }}
+      >
         <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-1">
           {navItems.map((item) => {
             const active = isActive(item.href);
@@ -47,7 +50,7 @@ export function BottomNav() {
                     className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                     style={{
                       background: 'linear-gradient(135deg, #A78BFA 0%, #5EEAD4 100%)',
-                      boxShadow: '0 4px 20px rgba(167, 139, 250, 0.4)',
+                      boxShadow: '0 4px 20px rgba(167,139,250,0.4)',
                     }}
                   >
                     <item.icon size={24} className="text-white" />
@@ -60,11 +63,8 @@ export function BottomNav() {
               <button
                 key={item.label}
                 onClick={() => {
-                  if (item.isMore) {
-                    setMoreOpen(true);
-                  } else {
-                    router.push(item.href);
-                  }
+                  if (item.isMore) setMoreOpen(true);
+                  else router.push(item.href);
                 }}
                 className="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-full relative"
               >
@@ -75,12 +75,10 @@ export function BottomNav() {
                     active ? 'text-[#A78BFA]' : 'text-[#C4B5FD]'
                   )}
                 />
-                <span
-                  className={cn(
-                    'text-[10px] font-medium transition-colors',
-                    active ? 'text-[#A78BFA]' : 'text-[#C4B5FD]'
-                  )}
-                >
+                <span className={cn(
+                  'text-[10px] font-medium transition-colors',
+                  active ? 'text-[#A78BFA]' : 'text-[#C4B5FD]'
+                )}>
                   {item.label}
                 </span>
                 {active && (
