@@ -1,108 +1,43 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
-import { RedisService } from '../common/services/redis.service';
 import { OtpService } from './otp.service';
 import type { SendOtpDto, VerifyOtpDto, CreateProfileDto, RegisterDto, LoginDto } from './dto/auth.dto';
-import * as bcrypt from 'bcryptjs';
 import type { User, UserProfile } from '@prisma/client';
+
+// Use require to avoid webpack bundling bcrypt's native dependencies
+const bcrypt = require('bcrypt');
 
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
+}
+
+interface AuthResponse {
+  user: User & { profile: UserProfile | null };
+  tokens: TokenPair;
 }
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly jwtService: JwtService,
     private readonly config: ConfigService,
-    private readonly redis: RedisService,
-    private readonly otp: OtpService,
+    private readonly otpService: OtpService,
   ) {}
 
-  async sendOtp(dto: SendOtpDto) {
-    const { phoneNumber } = dto;
-
-    const { canResend, waitSeconds } = await this.otp.canResend(phoneNumber);
-    if (!canResend) {
-      throw new BadRequestException(`Please wait ${waitSeconds} seconds before requesting a new OTP`);
-    }
-
-    const result = await this.otp.sendOtp(phoneNumber);
-    return {
-      message: 'OTP sent successfully',
-      expiresIn: result.expiresIn,
-      ...(this.config.get('app.nodeEnv') !== 'production' && { otp: result.otp }),
-    };
-  }
-
-  async verifyOtp(dto: VerifyOtpDto) {
-    const { phoneNumber, otp } = dto;
-
-    const valid = await this.otp.verifyOtp(phoneNumber, otp);
-    if (!valid) {
-      throw new UnauthorizedException('Invalid or expired OTP');
-    }
-
-    let user = await this.prisma.user.findUnique({
-      where: { phoneNumber },
-      include: { profile: true },
-    });
-
-    const isNewUser = !user;
-
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          phoneNumber,
-          phoneVerified: true,
-        },
-        include: { profile: true },
-      });
-    } else {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { phoneVerified: true, lastLoginAt: new Date() },
-      });
-    }
-
-    const tokens = await this.generateTokens(user);
-    await this.createSession(user.id, tokens);
-
-    return {
-      user,
-      tokens,
-      isNewUser,
-      requiresProfile: isNewUser || !user.profile,
-    };
-  }
-
   async register(dto: RegisterDto) {
-    // Check if email exists
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) {
-      throw new ConflictException('Email already registered');
-    }
+    if (existing) throw new ConflictException('Email already registered');
 
-    // Check if handle exists
-    const existingHandle = await this.prisma.userProfile.findUnique({
-      where: { handle: dto.handle },
-    });
-    if (existingHandle) {
-      throw new ConflictException('Handle is already taken');
-    }
+    const existingHandle = await this.prisma.userProfile.findUnique({ where: { handle: dto.handle } });
+    if (existingHandle) throw new ConflictException('Handle is already taken');
 
-    // Hash password
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
-    // Generate a unique phone placeholder for email users
     const phonePlaceholder = `+880000000${Math.floor(1000 + Math.random() * 8999)}`;
 
-    // Create user with profile
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -110,7 +45,6 @@ export class AuthService {
         passwordHash,
         phoneNumber: phonePlaceholder,
         phoneVerified: false,
-        gender: dto.gender,
         profile: {
           create: {
             legalName: dto.legalName,
@@ -123,7 +57,6 @@ export class AuthService {
       include: { profile: true },
     });
 
-    // Create settings and preferences
     await this.prisma.userSettings.create({ data: { userId: user.id } });
     await this.prisma.userPreference.create({ data: { userId: user.id } });
 
@@ -139,20 +72,12 @@ export class AuthService {
       include: { profile: true },
     });
 
-    if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
+    if (!user || !user.passwordHash) throw new UnauthorizedException('Invalid email or password');
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
+    if (!valid) throw new UnauthorizedException('Invalid email or password');
 
-    // Update last login
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
     const tokens = await this.generateTokens(user);
     await this.createSession(user.id, tokens);
@@ -160,140 +85,114 @@ export class AuthService {
     return { user, tokens };
   }
 
-  async createProfile(userId: string, dto: CreateProfileDto) {
-    const existingHandle = await this.prisma.userProfile.findUnique({
-      where: { handle: dto.handle },
-    });
+  async sendOtp(dto: SendOtpDto) {
+    return this.otpService.sendOtp(dto.phoneNumber);
+  }
 
-    if (existingHandle) {
-      throw new ConflictException('Handle is already taken');
+  async verifyOtp(dto: VerifyOtpDto): Promise<AuthResponse> {
+    const result = await this.otpService.verifyOtp(dto.phoneNumber, dto.code);
+    if (!result) throw new UnauthorizedException('Invalid OTP');
+
+    const { phoneNumber, code } = result;
+    let user = await this.findUserByPhone(phoneNumber);
+
+    if (!user) {
+      user = await this.createUserFromPhone(phoneNumber);
     }
 
-    const profile = await this.prisma.userProfile.create({
+    await this.updateUserLastLogin(user.id);
+    const tokens = await this.generateTokens(user);
+    await this.createSession(user.id, tokens);
+
+    return { user, tokens };
+  }
+
+  private async findUserByPhone(phoneNumber: string) {
+    return this.prisma.user.findUnique({
+      where: { phoneNumber },
+      include: { profile: true },
+    });
+  }
+
+  private async createUserFromPhone(phoneNumber: string) {
+    return this.prisma.user.create({
       data: {
-        userId,
-        legalName: dto.legalName,
-        displayName: dto.legalName,
-        handle: dto.handle,
-        districtId: dto.districtId,
-        subDistrictId: dto.subDistrictId,
-        handleLockedUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        phoneNumber,
+        phoneVerified: true,
+        profile: { create: {} },
       },
+      include: { profile: true },
+    });
+  }
+
+  private async updateUserLastLogin(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
+  }
+
+  async createProfile(userId: string, dto: CreateProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { profile: true } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.userProfile.upsert({
+      where: { userId },
+      create: { userId, ...dto },
+      update: dto,
     });
 
-    await this.prisma.userSettings.create({
-      data: { userId },
-    });
-
-    await this.prisma.userPreference.create({
-      data: { userId },
-    });
-
-    return profile;
+    return { profile: updated };
   }
 
   async refreshTokens(refreshToken: string) {
     try {
-      const payload = this.jwt.verify(refreshToken, {
-        secret: this.config.get<string>('app.jwtRefreshSecret'),
-      });
-
-      const session = await this.prisma.session.findFirst({
-        where: {
-          userId: payload.sub,
-          refreshToken,
-          refreshExpiresAt: { gt: new Date() },
-        },
+      const payload = this.jwtService.verify(refreshToken, { secret: this.config.get('JWT_REFRESH_SECRET') });
+      const session = await this.prisma.userSession.findFirst({
+        where: { refreshToken, revoked: false },
         include: { user: { include: { profile: true } } },
       });
 
-      if (!session) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+      if (!session || session.expiresAt < new Date()) throw new UnauthorizedException('Session expired');
 
       const tokens = await this.generateTokens(session.user);
-      await this.prisma.session.update({
-        where: { id: session.id },
-        data: {
-          token: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-          refreshExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        },
-      });
+      await this.prisma.userSession.update({ where: { id: session.id }, data: { refreshToken: tokens.refreshToken } });
 
-      return tokens;
+      return { tokens };
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
   async logout(userId: string, token: string) {
-    await this.prisma.session.deleteMany({
-      where: { userId, token },
+    await this.prisma.userSession.updateMany({
+      where: { userId, refreshToken: token },
+      data: { revoked: true },
     });
-
-    // Add to blocklist
-    try {
-      const payload = this.jwt.decode(token) as { jti?: string; exp?: number };
-      if (payload?.jti && payload?.exp) {
-        const ttl = payload.exp - Math.floor(Date.now() / 1000);
-        await this.redis.set(`auth:blocklist:${payload.jti}`, 'revoked', ttl);
-      }
-    } catch {
-      // Ignore decode errors
-    }
-
-    return { message: 'Logged out successfully' };
+    return { success: true };
   }
 
   async logoutAll(userId: string) {
-    await this.prisma.session.deleteMany({
-      where: { userId },
+    await this.prisma.userSession.updateMany({
+      where: { userId, revoked: false },
+      data: { revoked: true },
     });
-    return { message: 'Logged out from all devices' };
+    return { success: true };
   }
 
-  private async generateTokens(user: User & { profile?: UserProfile | null }): Promise<TokenPair> {
-    const accessPayload = {
-      sub: user.id,
-      phone: user.phoneNumber,
-      type: 'access',
-      jti: crypto.randomUUID(),
-    };
-
-    const refreshPayload = {
-      sub: user.id,
-      phone: user.phoneNumber,
-      type: 'refresh',
-      jti: crypto.randomUUID(),
-    };
-
-    const accessToken = this.jwt.sign(accessPayload, {
-      secret: this.config.get<string>('app.jwtSecret'),
-      expiresIn: this.config.get<string>('app.jwtAccessExpiration') || '15m',
-    });
-
-    const refreshToken = this.jwt.sign(refreshPayload, {
-      secret: this.config.get<string>('app.jwtRefreshSecret'),
-      expiresIn: this.config.get<string>('app.jwtRefreshExpiration') || '7d',
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-      expiresIn: 900, // 15 minutes in seconds
-    };
+  private async generateTokens(user: User): Promise<TokenPair> {
+    const payload = { sub: user.id, phone: user.phoneNumber };
+    const accessToken = this.jwtService.sign(payload, { secret: this.config.get('JWT_SECRET'), expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign(payload, { secret: this.config.get('JWT_REFRESH_SECRET'), expiresIn: '7d' });
+    return { accessToken, refreshToken };
   }
 
   private async createSession(userId: string, tokens: TokenPair) {
-    await this.prisma.session.create({
+    await this.prisma.userSession.create({
       data: {
         userId,
-        token: tokens.accessToken,
         refreshToken: tokens.refreshToken,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-        refreshExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
   }

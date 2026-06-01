@@ -23,25 +23,22 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
 
   const validateStep1 = () => {
-    if (!email || !email.includes('@')) { setError('সঠিক ইমেইল দিন'); return false; }
-    if (!password || password.length < 6) { setError('পাসওয়ার্ড কমপক্ষে ৬ অক্ষর'); return false; }
-    if (password !== confirmPassword) { setError('পাসওয়ার্ড মিলছে না'); return false; }
+    if (!email || !email.includes('@')) { setError('Valid email required'); return false; }
+    if (!password || password.length < 6) { setError('Password must be at least 6 characters'); return false; }
+    if (password !== confirmPassword) { setError('Passwords do not match'); return false; }
     return true;
   };
 
   const validateStep2 = () => {
-    if (!legalName || legalName.length < 2) { setError('আপনার নাম লিখুন'); return false; }
-    if (!handle || handle.length < 3) { setError('হ্যান্ডেল কমপক্ষে ৩ অক্ষর'); return false; }
-    if (!/^[a-zA-Z0-9_]+$/.test(handle)) { setError('হ্যান্ডেলে শুধু অক্ষর, সংখ্যা ও আন্ডারস্কোর'); return false; }
-    if (!districtId) { setError('জেলা নির্বাচন করুন'); return false; }
-    if (!gender) { setError('লিঙ্গ নির্বাচন করুন'); return false; }
+    if (!legalName || legalName.length < 2) { setError('Enter your full name'); return false; }
+    if (!handle || handle.length < 3) { setError('Handle must be at least 3 characters'); return false; }
+    if (!/^[a-zA-Z0-9_]+$/.test(handle)) { setError('Handle: letters, numbers, underscores only'); return false; }
+    if (!districtId) { setError('Select your district'); return false; }
+    if (!gender) { setError('Select your gender'); return false; }
     return true;
   };
 
-  const handleNext = () => {
-    setError('');
-    if (validateStep1()) setStep(2);
-  };
+  const handleNext = () => { setError(''); if (validateStep1()) setStep(2); };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,10 +48,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const res = await api.post('auth/register', {
-        email,
-        password,
-        legalName,
-        handle,
+        email, password, legalName, handle,
         districtId: Number(districtId),
         gender,
       });
@@ -82,7 +76,7 @@ export default function RegisterPage() {
           <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <Check className="w-10 h-10 text-green-600" />
           </div>
-          <h2 className="text-xl font-extrabold text-[#0F0A1E] font-bangla">একাউন্ট তৈরি সফল!</h2>
+          <h2 className="text-xl font-extrabold text-[#0F0A1E] font-bangla">Account Created!</h2>
           <p className="text-sm text-[#6B5E8A] mt-2">Redirecting to home...</p>
         </motion.div>
       </div>
@@ -97,7 +91,7 @@ export default function RegisterPage() {
           <div className="w-16 h-16 rounded-2xl bondhu-gradient flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span className="text-2xl font-extrabold text-white font-bangla">ব</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-[#0F0A1E] font-bangla">নতুন একাউন্ট</h1>
+          <h1 className="text-2xl font-extrabold text-[#0F0A1E] font-bangla">New Account</h1>
           <p className="text-sm text-[#6B5E8A] mt-1">Create your Bondhu account</p>
         </div>
 
@@ -117,7 +111,7 @@ export default function RegisterPage() {
         {step === 1 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">ইমেইল / Email</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0]" />
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com"
@@ -126,7 +120,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">পাসওয়ার্ড / Password</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0]" />
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 characters"
@@ -138,7 +132,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">কনফার্ম পাসওয়ার্ড</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0]" />
                 <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••"
@@ -147,13 +141,13 @@ export default function RegisterPage() {
             </div>
 
             <button onClick={handleNext} className="w-full py-3.5 bondhu-gradient text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg">
-              <span className="font-bangla">পরবর্তী ধাপ</span>
+              <span>Next Step</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <p className="text-center text-sm text-[#6B5E8A] mt-4">
               Already have an account?{' '}
-              <button onClick={() => router.push('/login')} className="text-[#5B21B6] font-bold hover:underline font-bangla">লগইন</button>
+              <button onClick={() => router.push('/login')} className="text-[#5B21B6] font-bold hover:underline">Login</button>
             </p>
           </motion.div>
         )}
@@ -162,7 +156,7 @@ export default function RegisterPage() {
         {step === 2 && (
           <motion.form initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">আপনার নাম / Full Name</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0]" />
                 <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder="Rafiq Ahmed"
@@ -171,7 +165,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">হ্যান্ডেল / Username</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Username (@handle)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9B8FC0] text-sm">@</span>
                 <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))} placeholder="rafiq_ahmed"
@@ -181,28 +175,28 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">জেলা / District</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">District</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] z-10" />
                 <select value={districtId} onChange={(e) => setDistrictId(e.target.value)}
                   className="w-full pl-10 pr-8 py-3 bg-white border border-[#DDD6F3] rounded-xl text-sm outline-none focus:border-[#5B21B6] appearance-none font-bangla text-[#0F0A1E]">
-                  <option value="">জেলা নির্বাচন করুন</option>
-                  {districts.map((d) => <option key={d.id} value={d.id}>{d.nameBn}</option>)}
+                  <option value="">Select District</option>
+                  {districts.map((d) => <option key={d.id} value={d.id}>{d.nameBn} - {d.name}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] pointer-events-none" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">লিঙ্গ / Gender</label>
+              <label className="text-xs font-bold text-[#3D2B6B]">Gender</label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] z-10" />
                 <select value={gender} onChange={(e) => setGender(e.target.value)}
                   className="w-full pl-10 pr-8 py-3 bg-white border border-[#DDD6F3] rounded-xl text-sm outline-none focus:border-[#5B21B6] appearance-none font-bangla text-[#0F0A1E]">
-                  <option value="">লিঙ্গ নির্বাচন করুন</option>
-                  <option value="male">পুরুষ / Male</option>
-                  <option value="female">মহিলা / Female</option>
-                  <option value="other">অন্যান্য / Other</option>
+                  <option value="">Select Gender</option>
+                  <option value="male">Male / পুরুষ</option>
+                  <option value="female">Female / মহিলা</option>
+                  <option value="other">Other / অন্যান্য</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] pointer-events-none" />
               </div>
@@ -210,15 +204,22 @@ export default function RegisterPage() {
 
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(1)}
-                className="flex-1 py-3 bg-[#F5F2FF] text-[#5B21B6] rounded-xl text-sm font-bold font-bangla">পেছনে</button>
+                className="flex-1 py-3 bg-[#F5F2FF] text-[#5B21B6] rounded-xl text-sm font-bold">Back</button>
               <button type="submit" disabled={loading}
                 className="flex-1 py-3.5 bondhu-gradient text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg">
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span className="font-bangla">একাউন্ট তৈরি করুন</span>
+                    <span>Create Account</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              <
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </motion.div>
+    </div>
+  );
+}
