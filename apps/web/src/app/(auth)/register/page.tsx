@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, MapPin, ArrowRight, Eye, EyeOff, ChevronDown, Check } from 'lucide-react';
+import { Mail, Lock, User, MapPin, ArrowRight, Eye, EyeOff, ChevronDown, Check, Users } from 'lucide-react';
 import { api } from '@/lib/api';
 import { districts } from '@/lib/districts';
 
@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [legalName, setLegalName] = useState('');
   const [handle, setHandle] = useState('');
   const [districtId, setDistrictId] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -33,6 +34,7 @@ export default function RegisterPage() {
     if (!handle || handle.length < 3) { setError('হ্যান্ডেল কমপক্ষে ৩ অক্ষর'); return false; }
     if (!/^[a-zA-Z0-9_]+$/.test(handle)) { setError('হ্যান্ডেলে শুধু অক্ষর, সংখ্যা ও আন্ডারস্কোর'); return false; }
     if (!districtId) { setError('জেলা নির্বাচন করুন'); return false; }
+    if (!gender) { setError('লিঙ্গ নির্বাচন করুন'); return false; }
     return true;
   };
 
@@ -54,6 +56,7 @@ export default function RegisterPage() {
         legalName,
         handle,
         districtId: Number(districtId),
+        gender,
       });
       const data = (res as any)?.data;
 
@@ -190,6 +193,21 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#3D2B6B] font-bangla">লিঙ্গ / Gender</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] z-10" />
+                <select value={gender} onChange={(e) => setGender(e.target.value)}
+                  className="w-full pl-10 pr-8 py-3 bg-white border border-[#DDD6F3] rounded-xl text-sm outline-none focus:border-[#5B21B6] appearance-none font-bangla text-[#0F0A1E]">
+                  <option value="">লিঙ্গ নির্বাচন করুন</option>
+                  <option value="male">পুরুষ / Male</option>
+                  <option value="female">মহিলা / Female</option>
+                  <option value="other">অন্যান্য / Other</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] pointer-events-none" />
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(1)}
                 className="flex-1 py-3 bg-[#F5F2FF] text-[#5B21B6] rounded-xl text-sm font-bold font-bangla">পেছনে</button>
@@ -203,11 +221,4 @@ export default function RegisterPage() {
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
-            </div>
-          </motion.form>
-        )}
-      </motion.div>
-    </div>
-  );
-}
+              <

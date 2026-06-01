@@ -58,6 +58,11 @@ export class RegisterDto {
   })
   handle: string;
 
+  @ApiProperty({ example: 'male' })
+  @IsString()
+  @IsNotEmpty()
+  gender: string;
+
   @ApiProperty({ example: 1 })
   districtId: number;
 }

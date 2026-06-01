@@ -5,7 +5,7 @@ import { PrismaService } from '../common/services/prisma.service';
 import { RedisService } from '../common/services/redis.service';
 import { OtpService } from './otp.service';
 import type { SendOtpDto, VerifyOtpDto, CreateProfileDto, RegisterDto, LoginDto } from './dto/auth.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import type { User, UserProfile } from '@prisma/client';
 
 export interface TokenPair {
@@ -110,6 +110,7 @@ export class AuthService {
         passwordHash,
         phoneNumber: phonePlaceholder,
         phoneVerified: false,
+        gender: dto.gender,
         profile: {
           create: {
             legalName: dto.legalName,
