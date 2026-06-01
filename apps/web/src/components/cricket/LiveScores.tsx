@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CricketIcon } from '@/components/ui/CulturalIcons';
+import { useQuery } from '@tanstack/react-query';
+import { fetchLiveMatches } from '@/lib/api/cricket';
 
 export interface CricketMatch {
   id: string;
@@ -21,56 +23,19 @@ interface LiveScoresProps {
   compact?: boolean;
 }
 
-const MOCK_MATCHES: CricketMatch[] = [
-  {
-    id: '1',
-    series: 'Bangladesh vs India - 2nd ODI',
-    team1: { name: 'Bangladesh', code: 'BAN', flag: '🇧🇩', score: '246/7', overs: '48.2' },
-    team2: { name: 'India', code: 'IND', flag: '🇮🇳', score: '0/0', overs: '0.0' },
-    status: 'LIVE',
-    matchType: 'ODI',
-    venue: 'Sher-e-Bangla Stadium, Dhaka',
-    date: '2026-05-31T14:00:00Z',
-    result: 'Bangladesh opt to bat',
-  },
-  {
-    id: '2',
-    series: 'Bangladesh vs Pakistan - 1st T20I',
-    team1: { name: 'Pakistan', code: 'PAK', flag: '🇵🇰', score: '189/5', overs: '20.0' },
-    team2: { name: 'Bangladesh', code: 'BAN', flag: '🇧🇩', score: '142/8', overs: '18.4' },
-    status: 'RESULT',
-    matchType: 'T20I',
-    venue: 'Zohur Ahmed Chowdhury Stadium, Chattogram',
-    date: '2026-05-28T18:00:00Z',
-    result: 'Pakistan won by 47 runs',
-  },
-  {
-    id: '3',
-    series: 'Bangladesh vs Sri Lanka - Test Match',
-    team1: { name: 'Bangladesh', code: 'BAN', flag: '🇧🇩', score: '', overs: '' },
-    team2: { name: 'Sri Lanka', code: 'SL', flag: '🇱🇰', score: '', overs: '' },
-    status: 'UPCOMING',
-    matchType: 'Test',
-    venue: 'Sylhet International Stadium',
-    date: '2026-06-05T04:00:00Z',
-  },
-];
-
 export default function LiveScores({ compact = false }: LiveScoresProps) {
-  const [matches, setMatches] = useState<CricketMatch[]>(MOCK_MATCHES);
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'results'>('all');
-  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Auto-refresh every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLastUpdated(new Date());
-      // In production: fetch from cricket API here
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: matches = [], isLoading } = useQuery({
+    queryKey: ['cricket-matches'],
+    queryFn: fetchLiveMatches,
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
 
-  const filtered = matches.filter((m) => {
+  const lastUpdated = new Date();
+
+  const filtered = matches.filter((m: CricketMatch) => {
     if (activeTab === 'live') return m.status === 'LIVE';
     if (activeTab === 'upcoming') return m.status === 'UPCOMING';
     if (activeTab === 'results') return m.status === 'RESULT';
@@ -84,6 +49,23 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
     { key: 'results' as const, label: 'Results' },
   ];
 
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className={cn('bg-white rounded-2xl shadow-sm', compact ? 'p-3' : 'p-4')}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-5 h-5 bg-[#F5F2FF] rounded animate-pulse" />
+          <div className="h-4 bg-[#F5F2FF] rounded w-24 animate-pulse" />
+        </div>
+        <div className="space-y-2 animate-pulse">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-24 bg-[#F5F2FF] rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn('bg-white rounded-2xl shadow-sm', compact ? 'p-3' : 'p-4')}>
       {/* Header */}
@@ -91,10 +73,12 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
         <div className="flex items-center gap-2">
           <CricketIcon size={20} className="text-purple-600" />
           <h3 className="font-semibold text-[#1a1a2e] text-sm">Cricket Live</h3>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-          </span>
+          {matches.some((m: CricketMatch) => m.status === 'LIVE') && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+            </span>
+          )}
         </div>
         <span className="text-[10px] text-[#9B8FC0]">
           {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -109,13 +93,11 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
             onClick={() => setActiveTab(tab.key)}
             className={cn(
               'px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all',
-              activeTab === tab.key
-                ? 'gradient-chip-active'
-                : 'gradient-chip-inactive'
+              activeTab === tab.key ? 'gradient-chip-active' : 'gradient-chip-inactive'
             )}
           >
             {tab.label}
-            {tab.key === 'live' && matches.some((m) => m.status === 'LIVE') && (
+            {tab.key === 'live' && matches.some((m: CricketMatch) => m.status === 'LIVE') && (
               <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-red-500" />
             )}
           </button>
@@ -125,7 +107,7 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
       {/* Matches */}
       <div className="space-y-2">
         <AnimatePresence mode="popLayout">
-          {filtered.map((match) => (
+          {filtered.map((match: CricketMatch) => (
             <motion.div
               key={match.id}
               layout
@@ -139,14 +121,12 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
                 <span className="text-[10px] font-medium text-[#9B8FC0] uppercase tracking-wide">
                   {match.matchType} · {match.series.replace(/Bangladesh vs /, '')}
                 </span>
-                <span
-                  className={cn(
-                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                    match.status === 'LIVE' && 'bg-red-50 text-red-600',
-                    match.status === 'UPCOMING' && 'bg-blue-50 text-blue-600',
-                    match.status === 'RESULT' && 'bg-green-50 text-green-600'
-                  )}
-                >
+                <span className={cn(
+                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                  match.status === 'LIVE' && 'bg-red-50 text-red-600',
+                  match.status === 'UPCOMING' && 'bg-blue-50 text-blue-600',
+                  match.status === 'RESULT' && 'bg-green-50 text-green-600'
+                )}>
                   {match.status}
                 </span>
               </div>
@@ -180,28 +160,28 @@ export default function LiveScores({ compact = false }: LiveScoresProps) {
               </div>
 
               {/* Result / Status */}
-              {match.result && (
-                <p className="mt-2 text-[11px] text-purple-600 font-medium">{match.result}</p>
-              )}
+              {match.result && <p className="mt-2 text-[11px] text-purple-600 font-medium">{match.result}</p>}
               {match.status === 'UPCOMING' && (
                 <p className="mt-2 text-[11px] text-[#9B8FC0]">
-                  {new Date(match.date).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {new Date(match.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </p>
               )}
             </motion.div>
           ))}
         </AnimatePresence>
 
+        {/* Empty State — shows when no API key or no matches */}
         {filtered.length === 0 && (
-          <div className="text-center py-6">
-            <CricketIcon size={32} className="text-[#E8E4F5] mx-auto mb-2" />
-            <p className="text-sm text-[#9B8FC0]">No {activeTab === 'all' ? '' : activeTab} matches</p>
+          <div className="text-center py-8">
+            <span className="text-4xl">🏏</span>
+            <p className="text-sm text-[#6B5E8A] font-bangla mt-2">
+              {matches.length === 0 ? 'কোনো ম্যাচ পাওয়া যায়নি' : `No ${activeTab} matches`}
+            </p>
+            {matches.length === 0 && (
+              <p className="text-[11px] text-[#9B8FC0] mt-1 font-bangla">
+                বাংলাদেশের ম্যাচের সময় আবার চেক করুন
+              </p>
+            )}
           </div>
         )}
       </div>

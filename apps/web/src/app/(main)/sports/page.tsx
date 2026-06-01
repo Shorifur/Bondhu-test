@@ -19,14 +19,17 @@ const sportTabs = [
 export default function SportsPage() {
   const [activeSport, setActiveSport] = useState('cricket');
 
-  const { data: cricketMatches } = useQuery({
+  const { data: cricketMatches, isLoading } = useQuery({
     queryKey: ['cricket-matches'],
     queryFn: fetchLiveMatches,
     refetchInterval: 60000,
+    staleTime: 30000,
   });
 
   const matches = cricketMatches || [];
-  const liveMatches = matches.filter((m) => m.status === 'LIVE');
+  const liveMatches = matches.filter((m: any) => m.status === 'LIVE');
+  const resultMatches = matches.filter((m: any) => m.status === 'RESULT');
+  const upcomingMatches = matches.filter((m: any) => m.status === 'UPCOMING');
 
   return (
     <div className="min-h-screen pb-20" style={{ backgroundColor: '#F8F7FF' }}>
@@ -63,8 +66,27 @@ export default function SportsPage() {
         </div>
       </header>
 
+      {/* Loading */}
+      {isLoading && (
+        <div className="px-4 pt-4 space-y-3 animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 bg-white rounded-2xl border border-[#F5F2FF]" />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state when no API key or no matches */}
+      {!isLoading && matches.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <span className="text-5xl mb-4">🏏</span>
+          <h3 className="font-extrabold text-[#0F0A1E] font-bangla mb-2">কোনো লাইভ ম্যাচ নেই</h3>
+          <p className="text-sm text-[#6B5E8A] font-bangla mb-1">বাংলাদেশের ক্রিকেট ম্যাচ চলছে না</p>
+          <p className="text-xs text-[#9B8FC0]">Check back during Bangladesh matches!</p>
+        </div>
+      )}
+
       {/* Live Now Section */}
-      {liveMatches.length > 0 && (
+      {!isLoading && liveMatches.length > 0 && (
         <div className="px-4 pt-3">
           <h2 className="text-sm font-bold font-bold mb-2 flex items-center gap-1.5">
             <span className="relative flex h-2.5 w-2.5">
@@ -108,9 +130,9 @@ export default function SportsPage() {
       )}
 
       {/* Recent Results */}
-      <div className="px-4 pt-3">
-        <h2 className="text-sm font-bold font-bold mb-2 font-bangla">সাম্প্রতিক ফলাফল</h2>
-        {matches.filter((m) => m.status === 'RESULT').map((match) => (
+      {!isLoading && resultMatches.length > 0 && <div className="px-4 pt-3">
+        <h2 className="text-sm font-bold mb-2 font-bangla">সাম্প্রতিক ফলাফল</h2>
+        {resultMatches.map((match: any) => (
           <div key={match.id} className="bg-white rounded-2xl p-3 mb-2 shadow-sm" style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.06)' }}>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] text-[#9B8FC0]">{match.matchType}</span>
@@ -136,32 +158,13 @@ export default function SportsPage() {
             {match.result && <p className="mt-1.5 text-[11px] text-purple-600 font-medium">{match.result}</p>}
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* Upcoming */}
-      <div className="px-4 pt-3 pb-4">
-        <h2 className="text-sm font-bold font-bold mb-2 font-bangla">আসন্ন খেলা</h2>
-        {matches.filter((m) => m.status === 'UPCOMING').map((match) => (
+      {!isLoading && upcomingMatches.length > 0 && <div className="px-4 pt-3 pb-4">
+        <h2 className="text-sm font-bold mb-2 font-bangla">আসন্ন খেলা</h2>
+        {upcomingMatches.map((match: any) => (
           <div key={match.id} className="bg-white rounded-2xl p-3 mb-2 shadow-sm" style={{ boxShadow: '0 2px 12px rgba(167,139,250,0.06)' }}>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] text-[#9B8FC0]">{match.matchType}</span>
-              <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">UPCOMING</span>
-            </div>
-            <div className="flex items-center justify-center gap-4 py-1">
-              <div className="flex flex-col items-center">
-                <span className="text-2xl">{match.team1.flag}</span>
-                <span className="text-xs font-semibold mt-1">{match.team1.code}</span>
-              </div>
-              <span className="text-[10px] text-[#9B8FC0] font-bold">VS</span>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl">{match.team2.flag}</span>
-                <span className="text-xs font-semibold mt-1">{match.team2.code}</span>
-              </div>
-            </div>
-            <p className="text-center text-[11px] text-[#9B8FC0] mt-1">{match.venue}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+      
