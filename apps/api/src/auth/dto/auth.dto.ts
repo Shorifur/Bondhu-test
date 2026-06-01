@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, Matches, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, Length, Matches, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendOtpDto {
@@ -64,6 +64,8 @@ export class RegisterDto {
   gender: string;
 
   @ApiProperty({ example: 1 })
+  @IsNumber()
+  @IsNotEmpty()
   districtId: number;
 }
 
