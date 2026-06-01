@@ -58,35 +58,47 @@ async function main() {
   const passwordHash = await bcrypt.hash('Test@1234', 10);
   const createdUsers: any[] = [];
 
-  // Create users
+  // Create users — skip if email or phone already exists
   for (const userData of TEST_USERS) {
-    const existing = await prisma.user.findUnique({ where: { email: userData.email } });
+    const existingByEmail = await prisma.user.findUnique({ where: { email: userData.email } }).catch(() => null);
+    const existingByPhone = await prisma.user.findUnique({ where: { phoneNumber: userData.phoneNumber } }).catch(() => null);
+    const existing = existingByEmail || existingByPhone;
     if (existing) {
-      console.log('  User exists:', userData.email);
+      console.log('  User exists:', userData.email || userData.phoneNumber);
       createdUsers.push(existing);
       continue;
     }
 
-    const user = await prisma.user.create({
-      data: {
-        phoneNumber: userData.phoneNumber,
-        phoneVerified: true,
-        email: userData.email,
-        emailVerified: true,
-        passwordHash,
-        profile: {
-          create: {
-            legalName: userData.legalName,
-            displayName: userData.displayName,
-            handle: userData.handle,
-            bio: userData.bio,
-            districtId: userData.districtId,
+    try {
+      const user = await prisma.user.create({
+        data: {
+          phoneNumber: userData.phoneNumber,
+          phoneVerified: true,
+          email: userData.email,
+          emailVerified: true,
+          passwordHash,
+          profile: {
+            create: {
+              legalName: userData.legalName,
+              displayName: userData.displayName,
+              handle: userData.handle,
+              bio: userData.bio,
+              districtId: userData.districtId,
+            },
           },
         },
-      },
-    });
-    createdUsers.push(user);
-    console.log('  User:', userData.email, '|', userData.displayName);
+      });
+      createdUsers.push(user);
+      console.log('  User:', userData.email, '|', userData.displayName);
+    } catch (err: any) {
+      if (err.code === 'P2002') {
+        console.log('  Skipped (duplicate):', userData.email);
+        const found = await prisma.user.findUnique({ where: { email: userData.email } });
+        if (found) createdUsers.push(found);
+      } else {
+        throw err;
+      }
+    }
   }
 
   // Create posts
