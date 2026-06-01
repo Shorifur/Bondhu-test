@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, NotFoundException
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { get } from 'https';
 import { PrismaService } from '../common/services/prisma.service';
 import { OtpService } from './otp.service';
 import type { SendOtpDto, VerifyOtpDto, CreateProfileDto, RegisterDto, LoginDto } from './dto/auth.dto';
@@ -39,8 +40,47 @@ export class AuthService {
     private readonly otpService: OtpService,
   ) {}
 
+  /* ── ZeroBounce Email Verification ── */
+  private async verifyEmail(email: string): Promise<{ valid: boolean; reason?: string }> {
+    return new Promise((resolve) => {
+      const apiKey = this.config.get('ZEROBOUNCE_API_KEY') || '';
+    if (!apiKey) return { valid: true }; // Skip if no API key configured
+    
+    const url = `https://api.zerobounce.net/v2/validate?api_key=${apiKey}&email=${encodeURIComponent(email)}&ip_address=`;
+      
+      get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            // Status: valid, invalid, catch-all, unknown, spamtrap, abuse, do_not_mail
+            const badStatuses = ['invalid', 'spamtrap', 'abuse', 'do_not_mail'];
+            if (badStatuses.includes(result.status)) {
+              resolve({ valid: false, reason: `Email is ${result.status}` });
+            } else {
+              resolve({ valid: true });
+            }
+          } catch {
+            // If API fails, allow registration (graceful fallback)
+            resolve({ valid: true });
+          }
+        });
+      }).on('error', () => {
+        // If network fails, allow registration (graceful fallback)
+        resolve({ valid: true });
+      });
+    });
+  }
+
   /* ── Email/Password Registration ── */
   async register(dto: RegisterDto) {
+    // Verify email with ZeroBounce
+    const emailCheck = await this.verifyEmail(dto.email);
+    if (!emailCheck.valid) {
+      throw new ConflictException(`Invalid email: ${emailCheck.reason}. Please use a real email address.`);
+    }
+
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
 
@@ -199,9 +239,4 @@ export class AuthService {
       expiresIn: '15m',
     });
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.config.get('JWT_REFRESH_SECRET'),
-      expiresIn: '7d',
-    });
-    return { accessToken, refreshToken };
-  }
-}
+      
