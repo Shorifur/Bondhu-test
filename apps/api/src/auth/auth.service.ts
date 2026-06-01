@@ -21,14 +21,34 @@ function verifyPassword(password: string, stored: string): boolean {
   return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(hashVerify, 'hex'));
 }
 
+/* ── ZeroBounce Email Verification ── */
+function verifyEmailWithZeroBounce(email: string, apiKey: string): Promise<{ valid: boolean; reason?: string }> {
+  if (!apiKey) return Promise.resolve({ valid: true });
+  const url = `https://api.zerobounce.net/v2/validate?api_key=${apiKey}&email=${encodeURIComponent(email)}&ip_address=`;
+  return new Promise((resolve) => {
+    get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          const badStatuses = ['invalid', 'spamtrap', 'abuse', 'do_not_mail'];
+          if (badStatuses.includes(result.status)) {
+            resolve({ valid: false, reason: `Email is ${result.status}` });
+          } else {
+            resolve({ valid: true });
+          }
+        } catch {
+          resolve({ valid: true });
+        }
+      });
+    }).on('error', () => resolve({ valid: true }));
+  });
+}
+
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
-}
-
-interface AuthResponse {
-  user: User & { profile: UserProfile | null };
-  tokens: TokenPair;
 }
 
 @Injectable()
@@ -40,43 +60,11 @@ export class AuthService {
     private readonly otpService: OtpService,
   ) {}
 
-  /* ── ZeroBounce Email Verification ── */
-  private async verifyEmail(email: string): Promise<{ valid: boolean; reason?: string }> {
-    return new Promise((resolve) => {
-      const apiKey = this.config.get('ZEROBOUNCE_API_KEY') || '';
-    if (!apiKey) return { valid: true }; // Skip if no API key configured
-    
-    const url = `https://api.zerobounce.net/v2/validate?api_key=${apiKey}&email=${encodeURIComponent(email)}&ip_address=`;
-      
-      get(url, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          try {
-            const result = JSON.parse(data);
-            // Status: valid, invalid, catch-all, unknown, spamtrap, abuse, do_not_mail
-            const badStatuses = ['invalid', 'spamtrap', 'abuse', 'do_not_mail'];
-            if (badStatuses.includes(result.status)) {
-              resolve({ valid: false, reason: `Email is ${result.status}` });
-            } else {
-              resolve({ valid: true });
-            }
-          } catch {
-            // If API fails, allow registration (graceful fallback)
-            resolve({ valid: true });
-          }
-        });
-      }).on('error', () => {
-        // If network fails, allow registration (graceful fallback)
-        resolve({ valid: true });
-      });
-    });
-  }
-
   /* ── Email/Password Registration ── */
   async register(dto: RegisterDto) {
     // Verify email with ZeroBounce
-    const emailCheck = await this.verifyEmail(dto.email);
+    const apiKey = this.config.get('ZEROBOUNCE_API_KEY') || '';
+    const emailCheck = await verifyEmailWithZeroBounce(dto.email, apiKey);
     if (!emailCheck.valid) {
       throw new ConflictException(`Invalid email: ${emailCheck.reason}. Please use a real email address.`);
     }
@@ -113,7 +101,6 @@ export class AuthService {
     await this.prisma.userPreference.create({ data: { userId: user.id } });
 
     const tokens = await this.generateTokens(user);
-
     return { user, tokens };
   }
 
@@ -137,7 +124,6 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user);
-
     return { user, tokens };
   }
 
@@ -146,8 +132,8 @@ export class AuthService {
     return this.otpService.sendOtp(dto.phoneNumber);
   }
 
-  async verifyOtp(dto: VerifyOtpDto): Promise<AuthResponse> {
-    const isValid = await this.otpService.verifyOtp(dto.phoneNumber, dto.otpCode);
+  async verifyOtp(dto: VerifyOtpDto) {
+    const isValid = await this.otpService.verifyOtp(dto.phoneNumber, dto.otp);
     if (!isValid) throw new UnauthorizedException('Invalid OTP');
 
     let user = await this.prisma.user.findUnique({
@@ -160,7 +146,7 @@ export class AuthService {
         data: {
           phoneNumber: dto.phoneNumber,
           phoneVerified: true,
-          profile: { create: {} },
+          profile: { create: { legalName: dto.phoneNumber, displayName: dto.phoneNumber } },
         },
         include: { profile: true },
       });
@@ -172,7 +158,6 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user);
-
     return { user, tokens };
   }
 
@@ -189,13 +174,13 @@ export class AuthService {
       create: {
         userId,
         legalName: dto.legalName,
-        displayName: dto.displayName,
+        displayName: dto.legalName,
         handle: dto.handle,
         districtId: dto.districtId ?? 1,
       },
       update: {
         legalName: dto.legalName,
-        displayName: dto.displayName,
+        displayName: dto.legalName,
         handle: dto.handle,
         districtId: dto.districtId ?? undefined,
       },
@@ -210,13 +195,11 @@ export class AuthService {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.config.get('JWT_REFRESH_SECRET'),
       });
-
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
         include: { profile: true },
       });
       if (!user) throw new UnauthorizedException('User not found');
-
       const tokens = await this.generateTokens(user);
       return { tokens };
     } catch {
@@ -232,11 +215,16 @@ export class AuthService {
     return { success: true };
   }
 
-  private async generateTokens(user: User): Promise<TokenPair> {
+  private async generateTokens(user: User & { profile?: UserProfile | null }): Promise<TokenPair> {
     const payload = { sub: user.id, phone: user.phoneNumber };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get('JWT_SECRET'),
       expiresIn: '15m',
     });
     const refreshToken = this.jwtService.sign(payload, {
-      
+      secret: this.config.get('JWT_REFRESH_SECRET'),
+      expiresIn: '7d',
+    });
+    return { accessToken, refreshToken };
+  }
+}
