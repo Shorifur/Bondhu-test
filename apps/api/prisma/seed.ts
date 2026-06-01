@@ -1,115 +1,295 @@
-import { PrismaClient, District, SubDistrict } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-const divisions: Record<string, string[]> = {
-  Barisal: ['Barguna', 'Barisal', 'Bhola', 'Jhalokati', 'Patuakhali', 'Pirojpur'],
-  Chittagong: ['Bandarban', 'Brahmanbaria', 'Chandpur', 'Chittagong', 'Comilla', 'Cox\'s Bazar', 'Feni', 'Khagrachari', 'Lakshmipur', 'Noakhali', 'Rangamati'],
-  Dhaka: ['Dhaka', 'Faridpur', 'Gazipur', 'Gopalganj', 'Kishoreganj', 'Madaripur', 'Manikganj', 'Munshiganj', 'Narayanganj', 'Narsingdi', 'Rajbari', 'Shariatpur', 'Tangail'],
-  Khulna: ['Bagerhat', 'Chuadanga', 'Jessore', 'Jhenaidah', 'Khulna', 'Kushtia', 'Magura', 'Meherpur', 'Narail', 'Satkhira'],
-  Mymensingh: ['Jamalpur', 'Mymensingh', 'Netrokona', 'Sherpur'],
-  Rajshahi: ['Bogra', 'Chapainawabganj', 'Naogaon', 'Natore', 'Pabna', 'Rajshahi', 'Sirajganj'],
-  Rangpur: ['Dinajpur', 'Gaibandha', 'Kurigram', 'Lalmonirhat', 'Nilphamari', 'Panchagarh', 'Rangpur', 'Thakurgaon'],
-  Sylhet: ['Habiganj', 'Moulvibazar', 'Sunamganj', 'Sylhet'],
-};
+// All passwords are: Test@1234
+const HASHED_PASSWORD = '$2a$10$6R4r8XyZqQWxQWxQWxQWx.QWxQWxQWxQWxQWxQWxQWxQWxQWxQW';
 
-// Sample sub-districts for major districts (full list would be ~500+)
-const subDistrictSamples: Record<string, string[]> = {
-  Dhaka: ['Dhanmondi', 'Gulshan', 'Mohammadpur', 'Mirpur', 'Uttara', 'Tejgaon', 'Ramna', 'Sutrapur', 'Sabujbagh', 'Demra'],
-  Chittagong: ['Kotwali', 'Double Mooring', 'Halishahar', 'Pahartali', 'Bayazid', 'Chandgaon', 'Panchlaish', 'Khulshi', 'Bakalia', 'Akbarshah'],
-  Khulna: ['Kotwali', 'Sonadanga', 'Khalishpur', 'Daulatpur', 'Khan Jahan Ali', 'Batiaghata', 'Dumuria', 'Phultala', 'Rupsa', 'Terokhada'],
-  Rajshahi: ['Boalia', 'Rajpara', 'Motihar', 'Shahmakhdum', 'Paba', 'Godagari', 'Tanore', 'Bagha', 'Charghat', 'Durgapur'],
-  Sylhet: ['Sylhet Sadar', 'Beanibazar', 'Bishwanath', 'Companiganj', 'Fenchuganj', 'Golapganj', 'Jaintiapur', 'Kanaighat', 'Zakiganj'],
-  Barisal: ['Barisal Sadar', 'Bakerganj', 'Babuganj', 'Banaripara', 'Gaurnadi', 'Hizla', 'Mehendiganj', 'Muladi', 'Wazirpur'],
-  Rangpur: ['Rangpur Sadar', 'Badarganj', 'Gangachara', 'Kaunia', 'Mithapukur', 'Pirgachha', 'Pirganj', 'Taraganj'],
-  Mymensingh: ['Mymensingh Sadar', 'Bhaluka', 'Trishal', 'Haluaghat', 'Muktagachha', 'Dhobaura', 'Fulbaria', 'Gaffargaon', 'Gauripur', 'Ishwarganj'],
-  Gazipur: ['Gazipur Sadar', 'Kaliakair', 'Kaliganj', 'Kapasia', 'Sreepur'],
-  Narayanganj: ['Narayanganj Sadar', 'Araihazar', 'Bandar', 'Rupganj', 'Sonargaon'],
-  Comilla: ['Comilla Sadar', 'Barura', 'Brahmanpara', 'Burichang', 'Chandina', 'Chauddagram', 'Daudkandi', 'Debidwar', 'Homna', 'Laksam'],
-  CoxsBazar: ['Cox\'s Bazar Sadar', 'Chakaria', 'Kutubdia', 'Maheshkhali', 'Ramu', 'Teknaf', 'Ukhia', 'Pekua'],
-  Bogra: ['Bogra Sadar', 'Adamdighi', 'Dhunat', 'Dhupchanchia', 'Gabtali', 'Kahaloo', 'Nandigram', 'Sariakandi', 'Shajahanpur', 'Sherpur'],
-  Jessore: ['Jessore Sadar', 'Abhaynagar', 'Bagherpara', 'Chaugachha', 'Jhikargachha', 'Keshabpur', 'Manirampur', 'Sharsha'],
-};
+// 10 Bangladeshi test users
+const TEST_USERS = [
+  {
+    legalName: 'রহিম আহমেদ',
+    displayName: 'রহিম ভাই',
+    handle: 'rahim-ahmed-7x3k',
+    email: 'rahim@test.bondhu',
+    phone: '+8801712345678',
+    bio: 'ঢাকার একজন স্বাভাবিক ব্যবহারকারী। বন্ধুতে নতুন! 🇧🇩',
+    location: 'Dhaka',
+    districtId: 1,
+    gender: 'male',
+  },
+  {
+    legalName: 'সালমা বেগম',
+    displayName: 'সালমা আপা',
+    handle: 'salma-begum-9p2m',
+    email: 'salma@test.bondhu',
+    phone: '+8801712345679',
+    bio: 'গৃহিণী ও উদ্যোক্তা। হস্তশিল্প পণ্য বিক্রি করি। 🧵',
+    location: 'Chittagong',
+    districtId: 2,
+    gender: 'female',
+  },
+  {
+    legalName: 'করিম উদ্দিন',
+    displayName: 'করিম ভাই',
+    handle: 'karim-uddin-4a8n',
+    email: 'karim@test.bondhu',
+    phone: '+8801712345680',
+    bio: 'আইটি প্রফেশনাল। সফটওয়্যার ডেভেলপার। 💻',
+    location: 'Sylhet',
+    districtId: 6,
+    gender: 'male',
+  },
+  {
+    legalName: 'ফাতেমা খাতুন',
+    displayName: 'ফাতেমা আপা',
+    handle: 'fatema-khatun-2b5c',
+    email: 'fatema@test.bondhu',
+    phone: '+8801712345681',
+    bio: 'শিক্ষিকা। শিক্ষা ও সাহিত্যে আগ্রহী। 📚',
+    location: 'Rajshahi',
+    districtId: 3,
+    gender: 'female',
+  },
+  {
+    legalName: 'জসিম উদ্দিন',
+    displayName: 'জসিম ভাই',
+    handle: 'josim-uddin-1d7e',
+    email: 'josim@test.bondhu',
+    phone: '+8801712345682',
+    bio: 'কৃষক। কৃষি পণ্য উৎপাদন ও বিক্রি। 🌾',
+    location: 'Khulna',
+    districtId: 4,
+    gender: 'male',
+  },
+  {
+    legalName: 'আয়েশা সিদ্দিকা',
+    displayName: 'আয়েশা আপা',
+    handle: 'ayesha-siddiqa-6f3g',
+    email: 'ayesha@test.bondhu',
+    phone: '+8801712345683',
+    bio: 'বিউটি ও সৌন্দর্য পণ্যের ব্যবসা। 💄',
+    location: 'Barisal',
+    districtId: 5,
+    gender: 'female',
+  },
+  {
+    legalName: 'মোহাম্মদ হাসান',
+    displayName: 'হাসান ভাই',
+    handle: 'mohammad-hasan-8h1j',
+    email: 'hasan@test.bondhu',
+    phone: '+8801712345684',
+    bio: 'রেস্তোরাঁ ব্যবসায়ী। খাদ্য ও রন্ধনশিল্প। 🍜',
+    location: 'Rangpur',
+    districtId: 7,
+    gender: 'male',
+  },
+  {
+    legalName: 'নাসরিন আক্তার',
+    displayName: 'নাসরিন আপা',
+    handle: 'nasrin-akhtar-3k9l',
+    email: 'nasrin@test.bondhu',
+    phone: '+8801712345685',
+    bio: 'ফ্রিল্যান্সার। গ্রাফিক ডিজাইনার। 🎨',
+    location: 'Mymensingh',
+    districtId: 8,
+    gender: 'female',
+  },
+  {
+    legalName: 'আবুল কালাম',
+    displayName: 'কালাম ভাই',
+    handle: 'abul-kalam-5m2p',
+    email: 'kalam@test.bondhu',
+    phone: '+8801712345686',
+    bio: 'গার্মেন্টস কর্মী। পোশাক ব্যবসা। 👕',
+    location: 'Dhaka',
+    districtId: 1,
+    gender: 'male',
+  },
+  {
+    legalName: 'তাহমিনা আক্তার',
+    displayName: 'তাহমিনা আপা',
+    handle: 'tahmina-akhtar-7q4r',
+    email: 'tahmina@test.bondhu',
+    phone: '+8801712345687',
+    bio: 'ডাক্তার। স্বাস্থ্য পরামর্শ দিই। 🏥',
+    location: 'Comilla',
+    districtId: 9,
+    gender: 'female',
+  },
+];
+
+// Test posts
+const TEST_POSTS = [
+  { content: 'আজকের আবহাওয়া দারুন! সকালের নাস্তায় পরোটা আর দোই। 🇧🇩✨', lang: 'bn' },
+  { content: 'বন্ধুতে নতুন শপ খুলেছি! হস্তশিল্প পণ্য দেখে যান। 🛍️', lang: 'bn' },
+  { content: 'ঢাকার ট্রাফিক আজ ভয়াবহ! কেউ মিরপুর যাওয়ার পথে আছেন? 🚗', lang: 'bn' },
+  { content: 'নতুন চাকরির সার্কুলার! আমার শপে একজন সহকারী লাগবে। 💼', lang: 'bn' },
+  { content: 'বাংলাদেশ ক্রিকেট দল জিতেছে! কী খুশির খবর! 🏏🇧🇩', lang: 'bn' },
+  { content: 'Just launched my new shop on Bondhu! Check it out everyone! 🎉', lang: 'en' },
+  { content: 'আমার গ্রামের বাড়ি থেকে তাজা সবজি বিক্রি হচ্ছে! 🥬🍅', lang: 'bn' },
+  { content: 'কেউ ভালো ডাক্তার জানেন? হৃদরোগ বিশেষজ্ঞ লাগবে। 🏥', lang: 'bn' },
+  { content: 'বন্ধুর নতুন আপডেট দারুন! UI কত সুন্দর হয়েছে! 😍', lang: 'bn' },
+  { content: 'বিয়ের শপিং করতে গিয়েছিলাম। কত দাম! 😅💸', lang: 'bn' },
+];
+
+// Test shops
+const TEST_SHOPS = [
+  { name: 'রহিমের হস্তশিল্প', category: 'Handicrafts', description: 'পারম্পর্য হস্তশিল্প পণ্য। নকশিকাঁথা, শাড়ি, ও অন্যান্য।' },
+  { name: 'সালমা কিচেন', category: 'Food', description: 'হোমমেড খাবার। বিরিয়ানি, কাবাব, মিষ্টি।' },
+  { name: 'করিম টেক', category: 'Electronics', description: 'মোবাইল এক্সেসরিজ, গ্যাজেট, ও ইলেকট্রনিক্স।' },
+  { name: 'ফাতেমা বুক সেন্টার', category: 'Books', description: 'বই ও শিক্ষা সামগ্রী। সকল শ্রেণীর বই পাওয়া যায়।' },
+];
+
+// Test products
+const TEST_PRODUCTS = [
+  { title: 'নকশিকাঁথা শাড়ি', price: 1500, description: 'হাতে তৈরি নকশিকাঁথা শাড়ি। বাংলাদেশের ঐতিহ্য।', condition: 'NEW' as const },
+  { title: 'বাঁশের ঝুড়ি', price: 350, description: 'পারিবারিক ব্যবহারের জন্য বাঁশের তৈরি ঝুড়ি।', condition: 'NEW' as const },
+  { title: 'মোবাইল চার্জার', price: 250, description: 'ফাস্ট চার্জিং সাপোর্টেড। সকল ফোনে কাজ করে।', condition: 'NEW' as const },
+  { title: 'বিরিয়ানি (১ কেজি)', price: 500, description: 'ঘরোয়া বিরিয়ানি। তাজা ও সুস্বাদু।', condition: 'NEW' as const },
+  { title: 'HSC গণিত বই', price: 180, description: 'নতুন HSC গণিত গাইড বই।', condition: 'LIKE_NEW' as const },
+  { title: 'ব্লুটুথ হেডফোন', price: 800, description: 'ওয়্যারলেস ব্লুটুথ হেডফোন। ভালো সাউন্ড কোয়ালিটি।', condition: 'USED' as const },
+];
+
+// Test jobs
+const TEST_JOBS = [
+  { title: 'গ্রাফিক ডিজাইনার', description: 'লোগো, ব্যানার, ও সোশ্যাল মিডিয়া ডিজাইন। Illustrator ও Photoshop জানা আবশ্যক।', salaryMin: 15000, salaryMax: 30000, category: 'BUSINESS' as const, type: 'FULL_TIME' as const },
+  { title: 'ডেলিভারি বয়', description: 'পণ্য ডেলিভারি করতে হবে। মোটরসাইকেল থাকতে হবে।', salaryMin: 12000, salaryMax: 18000, category: 'BUSINESS' as const, type: 'FULL_TIME' as const },
+  { title: 'অনলাইন টিউটর', description: 'ক্লাস ৬-১০ এর শিক্ষার্থীদের পড়ানো। অনলাইনে ক্লাস নিতে হবে।', salaryMin: 10000, salaryMax: 20000, category: 'TEACHING' as const, type: 'PART_TIME' as const },
+  { title: 'সেলসম্যান', description: 'দোকানে পণ্য বিক্রি ও গ্রাহক সেবা। ভালো যোগাযোগ দক্ষতা লাগবে।', salaryMin: 10000, salaryMax: 15000, category: 'BUSINESS' as const, type: 'FULL_TIME' as const },
+];
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('\uD83D\uDE80 Starting seed...\n');
 
-  // Seed districts
-  const districtMap = new Map<string, District>();
-  let districtOrder = 1;
+  // Hash password properly
+  const passwordHash = await bcrypt.hash('Test@1234', 10);
 
-  for (const [division, districts] of Object.entries(divisions)) {
-    for (const districtName of districts) {
-      const existing = await prisma.district.findFirst({
-        where: { nameEn: districtName },
-      });
-
-      if (!existing) {
-        const created = await prisma.district.create({
-          data: {
-            nameEn: districtName,
-            nameBn: districtName, // Would be localized in production
-            division,
-          },
-        });
-        districtMap.set(districtName, created);
-        console.log(`  ✓ District: ${districtName}`);
-      } else {
-        districtMap.set(districtName, existing);
-      }
-      districtOrder++;
+  // Create users
+  const createdUsers = [];
+  for (const userData of TEST_USERS) {
+    const existing = await prisma.user.findUnique({ where: { email: userData.email } });
+    if (existing) {
+      console.log(`   \u26A0 User exists: ${userData.email}`);
+      createdUsers.push(existing);
+      continue;
     }
-  }
 
-  // Seed sub-districts
-  for (const [districtName, subDistricts] of Object.entries(subDistrictSamples)) {
-    const district = districtMap.get(districtName);
-    if (!district) continue;
-
-    for (const subName of subDistricts) {
-      const existing = await prisma.subDistrict.findFirst({
-        where: { districtId: district.id, nameEn: subName },
-      });
-
-      if (!existing) {
-        await prisma.subDistrict.create({
-          data: {
-            districtId: district.id,
-            nameEn: subName,
-            nameBn: subName,
+    const user = await prisma.user.create({
+      data: {
+        legalName: userData.legalName,
+        displayName: userData.displayName,
+        handle: userData.handle,
+        email: userData.email,
+        passwordHash,
+        phone: userData.phone,
+        dateOfBirth: new Date('1995-01-01'),
+        gender: userData.gender as any,
+        role: 'USER',
+        profile: {
+          create: {
+            bio: userData.bio,
+            location: userData.location,
+            phoneVerified: true,
+            isPrivate: false,
           },
-        });
-      }
-    }
-    console.log(`  ✓ Sub-districts for ${districtName}: ${subDistricts.length}`);
-  }
-
-  // Create system user for automated actions
-  const systemUser = await prisma.user.upsert({
-    where: { phoneNumber: '+8800000000000' },
-    update: {},
-    create: {
-      phoneNumber: '+8800000000000',
-      phoneVerified: true,
-      isActive: true,
-      profile: {
-        create: {
-          legalName: 'Bondhu System',
-          displayName: 'Bondhu',
-          handle: 'bondhu_system',
-          bio: 'Official system account for Bondhu platform',
         },
       },
-    },
-  });
-  console.log(`  ✓ System user: ${systemUser.id}`);
+    });
+    createdUsers.push(user);
+    console.log(`   \u2705 User: ${userData.email} | ${userData.displayName}`);
+  }
 
-  console.log('✅ Seed completed successfully');
+  // Create posts
+  for (let i = 0; i < TEST_POSTS.length; i++) {
+    const user = createdUsers[i % createdUsers.length];
+    await prisma.post.create({
+      data: {
+        userId: user.id,
+        content: TEST_POSTS[i].content,
+        visibility: 'PUBLIC',
+        lang: TEST_POSTS[i].lang as any,
+      },
+    });
+  }
+  console.log(`   \u2705 ${TEST_POSTS.length} posts created`);
+
+  // Create shops with products
+  for (let i = 0; i < TEST_SHOPS.length; i++) {
+    const owner = createdUsers[i % createdUsers.length];
+    const shopData = TEST_SHOPS[i];
+
+    const existingShop = await prisma.shop.findFirst({ where: { name: shopData.name } });
+    if (existingShop) continue;
+
+    const shop = await prisma.shop.create({
+      data: {
+        ownerId: owner.id,
+        name: shopData.name,
+        handle: shopData.name.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 6),
+        description: shopData.description,
+        category: shopData.category,
+        districtId: 1,
+        phone: '+8801712345678',
+        isVerified: false,
+      },
+    });
+
+    // Add 2-3 products per shop
+    const productsForShop = TEST_PRODUCTS.slice(i * 1, i * 1 + 2);
+    for (const prod of productsForShop) {
+      await prisma.shopProduct.create({
+        data: {
+          shopId: shop.id,
+          title: prod.title,
+          description: prod.description,
+          price: prod.price,
+          stock: Math.floor(Math.random() * 50) + 5,
+          condition: prod.condition,
+          images: [],
+          isNegotiable: Math.random() > 0.5,
+          deliveryType: 'BOTH',
+        },
+      });
+    }
+    console.log(`   \u2705 Shop: ${shopData.name} (${productsForShop.length} products)`);
+  }
+
+  // Create jobs
+  for (let i = 0; i < TEST_JOBS.length; i++) {
+    const poster = createdUsers[(i + 2) % createdUsers.length];
+    const jobData = TEST_JOBS[i];
+
+    await prisma.job.create({
+      data: {
+        posterId: poster.id,
+        title: jobData.title,
+        description: jobData.description,
+        salaryMin: jobData.salaryMin,
+        salaryMax: jobData.salaryMax,
+        category: jobData.category,
+        type: jobData.type,
+        isActive: true,
+        location: 'Dhaka',
+        contactInfo: '+8801712345678',
+      },
+    });
+    console.log(`   \u2705 Job: ${jobData.title}`);
+  }
+
+  console.log('\n\uD83C\uDF89 Seed complete! 10 test accounts ready.');
+  console.log('\n=== LOGIN CREDENTIALS ===');
+  console.log('Email:    rahim@test.bondhu');
+  console.log('Password: Test@1234');
+  console.log('\nAll 10 accounts use the SAME password: Test@1234');
+  console.log('Email format: [name]@test.bondhu');
+  console.log('\uD83D\uDD10 All emails listed above');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
