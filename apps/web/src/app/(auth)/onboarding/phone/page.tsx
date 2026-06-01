@@ -3,94 +3,95 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Globe, Check, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Globe, ChevronRight } from 'lucide-react';
 
-const languages = [
-  { id: 'bn', nameBn: 'বাংলা', nameEn: 'Bengali', flag: '🇧🇩', sample: 'বন্ধুতে আপনাকে স্বাগতম' },
-  { id: 'en', nameBn: 'English', nameEn: 'English', flag: '🇬🇧', sample: 'Welcome to Bondhu' },
-];
-
-export default function LanguageSelectPage() {
+export default function MethodSelectPage() {
   const router = useRouter();
-  const [selectedLang, setSelectedLang] = useState<string>('bn');
+  const [lang, setLang] = useState<'bn' | 'en' | 'bng'>('bn');
 
-  const handleContinue = () => {
-    localStorage.setItem('bondhu-lang', selectedLang);
-    router.push('/onboarding/method');
-  };
+  const t = {
+    bn: {
+      back: 'পেছনে',
+      title: 'বন্ধুতে যোগ দিন',
+      subtitle: 'আপনার পছন্দের উপায়ে অ্যাকাউন্ট তৈরি করুন',
+      emailSignup: 'ইমেইল দিয়ে সাইন আপ',
+      emailSub: 'দ্রুত এবং সহজ — বিশ্বজুড়ে কাজ করে',
+      phoneSignup: 'ফোন নম্বর দিয়ে সাইন আপ',
+      phoneSub: 'বাংলাদেশি মোবাইল নম্বর প্রয়োজন',
+      abroad: 'বাংলাদেশের বাইরে থাকলে ইমেইল ব্যবহার করুন',
+    },
+    en: {
+      back: 'Back',
+      title: 'Join Bondhu',
+      subtitle: 'Create your account your way',
+      emailSignup: 'Sign up with Email',
+      emailSub: 'Fast & easy — works worldwide',
+      phoneSignup: 'Sign up with Phone',
+      phoneSub: 'Bangladeshi mobile number required',
+      abroad: 'If outside Bangladesh, use email signup',
+    },
+    bng: {
+      back: 'Pichone',
+      title: 'Bondhu-te Jog Din',
+      subtitle: 'Apnar account toiri korun',
+      emailSignup: 'Email diye Sign up',
+      emailSub: 'Shohoj — shob jaygay kaaj kore',
+      phoneSignup: 'Phone diye Sign up',
+      phoneSub: 'Bangladeshi number dorkar',
+      abroad: 'Bangladesher baire thakle email use korun',
+    },
+  }[lang];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'linear-gradient(135deg, #F8F7FF 0%, #EDE9FF 100%)' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
-      >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bondhu-gradient flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-2xl font-extrabold text-white font-bangla">ব</span>
-          </div>
-          <h1 className="text-2xl font-extrabold text-[#0F0A1E] font-bangla">ভাষা নির্বাচন করুন</h1>
-          <p className="text-sm text-[#6B5E8A] mt-1">Select Your Language</p>
-        </div>
-
-        {/* Globe icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 rounded-full bg-[#F5F2FF] flex items-center justify-center">
-            <Globe className="w-6 h-6 text-[#5B21B6]" />
-          </div>
-        </div>
-
-        {/* Language options */}
-        <div className="space-y-3 mb-8">
-          {languages.map((lang) => (
-            <button
-              key={lang.id}
-              onClick={() => setSelectedLang(lang.id)}
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
-                selectedLang === lang.id
-                  ? 'border-[#5B21B6] bg-[#F5F2FF] shadow-sm'
-                  : 'border-[#DDD6F3] bg-white hover:border-[#B8A9E3] hover:bg-[#F5F2FF]/50'
-              }`}
-            >
-              <span className="text-3xl">{lang.flag}</span>
-              <div className="flex-1">
-                <p className="font-bold text-[#0F0A1E] text-sm">{lang.nameBn}</p>
-                <p className="text-[10px] text-[#6B5E8A]">{lang.nameEn}</p>
-              </div>
-              {selectedLang === lang.id ? (
-                <div className="w-6 h-6 rounded-full bondhu-gradient flex items-center justify-center">
-                  <Check className="w-3.5 h-3.5 text-white" />
-                </div>
-              ) : (
-                <div className="w-6 h-6 rounded-full border-2 border-[#DDD6F3]" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Preview text */}
-        <div className="text-center mb-6">
-          <p className="text-sm text-[#6B5E8A] font-bangla">
-            {languages.find(l => l.id === selectedLang)?.sample}
-          </p>
-        </div>
-
-        {/* Continue button */}
-        <button
-          onClick={handleContinue}
-          className="w-full py-4 bondhu-gradient text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
-        >
-          <span className="font-bangla">{selectedLang === 'bn' ? 'চালিয়ে যান' : 'Continue'}</span>
-          <ArrowRight className="w-4 h-4" />
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
+        {/* Back */}
+        <button onClick={() => router.push('/onboarding')} className="flex items-center gap-2 text-[#6B5E8A] hover:text-[#0F0A1E] transition-colors mb-6">
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-bangla">{t.back}</span>
         </button>
 
-        {/* Info text */}
-        <p className="text-center text-[10px] text-[#9B8FC0] mt-4 font-bangla">
-          {selectedLang === 'bn'
-            ? 'পরবর্তী পেজে আপনি ইমেইল বা ফোন নম্বর দিয়ে সাইন আপ করতে পারবেন'
-            : 'On the next page you can sign up with email or phone number'}
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-extrabold text-[#0F0A1E] font-bangla">{t.title}</h1>
+          <p className="text-sm text-[#6B5E8A] mt-1">{t.subtitle}</p>
+        </div>
+
+        {/* Email — Primary */}
+        <button
+          onClick={() => router.push('/register')}
+          className="w-full py-4 px-6 rounded-2xl font-semibold text-white bondhu-gradient shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 mb-3"
+        >
+          <Mail className="w-5 h-5" />
+          <div className="text-left flex-1">
+            <div className="text-sm font-bangla">{t.emailSignup}</div>
+            <div className="text-[11px] opacity-90">{t.emailSub}</div>
+          </div>
+          <ChevronRight className="w-4 h-4 opacity-70" />
+        </button>
+
+        {/* Phone */}
+        <button
+          onClick={() => { /* phone OTP flow */ }}
+          className="w-full py-3.5 px-6 rounded-2xl border-2 border-[#DDD6F3] text-[#0F0A1E] font-semibold hover:bg-[#F5F2FF] transition-all flex items-center justify-center gap-3"
+        >
+          <Phone className="w-5 h-5 text-[#5B21B6]" />
+          <div className="text-left flex-1">
+            <div className="text-sm font-bangla">{t.phoneSignup}</div>
+            <div className="text-[11px] text-[#6B5E8A]">{t.phoneSub}</div>
+          </div>
+        </button>
+
+        {/* Abroad info */}
+        <div className="flex items-start gap-2 text-xs text-[#9B8FC0] bg-[#F5F2FF] rounded-xl p-3 mt-4">
+          <Globe className="w-4 h-4 mt-0.5 shrink-0 text-[#5B21B6]" />
+          <p className="font-bangla">{t.abroad}</p>
+        </div>
+
+        {/* Login link */}
+        <p className="text-center text-sm text-[#6B5E8A] mt-6">
+          Already have an account?{' '}
+          <button onClick={() => router.push('/login')} className="text-[#5B21B6] font-bold hover:underline">Login</button>
         </p>
       </motion.div>
     </div>

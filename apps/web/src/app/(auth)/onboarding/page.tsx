@@ -101,16 +101,8 @@ export default function OnboardingPage() {
           onClick={() => router.push('/onboarding/phone')}
           className="w-full flex items-center justify-center gap-2 bg-bondhu-green hover:bg-bondhu-green-dark text-white font-semibold py-4 px-6 rounded-2xl transition-colors shadow-lg shadow-bondhu-green/20"
         >
-          Continue with Mobile Number
+          {language === 'bn' ? 'চালিয়ে যান' : language === 'bng' ? 'Cholte Thakun' : 'Continue'}
           <ChevronRight className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={() => router.push('/onboarding/phone?guest=true')}
-          className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground font-medium py-3 px-6 rounded-2xl transition-colors"
-        >
-          <User className="w-4 h-4" />
-          Continue as Guest
         </button>
       </div>
 
