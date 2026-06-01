@@ -4,16 +4,16 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 const TEST_USERS = [
-  { legalName: 'রহিম আহমেদ', displayName: 'রহিম ভাই', handle: 'rahim-ahmed-7x3k', email: 'rahim@test.bondhu', phone: '+8801712345678', bio: 'ঢাকার একজন স্বাভাবিক ব্যবহারকারী। বন্ধুতে নতুন!', districtId: 1, gender: 'male' },
-  { legalName: 'সালমা বেগম', displayName: 'সালমা আপা', handle: 'salma-begum-9p2m', email: 'salma@test.bondhu', phone: '+8801712345679', bio: 'গৃহিণী ও উদ্যোক্তা। হস্তশিল্প পণ্য বিক্রি করি।', districtId: 2, gender: 'female' },
-  { legalName: 'করিম উদ্দিন', displayName: 'করিম ভাই', handle: 'karim-uddin-4a8n', email: 'karim@test.bondhu', phone: '+8801712345680', bio: 'আইটি প্রফেশনাল। সফটওয়্যার ডেভেলপার।', districtId: 6, gender: 'male' },
-  { legalName: 'ফাতেমা খাতুন', displayName: 'ফাতেমা আপা', handle: 'fatema-khatun-2b5c', email: 'fatema@test.bondhu', phone: '+8801712345681', bio: 'শিক্ষিকা। শিক্ষা ও সাহিত্যে আগ্রহী।', districtId: 3, gender: 'female' },
-  { legalName: 'জসিম উদ্দিন', displayName: 'জসিম ভাই', handle: 'josim-uddin-1d7e', email: 'josim@test.bondhu', phone: '+8801712345682', bio: 'কৃষক। কৃষি পণ্য উৎপাদন ও বিক্রি।', districtId: 4, gender: 'male' },
-  { legalName: 'আয়েশা সিদ্দিকা', displayName: 'আয়েশা আপা', handle: 'ayesha-siddiqa-6f3g', email: 'ayesha@test.bondhu', phone: '+8801712345683', bio: 'বিউটি ও সৌন্দর্য পণ্যের ব্যবসা।', districtId: 5, gender: 'female' },
-  { legalName: 'মোহাম্মদ হাসান', displayName: 'হাসান ভাই', handle: 'mohammad-hasan-8h1j', email: 'hasan@test.bondhu', phone: '+8801712345684', bio: 'রেস্তোরাঁ ব্যবসায়ী। খাদ্য ও রন্ধনশিল্প।', districtId: 7, gender: 'male' },
-  { legalName: 'নাসরিন আক্তার', displayName: 'নাসরিন আপা', handle: 'nasrin-akhtar-3k9l', email: 'nasrin@test.bondhu', phone: '+8801712345685', bio: 'ফ্রিল্যান্সার। গ্রাফিক ডিজাইনার।', districtId: 8, gender: 'female' },
-  { legalName: 'আবুল কালাম', displayName: 'কালাম ভাই', handle: 'abul-kalam-5m2p', email: 'kalam@test.bondhu', phone: '+8801712345686', bio: 'গার্মেন্টস কর্মী। পোশাক ব্যবসা।', districtId: 1, gender: 'male' },
-  { legalName: 'তাহমিনা আক্তার', displayName: 'তাহমিনা আপা', handle: 'tahmina-akhtar-7q4r', email: 'tahmina@test.bondhu', phone: '+8801712345687', bio: 'ডাক্তার। স্বাস্থ্য পরামর্শ দিই।', districtId: 9, gender: 'female' },
+  { legalName: 'রহিম আহমেদ', displayName: 'রহিম ভাই', handle: 'rahim-ahmed-7x3k', email: 'rahim@test.bondhu', phoneNumber: '+8801712345678', bio: 'ঢাকার একজন স্বাভাবিক ব্যবহারকারী। বন্ধুতে নতুন!', districtId: 1 },
+  { legalName: 'সালমা বেগম', displayName: 'সালমা আপা', handle: 'salma-begum-9p2m', email: 'salma@test.bondhu', phoneNumber: '+8801712345679', bio: 'গৃহিণী ও উদ্যোক্তা। হস্তশিল্প পণ্য বিক্রি করি।', districtId: 2 },
+  { legalName: 'করিম উদ্দিন', displayName: 'করিম ভাই', handle: 'karim-uddin-4a8n', email: 'karim@test.bondhu', phoneNumber: '+8801712345680', bio: 'আইটি প্রফেশনাল। সফটওয়্যার ডেভেলপার।', districtId: 6 },
+  { legalName: 'ফাতেমা খাতুন', displayName: 'ফাতেমা আপা', handle: 'fatema-khatun-2b5c', email: 'fatema@test.bondhu', phoneNumber: '+8801712345681', bio: 'শিক্ষিকা। শিক্ষা ও সাহিত্যে আগ্রহী।', districtId: 3 },
+  { legalName: 'জসিম উদ্দিন', displayName: 'জসিম ভাই', handle: 'josim-uddin-1d7e', email: 'josim@test.bondhu', phoneNumber: '+8801712345682', bio: 'কৃষক। কৃষি পণ্য উৎপাদন ও বিক্রি।', districtId: 4 },
+  { legalName: 'আয়েশা সিদ্দিকা', displayName: 'আয়েশা আপা', handle: 'ayesha-siddiqa-6f3g', email: 'ayesha@test.bondhu', phoneNumber: '+8801712345683', bio: 'বিউটি ও সৌন্দর্য পণ্যের ব্যবসা।', districtId: 5 },
+  { legalName: 'মোহাম্মদ হাসান', displayName: 'হাসান ভাই', handle: 'mohammad-hasan-8h1j', email: 'hasan@test.bondhu', phoneNumber: '+8801712345684', bio: 'রেস্তোরাঁ ব্যবসায়ী। খাদ্য ও রন্ধনশিল্প।', districtId: 7 },
+  { legalName: 'নাসরিন আক্তার', displayName: 'নাসরিন আপা', handle: 'nasrin-akhtar-3k9l', email: 'nasrin@test.bondhu', phoneNumber: '+8801712345685', bio: 'ফ্রিল্যান্সার। গ্রাফিক ডিজাইনার।', districtId: 8 },
+  { legalName: 'আবুল কালাম', displayName: 'কালাম ভাই', handle: 'abul-kalam-5m2p', email: 'kalam@test.bondhu', phoneNumber: '+8801712345686', bio: 'গার্মেন্টস কর্মী। পোশাক ব্যবসা।', districtId: 1 },
+  { legalName: 'তাহমিনা আক্তার', displayName: 'তাহমিনা আপা', handle: 'tahmina-akhtar-7q4r', email: 'tahmina@test.bondhu', phoneNumber: '+8801712345687', bio: 'ডাক্তার। স্বাস্থ্য পরামর্শ দিই।', districtId: 9 },
 ];
 
 const TEST_POSTS = [
@@ -69,15 +69,11 @@ async function main() {
 
     const user = await prisma.user.create({
       data: {
-        legalName: userData.legalName,
-        displayName: userData.displayName,
-        handle: userData.handle,
+        phoneNumber: userData.phoneNumber,
+        phoneVerified: true,
         email: userData.email,
+        emailVerified: true,
         passwordHash,
-        phone: userData.phone,
-        dateOfBirth: new Date('1995-01-01'),
-        gender: userData.gender,
-        role: 'USER',
         profile: {
           create: {
             legalName: userData.legalName,
@@ -85,7 +81,6 @@ async function main() {
             handle: userData.handle,
             bio: userData.bio,
             districtId: userData.districtId,
-            phoneVerified: true,
           },
         },
       },
