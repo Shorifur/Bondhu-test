@@ -136,21 +136,25 @@ export class AuthService {
     const isValid = await this.otpService.verifyOtp(dto.phoneNumber, dto.otp);
     if (!isValid) throw new UnauthorizedException('Invalid OTP');
 
-    let user = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: { phoneNumber: dto.phoneNumber },
       include: { profile: true },
     });
 
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          phoneNumber: dto.phoneNumber,
-          phoneVerified: true,
-          profile: { create: { legalName: dto.phoneNumber, displayName: dto.phoneNumber } },
+    const user = existingUser ?? await this.prisma.user.create({
+      data: {
+        phoneNumber: dto.phoneNumber,
+        phoneVerified: true,
+        profile: {
+          create: {
+            legalName: dto.phoneNumber,
+            displayName: dto.phoneNumber,
+            handle: dto.phoneNumber.replace(/\+/g, '_'),
+          },
         },
-        include: { profile: true },
-      });
-    }
+      },
+      include: { profile: true },
+    });
 
     await this.prisma.user.update({
       where: { id: user.id },
