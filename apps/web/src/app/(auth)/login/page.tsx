@@ -24,7 +24,7 @@ export default function LoginPage() {
       const data = (res as any)?.data;
 
       if (data?.tokens?.accessToken) {
-        localStorage.setItem('token', data.tokens.accessToken);
+        api.setToken(data.tokens.accessToken);
         localStorage.setItem('refreshToken', data.tokens.refreshToken);
         window.location.href = '/';
       } else {

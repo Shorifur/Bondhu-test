@@ -55,7 +55,7 @@ export default function RegisterPage() {
       const data = (res as any)?.data;
 
       if (data?.tokens?.accessToken) {
-        localStorage.setItem('token', data.tokens.accessToken);
+        api.setToken(data.tokens.accessToken);
         localStorage.setItem('refreshToken', data.tokens.refreshToken);
         setSuccess(true);
         setTimeout(() => { window.location.href = '/'; }, 1500);
