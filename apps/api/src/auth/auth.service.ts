@@ -4,7 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/services/prisma.service';
 import { RedisService } from '../common/services/redis.service';
 import { OtpService } from './otp.service';
-import type { SendOtpDto, VerifyOtpDto, CreateProfileDto } from './dto/auth.dto';
+import type { SendOtpDto, VerifyOtpDto, CreateProfileDto, RegisterDto, LoginDto } from './dto/auth.dto';
+import * as bcrypt from 'bcrypt';
 import type { User, UserProfile } from '@prisma/client';
 
 export interface TokenPair {
@@ -78,6 +79,84 @@ export class AuthService {
       isNewUser,
       requiresProfile: isNewUser || !user.profile,
     };
+  }
+
+  async register(dto: RegisterDto) {
+    // Check if email exists
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    // Check if handle exists
+    const existingHandle = await this.prisma.userProfile.findUnique({
+      where: { handle: dto.handle },
+    });
+    if (existingHandle) {
+      throw new ConflictException('Handle is already taken');
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    // Generate a unique phone placeholder for email users
+    const phonePlaceholder = `+880000000${Math.floor(1000 + Math.random() * 8999)}`;
+
+    // Create user with profile
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        emailVerified: true,
+        passwordHash,
+        phoneNumber: phonePlaceholder,
+        phoneVerified: false,
+        profile: {
+          create: {
+            legalName: dto.legalName,
+            displayName: dto.legalName,
+            handle: dto.handle,
+            districtId: dto.districtId,
+          },
+        },
+      },
+      include: { profile: true },
+    });
+
+    // Create settings and preferences
+    await this.prisma.userSettings.create({ data: { userId: user.id } });
+    await this.prisma.userPreference.create({ data: { userId: user.id } });
+
+    const tokens = await this.generateTokens(user);
+    await this.createSession(user.id, tokens);
+
+    return { user, tokens };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+      include: { profile: true },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const valid = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Update last login
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const tokens = await this.generateTokens(user);
+    await this.createSession(user.id, tokens);
+
+    return { user, tokens };
   }
 
   async createProfile(userId: string, dto: CreateProfileDto) {

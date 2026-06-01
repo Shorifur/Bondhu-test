@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, Matches, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, Length, Matches, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendOtpDto {
@@ -29,6 +29,49 @@ export class RefreshTokenDto {
   @IsString()
   @IsNotEmpty()
   refreshToken: string;
+}
+
+export class RegisterDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'Test@1234' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(100)
+  password: string;
+
+  @ApiProperty({ example: 'Rafiq Ahmed' })
+  @IsString()
+  @IsNotEmpty()
+  @Length(2, 100)
+  legalName: string;
+
+  @ApiProperty({ example: 'rafiq_ahmed' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_]{3,30}$/, {
+    message: 'Handle must be 3-30 alphanumeric characters or underscores',
+  })
+  handle: string;
+
+  @ApiProperty({ example: 1 })
+  districtId: number;
+}
+
+export class LoginDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: 'Test@1234' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
 
 export class GuestLoginDto {
