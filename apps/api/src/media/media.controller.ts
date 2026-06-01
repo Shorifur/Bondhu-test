@@ -38,7 +38,6 @@ export class MediaController {
         key: result.key,
         sizeBytes: result.sizeBytes,
         mimeType: result.mimeType,
-        uploaderId: userId,
       },
     });
 
