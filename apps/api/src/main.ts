@@ -10,11 +10,18 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggerService } from './common/services/logger.service';
 
+function getCorsOrigins(): string | string[] | boolean {
+  const appUrl = process.env.APP_URL;
+  if (appUrl) return appUrl;
+  if (process.env.NODE_ENV === 'production') return true; // Allow all in prod (use with API key auth)
+  return ['http://localhost:3000', 'http://127.0.0.1:3000'];
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     cors: {
-      origin: process.env.APP_URL || 'http://localhost:3000',
+      origin: getCorsOrigins(),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
