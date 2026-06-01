@@ -58,15 +58,15 @@ export class RegisterDto {
   })
   handle: string;
 
-  @ApiProperty({ example: 'male' })
+  @ApiProperty({ example: 'male', required: false })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  gender: string;
+  gender?: string;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 1, required: false })
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty()
-  districtId: number;
+  districtId?: number;
 }
 
 export class LoginDto {

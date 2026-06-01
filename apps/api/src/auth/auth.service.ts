@@ -78,6 +78,20 @@ export class AuthService {
     const passwordHash = hashPassword(dto.password);
     const phonePlaceholder = `+880000000${Math.floor(1000 + Math.random() * 8999)}`;
 
+    // Only include districtId if it exists in the database
+    let districtId: number | undefined = undefined;
+    if (dto.districtId) {
+      const district = await this.prisma.district.findUnique({ where: { id: dto.districtId } });
+      if (district) districtId = district.id;
+    }
+
+    const profileData: any = {
+      legalName: dto.legalName,
+      displayName: dto.legalName,
+      handle: dto.handle,
+    };
+    if (districtId) profileData.districtId = districtId;
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -85,14 +99,7 @@ export class AuthService {
         passwordHash,
         phoneNumber: phonePlaceholder,
         phoneVerified: false,
-        profile: {
-          create: {
-            legalName: dto.legalName,
-            displayName: dto.legalName,
-            handle: dto.handle,
-            districtId: dto.districtId,
-          },
-        },
+        profile: { create: profileData },
       },
       include: { profile: true },
     });
