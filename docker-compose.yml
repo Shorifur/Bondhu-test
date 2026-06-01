@@ -1,0 +1,76 @@
+# ── Bondhu Full Stack Docker Compose ──
+# Usage: docker-compose up -d
+# This spins up the API + PostgreSQL + Redis locally
+
+version: '3.8'
+
+services:
+  # ── PostgreSQL Database ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: bondhu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bondhu
+      POSTGRES_PASSWORD: bondhu_secret
+      POSTGRES_DB: bondhu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bondhu -d bondhu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis Cache ──
+  redis:
+    image: redis:7-alpine
+    container_name: bondhu-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Bondhu API ──
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: bondhu-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      APP_NAME: Bondhu
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgresql://bondhu:bondhu_secret@postgres:5432/bondhu?schema=public
+      DIRECT_DATABASE_URL: postgresql://bondhu:bondhu_secret@postgres:5432/bondhu?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-min-32-chars-long}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-in-production-min-32-chars-long}
+      JWT_ACCESS_EXPIRATION: 15m
+      JWT_REFRESH_EXPIRATION: 7d
+      OTP_SECRET: ${OTP_SECRET:-change-me-in-production}
+      ZEROBOUNCE_API_KEY: ${ZEROBOUNCE_API_KEY:-}
+      WS_HEARTBEAT_INTERVAL: 30000
+      WS_MAX_CONNECTIONS_PER_USER: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

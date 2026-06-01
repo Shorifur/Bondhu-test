@@ -1,8 +1,99 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { randomBytes, scryptSync } from 'crypto';
 
 const prisma = new PrismaClient();
 
+/* ── Password hashing (same as auth service) ── */
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+/* ── 64 Bangladesh Districts ── */
+const DISTRICTS = [
+  // Dhaka Division (13)
+  { id: 1, nameBn: 'ঢাকা', nameEn: 'Dhaka', division: 'Dhaka', latitude: 23.8103, longitude: 90.4125 },
+  { id: 2, nameBn: 'ফরিদপুর', nameEn: 'Faridpur', division: 'Dhaka', latitude: 23.6070, longitude: 89.8429 },
+  { id: 3, nameBn: 'গাজীপুর', nameEn: 'Gazipur', division: 'Dhaka', latitude: 23.9999, longitude: 90.4203 },
+  { id: 4, nameBn: 'গোপালগঞ্জ', nameEn: 'Gopalganj', division: 'Dhaka', latitude: 23.0050, longitude: 89.8266 },
+  { id: 5, nameBn: 'কিশোরগঞ্জ', nameEn: 'Kishoreganj', division: 'Dhaka', latitude: 24.4449, longitude: 90.7766 },
+  { id: 6, nameBn: 'মাদারীপুর', nameEn: 'Madaripur', division: 'Dhaka', latitude: 23.1643, longitude: 90.1897 },
+  { id: 7, nameBn: 'মানিকগঞ্জ', nameEn: 'Manikganj', division: 'Dhaka', latitude: 23.8617, longitude: 89.9500 },
+  { id: 8, nameBn: 'মুন্সিগঞ্জ', nameEn: 'Munshiganj', division: 'Dhaka', latitude: 23.5422, longitude: 90.5305 },
+  { id: 9, nameBn: 'নারায়ণগঞ্জ', nameEn: 'Narayanganj', division: 'Dhaka', latitude: 23.6238, longitude: 90.5000 },
+  { id: 10, nameBn: 'নরসিংদী', nameEn: 'Narsingdi', division: 'Dhaka', latitude: 23.9193, longitude: 90.7176 },
+  { id: 11, nameBn: 'রাজবাড়ী', nameEn: 'Rajbari', division: 'Dhaka', latitude: 23.7573, longitude: 89.6440 },
+  { id: 12, nameBn: 'শরীয়তপুর', nameEn: 'Shariatpur', division: 'Dhaka', latitude: 23.2423, longitude: 90.4348 },
+  { id: 13, nameBn: 'টাঙ্গাইল', nameEn: 'Tangail', division: 'Dhaka', latitude: 24.2513, longitude: 89.9167 },
+
+  // Chattogram Division (11)
+  { id: 14, nameBn: 'চট্টগ্রাম', nameEn: 'Chattogram', division: 'Chattogram', latitude: 22.3569, longitude: 91.7832 },
+  { id: 15, nameBn: 'বান্দরবান', nameEn: 'Bandarban', division: 'Chattogram', latitude: 22.1953, longitude: 92.2184 },
+  { id: 16, nameBn: 'ব্রাহ্মণবাড়িয়া', nameEn: 'Brahmanbaria', division: 'Chattogram', latitude: 23.9571, longitude: 91.1111 },
+  { id: 17, nameBn: 'চাঁদপুর', nameEn: 'Chandpur', division: 'Chattogram', latitude: 23.2333, longitude: 90.6667 },
+  { id: 18, nameBn: 'কুমিল্লা', nameEn: 'Cumilla', division: 'Chattogram', latitude: 23.4607, longitude: 91.1809 },
+  { id: 19, nameBn: 'কক্সবাজার', nameEn: "Cox's Bazar", division: 'Chattogram', latitude: 21.4272, longitude: 92.0058 },
+  { id: 20, nameBn: 'ফেনী', nameEn: 'Feni', division: 'Chattogram', latitude: 23.0159, longitude: 91.3976 },
+  { id: 21, nameBn: 'খাগড়াছড়ি', nameEn: 'Khagrachhari', division: 'Chattogram', latitude: 23.1193, longitude: 91.9850 },
+  { id: 22, nameBn: 'লক্ষ্মীপুর', nameEn: 'Lakshmipur', division: 'Chattogram', latitude: 22.9425, longitude: 90.8412 },
+  { id: 23, nameBn: 'নোয়াখালী', nameEn: 'Noakhali', division: 'Chattogram', latitude: 22.8690, longitude: 91.0995 },
+  { id: 24, nameBn: 'রাঙ্গামাটি', nameEn: 'Rangamati', division: 'Chattogram', latitude: 22.7324, longitude: 92.2986 },
+
+  // Khulna Division (10)
+  { id: 25, nameBn: 'খুলনা', nameEn: 'Khulna', division: 'Khulna', latitude: 22.8456, longitude: 89.5403 },
+  { id: 26, nameBn: 'বাগেরহাট', nameEn: 'Bagerhat', division: 'Khulna', latitude: 22.6512, longitude: 89.7851 },
+  { id: 27, nameBn: 'চুয়াডাঙ্গা', nameEn: 'Chuadanga', division: 'Khulna', latitude: 23.6402, longitude: 88.8410 },
+  { id: 28, nameBn: 'যশোর', nameEn: 'Jashore', division: 'Khulna', latitude: 23.1664, longitude: 89.2081 },
+  { id: 29, nameBn: 'ঝিনাইদহ', nameEn: 'Jhenaidah', division: 'Khulna', latitude: 23.5448, longitude: 89.1531 },
+  { id: 30, nameBn: 'কুষ্টিয়া', nameEn: 'Kushtia', division: 'Khulna', latitude: 23.9013, longitude: 89.1206 },
+  { id: 31, nameBn: 'মাগুরা', nameEn: 'Magura', division: 'Khulna', latitude: 23.4873, longitude: 89.4194 },
+  { id: 32, nameBn: 'মেহেরপুর', nameEn: 'Meherpur', division: 'Khulna', latitude: 23.7622, longitude: 88.6318 },
+  { id: 33, nameBn: 'নড়াইল', nameEn: 'Narail', division: 'Khulna', latitude: 23.1725, longitude: 89.5127 },
+  { id: 34, nameBn: 'সাতক্ষীরা', nameEn: 'Satkhira', division: 'Khulna', latitude: 22.7185, longitude: 89.0708 },
+
+  // Rajshahi Division (8)
+  { id: 35, nameBn: 'রাজশাহী', nameEn: 'Rajshahi', division: 'Rajshahi', latitude: 24.3745, longitude: 88.6042 },
+  { id: 36, nameBn: 'বগুড়া', nameEn: 'Bogura', division: 'Rajshahi', latitude: 24.8481, longitude: 89.3730 },
+  { id: 37, nameBn: 'চাঁপাইনবাবগঞ্জ', nameEn: 'Chapainawabganj', division: 'Rajshahi', latitude: 24.5965, longitude: 88.2775 },
+  { id: 38, nameBn: 'জয়পুরহাট', nameEn: 'Joypurhat', division: 'Rajshahi', latitude: 25.0968, longitude: 89.0227 },
+  { id: 39, nameBn: 'নওগাঁ', nameEn: 'Naogaon', division: 'Rajshahi', latitude: 24.9132, longitude: 88.7531 },
+  { id: 40, nameBn: 'নাটোর', nameEn: 'Natore', division: 'Rajshahi', latitude: 24.4206, longitude: 89.0000 },
+  { id: 41, nameBn: 'পাবনা', nameEn: 'Pabna', division: 'Rajshahi', latitude: 24.0129, longitude: 89.2196 },
+  { id: 42, nameBn: 'সিরাজগঞ্জ', nameEn: 'Sirajganj', division: 'Rajshahi', latitude: 24.4534, longitude: 89.7007 },
+
+  // Barishal Division (6)
+  { id: 43, nameBn: 'বরিশাল', nameEn: 'Barishal', division: 'Barishal', latitude: 22.7010, longitude: 90.3535 },
+  { id: 44, nameBn: 'বরগুনা', nameEn: 'Barguna', division: 'Barishal', latitude: 22.0953, longitude: 90.1121 },
+  { id: 45, nameBn: 'ভোলা', nameEn: 'Bhola', division: 'Barishal', latitude: 22.6859, longitude: 90.6482 },
+  { id: 46, nameBn: 'ঝালকাঠি', nameEn: 'Jhalokati', division: 'Barishal', latitude: 22.6406, longitude: 90.1987 },
+  { id: 47, nameBn: 'পটুয়াখালী', nameEn: 'Patuakhali', division: 'Barishal', latitude: 22.3596, longitude: 90.3290 },
+  { id: 48, nameBn: 'পিরোজপুর', nameEn: 'Pirojpur', division: 'Barishal', latitude: 22.5842, longitude: 89.9731 },
+
+  // Sylhet Division (4)
+  { id: 49, nameBn: 'সিলেট', nameEn: 'Sylhet', division: 'Sylhet', latitude: 24.8949, longitude: 91.8687 },
+  { id: 50, nameBn: 'হবিগঞ্জ', nameEn: 'Habiganj', division: 'Sylhet', latitude: 24.3745, longitude: 91.4125 },
+  { id: 51, nameBn: 'মৌলভীবাজার', nameEn: 'Moulvibazar', division: 'Sylhet', latitude: 24.4829, longitude: 91.7773 },
+  { id: 52, nameBn: 'সুনামগঞ্জ', nameEn: 'Sunamganj', division: 'Sylhet', latitude: 25.0658, longitude: 91.3950 },
+
+  // Rangpur Division (8)
+  { id: 53, nameBn: 'রংপুর', nameEn: 'Rangpur', division: 'Rangpur', latitude: 25.7466, longitude: 89.2517 },
+  { id: 54, nameBn: 'দিনাজপুর', nameEn: 'Dinajpur', division: 'Rangpur', latitude: 25.6275, longitude: 88.6378 },
+  { id: 55, nameBn: 'গাইবান্ধা', nameEn: 'Gaibandha', division: 'Rangpur', latitude: 25.3294, longitude: 89.5415 },
+  { id: 56, nameBn: 'কুড়িগ্রাম', nameEn: 'Kurigram', division: 'Rangpur', latitude: 25.8054, longitude: 89.6366 },
+  { id: 57, nameBn: 'লালমনিরহাট', nameEn: 'Lalmonirhat', division: 'Rangpur', latitude: 25.9913, longitude: 89.2845 },
+  { id: 58, nameBn: 'নীলফামারী', nameEn: 'Nilphamari', division: 'Rangpur', latitude: 25.9312, longitude: 88.8561 },
+  { id: 59, nameBn: 'পঞ্চগড়', nameEn: 'Panchagarh', division: 'Rangpur', latitude: 26.3411, longitude: 88.5542 },
+  { id: 60, nameBn: 'ঠাকুরগাঁও', nameEn: 'Thakurgaon', division: 'Rangpur', latitude: 26.0339, longitude: 88.4695 },
+
+  // Mymensingh Division (4)
+  { id: 61, nameBn: 'ময়মনসিংহ', nameEn: 'Mymensingh', division: 'Mymensingh', latitude: 24.7471, longitude: 90.4203 },
+  { id: 62, nameBn: 'জামালপুর', nameEn: 'Jamalpur', division: 'Mymensingh', latitude: 24.9193, longitude: 89.9481 },
+  { id: 63, nameBn: 'নেত্রকোনা', nameEn: 'Netrokona', division: 'Mymensingh', latitude: 24.8835, longitude: 90.7270 },
+  { id: 64, nameBn: 'শেরপুর', nameEn: 'Sherpur', division: 'Mymensingh', latitude: 25.0195, longitude: 90.0137 },
+];
+
+/* ── Test Users ── */
 const TEST_USERS = [
   { legalName: 'রহিম আহমেদ', displayName: 'রহিম ভাই', handle: 'rahim-ahmed-7x3k', email: 'rahim@test.bondhu', phoneNumber: '+8801712345678', bio: 'ঢাকার একজন স্বাভাবিক ব্যবহারকারী। বন্ধুতে নতুন!', districtId: 1 },
   { legalName: 'সালমা বেগম', displayName: 'সালমা আপা', handle: 'salma-begum-9p2m', email: 'salma@test.bondhu', phoneNumber: '+8801712345679', bio: 'গৃহিণী ও উদ্যোক্তা। হস্তশিল্প পণ্য বিক্রি করি।', districtId: 2 },
@@ -52,19 +143,34 @@ const TEST_JOBS = [
   { title: 'সেলসম্যান', description: 'দোকানে পণ্য বিক্রি ও গ্রাহক সেবা। ভালো যোগাযোগ দক্ষতা লাগবে।', salaryMin: 10000, salaryMax: 15000, category: 'BUSINESS' as const, type: 'FULL_TIME' as const },
 ];
 
+/* ── Main Seed Function ── */
 async function main() {
-  console.log('Starting seed...\n');
+  console.log('🌱 Starting Bondhu seed...\n');
 
-  const passwordHash = await bcrypt.hash('Test@1234', 10);
+  /* ── 1. Seed 64 Districts ── */
+  console.log('📍 Seeding 64 districts...');
+  let districtCount = 0;
+  for (const d of DISTRICTS) {
+    await prisma.district.upsert({
+      where: { id: d.id },
+      update: {},
+      create: d,
+    });
+    districtCount++;
+  }
+  console.log(`   ✅ ${districtCount} districts seeded\n`);
+
+  /* ── 2. Seed Test Users ── */
+  console.log('👥 Creating 10 test users...');
+  const passwordHash = hashPassword('Test@1234');
   const createdUsers: any[] = [];
 
-  // Create users — skip if email or phone already exists
   for (const userData of TEST_USERS) {
     const existingByEmail = await prisma.user.findUnique({ where: { email: userData.email } }).catch(() => null);
     const existingByPhone = await prisma.user.findUnique({ where: { phoneNumber: userData.phoneNumber } }).catch(() => null);
     const existing = existingByEmail || existingByPhone;
     if (existing) {
-      console.log('  User exists:', userData.email || userData.phoneNumber);
+      console.log('   ⏭️  User exists:', userData.email);
       createdUsers.push(existing);
       continue;
     }
@@ -89,10 +195,10 @@ async function main() {
         },
       });
       createdUsers.push(user);
-      console.log('  User:', userData.email, '|', userData.displayName);
+      console.log('   ✅', userData.displayName);
     } catch (err: any) {
       if (err.code === 'P2002') {
-        console.log('  Skipped (duplicate):', userData.email);
+        console.log('   ⏭️  Skipped duplicate:', userData.email);
         const found = await prisma.user.findUnique({ where: { email: userData.email } });
         if (found) createdUsers.push(found);
       } else {
@@ -101,7 +207,21 @@ async function main() {
     }
   }
 
-  // Create posts
+  /* ── 3. Create Settings & Preferences for each user ── */
+  for (const user of createdUsers) {
+    const settingsExists = await prisma.userSettings.findUnique({ where: { userId: user.id } }).catch(() => null);
+    if (!settingsExists) {
+      await prisma.userSettings.create({ data: { userId: user.id } });
+    }
+    const prefsExists = await prisma.userPreference.findUnique({ where: { userId: user.id } }).catch(() => null);
+    if (!prefsExists) {
+      await prisma.userPreference.create({ data: { userId: user.id } });
+    }
+  }
+  console.log('   ✅ User settings & preferences created\n');
+
+  /* ── 4. Create Posts ── */
+  console.log('📝 Creating posts...');
   for (let i = 0; i < TEST_POSTS.length; i++) {
     const user = createdUsers[i % createdUsers.length];
     await prisma.post.create({
@@ -112,15 +232,19 @@ async function main() {
       },
     });
   }
-  console.log('  ' + TEST_POSTS.length + ' posts created');
+  console.log(`   ✅ ${TEST_POSTS.length} posts created\n`);
 
-  // Create shops with products
+  /* ── 5. Create Shops with Products ── */
+  console.log('🛍️  Creating shops & products...');
   for (let i = 0; i < TEST_SHOPS.length; i++) {
     const owner = createdUsers[i % createdUsers.length];
     const shopData = TEST_SHOPS[i];
 
     const existingShop = await prisma.shop.findFirst({ where: { name: shopData.name } });
-    if (existingShop) continue;
+    if (existingShop) {
+      console.log('   ⏭️  Shop exists:', shopData.name);
+      continue;
+    }
 
     const handle = shopData.name.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 6);
     const shop = await prisma.shop.create({
@@ -151,10 +275,12 @@ async function main() {
         },
       });
     }
-    console.log('  Shop:', shopData.name, '(' + productsForShop.length + ' products)');
+    console.log(`   ✅ ${shopData.name} (${productsForShop.length} products)`);
   }
+  console.log('');
 
-  // Create jobs
+  /* ── 6. Create Jobs ── */
+  console.log('💼 Creating jobs...');
   for (let i = 0; i < TEST_JOBS.length; i++) {
     const poster = createdUsers[(i + 2) % createdUsers.length];
     const jobData = TEST_JOBS[i];
@@ -173,22 +299,25 @@ async function main() {
         contactInfo: '+8801712345678',
       },
     });
-    console.log('  Job:', jobData.title);
+    console.log('   ✅', jobData.title);
   }
 
-  console.log('\nSeed complete! 10 test accounts ready.\n');
-  console.log('=== LOGIN CREDENTIALS ===');
-  console.log('All accounts password: Test@1234');
-  console.log('\n  1. rahim@test.bondhu    | রহিম আহমেদ');
-  console.log('  2. salma@test.bondhu    | সালমা বেগম');
-  console.log('  3. karim@test.bondhu    | করিম উদ্দিন');
-  console.log('  4. fatema@test.bondhu   | ফাতেমা খাতুন');
-  console.log('  5. josim@test.bondhu    | জসিম উদ্দিন');
-  console.log('  6. ayesha@test.bondhu   | আয়েশা সিদ্দিকা');
-  console.log('  7. hasan@test.bondhu    | মোহাম্মদ হাসান');
-  console.log('  8. nasrin@test.bondhu   | নাসরিন আক্তার');
-  console.log('  9. kalam@test.bondhu    | আবুল কালাম');
-  console.log(' 10. tahmina@test.bondhu  | তাহমিনা আক্তার');
+  /* ── Summary ── */
+  console.log('\n═══════════════════════════════════════════');
+  console.log('🎉 SEED COMPLETE!');
+  console.log('═══════════════════════════════════════════');
+  console.log(`📍 ${districtCount} districts`);
+  console.log(`👥 ${createdUsers.length} test users`);
+  console.log(`📝 ${TEST_POSTS.length} posts`);
+  console.log(`🛍️  ${TEST_SHOPS.length} shops with products`);
+  console.log(`💼 ${TEST_JOBS.length} jobs`);
+  console.log('\n=== LOGIN CREDENTIALS ===');
+  console.log('Password for ALL accounts: Test@1234\n');
+  TEST_USERS.forEach((u, i) => {
+    console.log(`  ${String(i + 1).padStart(2)}. ${u.email.padEnd(25)} | ${u.displayName}`);
+  });
+  console.log('\nDistrict FK constraint: ✅ FIXED');
+  console.log('Registration will now work with any of the 64 districts!');
 }
 
 main()
