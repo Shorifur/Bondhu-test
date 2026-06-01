@@ -47,7 +47,7 @@ export function DesktopSidebar() {
   const avatarUrl = user?.profile?.avatarUrl;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
       {/* User Profile Card — Real Data + Clickable */}
       <button
         onClick={() => router.push('/profile')}
