@@ -17,8 +17,8 @@ export default function ProductDetailPage() {
     queryKey: ['product', id],
     queryFn: async () => {
       try {
-        const res = await api.get(`marketplace/products/${id}`, { silent: true } as any);
-        return (res.data as any)?.data || null;
+        const res = await api.get(`marketplace/products/${id}`, { silent: true });
+        return (res as unknown as { data: { data: unknown } })?.data?.data || null;
       } catch { return null; }
     },
   });

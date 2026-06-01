@@ -143,7 +143,7 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!user?.id) return [];
       const res = await postService.getUserPosts(user.id, 1, 50);
-      const raw = res.data as any;
+      const raw = res.data as unknown;
       const posts = Array.isArray(raw) ? raw : raw?.data ?? [];
       return posts.map((p: Post) => ({
         ...p,
@@ -163,7 +163,7 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!user?.id) return [];
       const res = await postService.getBookmarkedPosts(1, 50);
-      const raw = res.data as any;
+      const raw = res.data as unknown;
       return Array.isArray(raw) ? raw : raw?.data ?? [];
     },
     enabled: !!user?.id && activeTab === 'saved',
@@ -180,19 +180,19 @@ export default function ProfilePage() {
 
   const { data: myShop } = useQuery({
     queryKey: ['my-shop', user?.id],
-    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as any) || null; } catch { return null; } },
+    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as unknown) || null; } catch { return null; } },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myShopProducts } = useQuery({
     queryKey: ['my-shop-products', user?.id],
-    queryFn: async () => { try { const res = await api.get('marketplace/my-items'); return (res.data as any)?.data || []; } catch { return []; } },
+    queryFn: async () => { try { const res = await api.get('marketplace/my-items'); return (res.data as unknown)?.data || []; } catch { return []; } },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myJobs } = useQuery({
     queryKey: ['my-jobs', user?.id],
-    queryFn: async () => { try { const res = await api.get('jobs/my-posts'); return (res.data as any)?.data || []; } catch { return []; } },
+    queryFn: async () => { try { const res = await api.get('jobs/my-posts'); return (res.data as unknown)?.data || []; } catch { return []; } },
     enabled: !!user?.id && activeTab === 'jobs',
   });
 

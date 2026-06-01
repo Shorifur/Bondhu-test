@@ -124,8 +124,8 @@ export default function ShopPage() {
         const params = new URLSearchParams();
         if (selectedCategory !== 'সব') params.set('category', selectedCategory);
         if (searchQuery) params.set('q', searchQuery);
-        const res = await api.get(`marketplace/products?${params}`, { silent: true } as any);
-        return (res.data as any)?.data || [];
+        const res = await api.get(`marketplace/products?${params}`, { silent: true });
+        return (res as unknown as { data: { data: unknown[] } })?.data?.data || [];
       } catch { return []; }
     },
   });
@@ -134,7 +134,7 @@ export default function ShopPage() {
   const { data: myShop } = useQuery({
     queryKey: ['my-shop'],
     queryFn: async () => {
-      try { const res = await api.get('shops/mine', { silent: true } as any); return (res.data as any)?.data || null; }
+      try { const res = await api.get('shops/mine', { silent: true }); return (res as unknown as { data: { data: unknown } })?.data?.data || null; }
       catch { return null; }
     },
     enabled: !!user?.id,
@@ -144,7 +144,7 @@ export default function ShopPage() {
   const { data: ordersData } = useQuery({
     queryKey: ['my-orders'],
     queryFn: async () => {
-      try { const res = await api.get('orders/mine', { silent: true } as any); return (res.data as any)?.data || []; }
+      try { const res = await api.get('orders/mine', { silent: true }); return (res as unknown as { data: { data: unknown[] } })?.data?.data || []; }
       catch { return []; }
     },
     enabled: activeTab === 'orders' && !!user?.id,
@@ -154,7 +154,7 @@ export default function ShopPage() {
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist'],
     queryFn: async () => {
-      try { const res = await api.get('marketplace/wishlist', { silent: true } as any); return (res.data as any)?.data || []; }
+      try { const res = await api.get('marketplace/wishlist', { silent: true }); return (res as unknown as { data: { data: unknown[] } })?.data?.data || []; }
       catch { return []; }
     },
     enabled: activeTab === 'wishlist' && !!user?.id,
@@ -163,7 +163,7 @@ export default function ShopPage() {
   // Toggle wishlist
   const toggleWishlist = useMutation({
     mutationFn: async (productId: string) => {
-      await api.post('marketplace/wishlist/toggle', { productId }, { silent: true } as any);
+      await api.post('marketplace/wishlist/toggle', { productId }, { silent: true });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wishlist'] }),
   });

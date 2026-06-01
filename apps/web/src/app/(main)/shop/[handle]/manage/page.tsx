@@ -215,7 +215,7 @@ export default function ShopManagePage() {
   const { data: shop, isLoading } = useQuery<any>({
     queryKey: ['shop', handle],
     queryFn: async () => {
-      const res = await api.get(`shops/${handle}`, { silent: true } as any);
+      const res = await api.get(`shops/${handle}`, { silent: true });
       return (res as any).data?.data;
     },
   });

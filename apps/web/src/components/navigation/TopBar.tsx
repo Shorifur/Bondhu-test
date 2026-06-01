@@ -15,7 +15,7 @@ export function TopBar() {
     queryKey: ['unread-notifications', user?.id],
     queryFn: async () => {
       try {
-        const res = await api.get('notifications/unread-count', { silent: true } as any);
+        const res = await api.get('notifications/unread-count', { silent: true });
         return (res.data as any)?.count || 0;
       } catch {
         return 0; // Silently fail — backend may not have this route

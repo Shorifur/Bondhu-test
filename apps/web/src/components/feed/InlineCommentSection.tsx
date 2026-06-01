@@ -135,7 +135,7 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
 
     // Try API (silent: true — no error thrown on 404)
     try {
-      const res = await api.get(`posts/${postId}/comments`, { silent: true } as any);
+      const res = await api.get(`posts/${postId}/comments`, { silent: true });
       const data = res?.data;
       if (data) {
         let loaded: any[] = [];
@@ -197,7 +197,7 @@ export function InlineCommentSection({ postId, commentCount, isOpen }: InlineCom
     // Try API (silent: true — no error thrown on 404)
     setIsSubmitting(true);
     try {
-      await api.post(`posts/${postId}/comments`, { content }, { silent: true } as any);
+      await api.post(`posts/${postId}/comments`, { content }, { silent: true });
       // If API succeeds, mark as synced
       setComments((prev) =>
         prev.map((c) => (c.id === comment.id ? { ...c, isLocal: false } : c))

@@ -165,8 +165,8 @@ export default function JobsPage() {
         const typ = TYPE_MAP[selectedType];
         if (cat) params.set('category', cat);
         if (typ) params.set('type', typ);
-        const res = await api.get(`jobs?${params}`, { silent: true } as any);
-        return (res.data as any)?.data || [];
+        const res = await api.get(`jobs?${params}`, { silent: true });
+        return (res as unknown as { data: { data: unknown[] } })?.data?.data || [];
       } catch { return []; }
     },
   });
@@ -175,8 +175,8 @@ export default function JobsPage() {
     queryKey: ['my-jobs'],
     queryFn: async () => {
       try {
-        const res = await api.get('jobs/my-posts', { silent: true } as any);
-        return (res.data as any)?.data || [];
+        const res = await api.get('jobs/my-posts', { silent: true });
+        return (res as unknown as { data: { data: unknown[] } })?.data?.data || [];
       } catch { return []; }
     },
     enabled: mode === 'employer',

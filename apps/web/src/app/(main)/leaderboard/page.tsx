@@ -38,7 +38,7 @@ export default function LeaderboardPage() {
     queryKey: ['leaderboard', activeFilter],
     queryFn: async () => {
       const res = await api.get(`leaderboard?period=${activeFilter}&limit=20`);
-      return (res.data as any)?.data || [];
+      return (res as unknown as { data: { data: unknown[] } })?.data?.data || [];
     },
   });
 

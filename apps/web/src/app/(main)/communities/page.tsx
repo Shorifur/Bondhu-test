@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
 import { cn } from '@/lib/utils';
 import type { Community } from '@bondhu/shared-types';
+import { ErrorState } from '@/components/ui/ErrorState';
 
 const categories = [
   'ALL',
@@ -33,7 +34,7 @@ export default function CommunitiesPage() {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [search, setSearch] = useState('');
 
-  const { data: communities } = useQuery({
+  const { data: communities, isLoading, isError, refetch } = useQuery({
     queryKey: ['communities', activeCategory],
     queryFn: async () => {
       const params = activeCategory !== 'ALL' ? `?category=${activeCategory}` : '';
@@ -86,8 +87,20 @@ export default function CommunitiesPage() {
         ))}
       </div>
 
+      {/* Loading */}
+      {isLoading && (
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-20 bg-[#F5F2FF] rounded-2xl" />
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {isError && !isLoading && <ErrorState onRetry={refetch} />}
+
       {/* List */}
-      <div className="space-y-3">
+      {!isLoading && !isError && <div className="space-y-3">
         {filtered.map((community, i) => (
           <motion.button
             key={community.id}
@@ -122,12 +135,13 @@ export default function CommunitiesPage() {
         ))}
       </div>
 
-      {filtered.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>No communities found</p>
-        </div>
-      )}
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No communities found</p>
+          </div>
+        )}
+      </div>}
     </div>
   );
 }
