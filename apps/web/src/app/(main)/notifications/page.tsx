@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Bell, Heart, MessageCircle, UserPlus, AtSign } from 'lucide-react';
 import { api } from '@/lib/api';
-import { formatTimeAgo } from '@/lib/utils';
+import { formatTimeAgo, cn } from '@/lib/utils';
 
 interface Notification {
   id: string;
@@ -138,8 +138,4 @@ export default function NotificationsPage() {
       )}
     </div>
   );
-}
-
-function cn(...classes: (string | false | null | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }

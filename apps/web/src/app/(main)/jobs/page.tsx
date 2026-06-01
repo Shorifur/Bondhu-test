@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Briefcase, Search, MapPin, Clock, CheckCircle2, Building2, X, Plus,
   Users, Languages, ArrowRight, Trash2, Edit3, AlertTriangle, ChevronDown,
+  Upload, FileText,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
@@ -126,6 +127,14 @@ export default function JobsPage() {
   const [editingJob, setEditingJob] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [appliedList, setAppliedList] = useState<string[]>([]);
+
+  // CV Upload state
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvFileName, setCvFileName] = useState('');
+  const [cvUploading, setCvUploading] = useState(false);
+  const [cvUrl, setCvUrl] = useState('');
+  const [cvError, setCvError] = useState('');
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -278,9 +287,70 @@ export default function JobsPage() {
   };
 
   const handleApply = (id: string) => {
+    if (!cvUrl) {
+      setCvError(lang === 'bn' ? 'আবেদনের জন্য সিভি আপলোড করুন' : 'Please upload your CV to apply');
+      return;
+    }
+    setCvError('');
     if (!appliedList.includes(id)) {
       setAppliedList((prev) => [...prev, id]);
+      // Send application with CV to backend
+      api.post(`jobs/${id}/apply`, { cvUrl, cvFileName }).catch(() => {});
     }
+  };
+
+  const handleCvSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowed = ['application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.type)) {
+      setCvError(lang === 'bn' ? 'শুধুমাত্র PDF বা Word ফাইল আপলোড করা যাবে' : 'Only PDF or Word files allowed');
+      return;
+    }
+
+    // Validate size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setCvError(lang === 'bn' ? 'ফাইলের সাইজ সর্বোচ্চ ৫ MB হতে হবে' : 'File size must be under 5MB');
+      return;
+    }
+
+    setCvError('');
+    setCvFile(file);
+    setCvFileName(file.name);
+    setCvUploading(true);
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const token = api.getToken?.() || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/media/upload`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: fd,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      const url = data?.data?.url || data?.url;
+      if (!url) throw new Error('No URL in response');
+      setCvUrl(url);
+    } catch {
+      setCvError(lang === 'bn' ? 'আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Upload failed. Please try again.');
+      setCvFile(null);
+      setCvFileName('');
+    } finally {
+      setCvUploading(false);
+    }
+  };
+
+  const clearCv = () => {
+    setCvFile(null);
+    setCvFileName('');
+    setCvUrl('');
+    setCvError('');
+    if (cvInputRef.current) cvInputRef.current.value = '';
   };
 
   const canSubmit = formTitle.trim().length >= 2 && formCompany.trim().length >= 1 && formDesc.trim().length >= 5;
@@ -654,10 +724,85 @@ export default function JobsPage() {
                   </div>
                 )}
               </div>
-              <div className="p-4 border-t border-[#DDD6F3] bg-[#F5F2FF] flex items-center justify-between gap-4">
-                <button onClick={() => handleApply(selectedJob.id)} disabled={appliedList.includes(selectedJob.id)}
-                  className={cn('flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5',
-                    appliedList.includes(selectedJob.id) ? 'bg-[#DDD6F3] text-[#9B8FC0]' : 'bondhu-gradient text-white shadow-lg')}>
+              <div className="p-4 border-t border-[#DDD6F3] bg-[#F5F2FF] space-y-3">
+                {/* CV Upload Section */}
+                {!appliedList.includes(selectedJob.id) && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-[#3D2B6B] font-bangla flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5" />
+                      {lang === 'bn' ? 'সিভি / রেজুমে' : 'CV / Resume'}
+                      <span className="text-red-500">*</span>
+                    </label>
+
+                    {/* CV Upload Area */}
+                    <div
+                      onClick={() => cvInputRef.current?.click()}
+                      className={cn(
+                        'flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-all',
+                        cvFile || cvUrl
+                          ? 'border-[#7C3AED] bg-[#F5F2FF]'
+                          : 'border-[#DDD6F3] bg-white hover:border-[#7C3AED] hover:bg-[#F5F2FF]'
+                      )}
+                    >
+                      {cvUploading ? (
+                        <div className="w-6 h-6 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Upload className={cn('w-5 h-5', cvFile || cvUrl ? 'text-[#7C3AED]' : 'text-[#9B8FC0]')} />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[#0F0A1E] font-bangla truncate">
+                          {cvFileName || (lang === 'bn' ? 'সিভি আপলোড করুন' : 'Upload CV')}
+                        </p>
+                        <p className="text-[10px] text-[#9B8FC0]">
+                          {cvFile || cvUrl
+                            ? (lang === 'bn' ? 'পরিবর্তন করতে ক্লিক করুন' : 'Click to change')
+                            : 'PDF or Word · Max 5MB'}
+                        </p>
+                      </div>
+                      {(cvFile || cvUrl) && !cvUploading && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); clearCv(); }}
+                          className="w-6 h-6 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      ref={cvInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={handleCvSelect}
+                    />
+
+                    {/* Error message */}
+                    {cvError && (
+                      <p className="text-[11px] text-red-500 font-bangla">{cvError}</p>
+                    )}
+
+                    {/* Tip */}
+                    {!cvError && (
+                      <p className="text-[10px] text-[#9B8FC0] font-bangla">
+                        💡 {lang === 'bn' ? 'আপনার সিভি একবার আপলোড করলে পরের আবেদনে স্বয়ংক্রিয়ভাবে ব্যবহার হবে।' : 'Upload once — your CV will be saved for future applications.'}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Apply Button */}
+                <button
+                  onClick={() => handleApply(selectedJob.id)}
+                  disabled={appliedList.includes(selectedJob.id) || cvUploading || (!cvUrl && !appliedList.includes(selectedJob.id))}
+                  className={cn(
+                    'w-full py-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5',
+                    appliedList.includes(selectedJob.id)
+                      ? 'bg-[#DDD6F3] text-[#9B8FC0]'
+                      : cvUrl && !cvUploading
+                        ? 'bondhu-gradient text-white shadow-lg'
+                        : 'bg-[#DDD6F3] text-[#9B8FC0] opacity-60'
+                  )}
+                >
                   <span>{appliedList.includes(selectedJob.id) ? t('applied') : t('applyNow')}</span>
                   {!appliedList.includes(selectedJob.id) && <ArrowRight className="w-4 h-4" />}
                 </button>

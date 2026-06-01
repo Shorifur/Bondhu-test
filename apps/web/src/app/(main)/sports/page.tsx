@@ -14,10 +14,7 @@ const sportTabs = [
   { id: 'kabaddi', label: 'Kabaddi', icon: '🤼' },
 ];
 
-const FOOTBALL_MATCHES = [
-  { id: 'f1', league: 'Premier League', team1: { name: 'Man City', flag: '🔵', score: '2' }, team2: { name: 'Arsenal', flag: '🔴', score: '1' }, status: 'LIVE', time: '78\'' },
-  { id: 'f2', league: 'La Liga', team1: { name: 'Real Madrid', flag: '⚪', score: '3' }, team2: { name: 'Barcelona', flag: '🔵', score: '2' }, status: 'RESULT', time: 'FT' },
-];
+// No mock data — all match data comes from fetchLiveMatches API
 
 export default function SportsPage() {
   const [activeSport, setActiveSport] = useState('cricket');
