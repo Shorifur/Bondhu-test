@@ -1,6 +1,17 @@
 [build]
-builder = "railpack"
-buildCommand = "cd apps/api && npm ci && npx prisma generate && npm run build"
+builder = "nixpacks"
+
+[phases.setup]
+cmds = ["npm i -g corepack@latest && corepack enable && corepack prepare --activate"]
+
+[phases.install]
+cmds = ["pnpm install"]
+
+[phases.build]
+cmds = [
+  "cd apps/api && npx prisma generate",
+  "cd apps/api && npm run build"
+]
 
 [deploy]
 startCommand = "cd apps/api && npx prisma migrate deploy && npm run start:prod"
