@@ -372,7 +372,7 @@ export default function ProfilePage() {
           <h1 className="text-xl font-bold text-[#0F0A1E] font-bangla">{profile?.displayName || user?.profile?.displayName}</h1>
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-[#6B5E8A] text-sm">@{profile?.handle || user?.profile?.handle}</p>
-            {(user as unknown as Record<string, unknown>)?.phoneVerified && (
+            {!!(user as Record<string, unknown>)?.phoneVerified && (
               <span className="inline-flex items-center gap-1 text-xs bg-[#E1F5EE] text-[#0F6E56] px-2 py-0.5 rounded-full font-medium"><Check className="w-3 h-3" /> {t.phoneVerified}</span>
             )}
           </div>
