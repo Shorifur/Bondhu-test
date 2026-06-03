@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import type { Post } from '@bondhu/shared-types';
 
 interface FeedState {
-  activeTab: 'foryou' | 'latest' | 'local';
+  activeTab: string;
   posts: Record<string, Post[]>;
   page: Record<string, number>;
   hasMore: Record<string, boolean>;
