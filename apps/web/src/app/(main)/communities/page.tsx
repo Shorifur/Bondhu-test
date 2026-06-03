@@ -133,7 +133,6 @@ export default function CommunitiesPage() {
             </div>
           </motion.button>
         ))}
-      </div>
 
         {filtered.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
@@ -141,7 +140,7 @@ export default function CommunitiesPage() {
             <p>No communities found</p>
           </div>
         )}
-      </div>}
+      </div>
     </div>
   );
 }
