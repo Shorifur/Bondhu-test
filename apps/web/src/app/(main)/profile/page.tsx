@@ -260,7 +260,7 @@ export default function ProfilePage() {
   const displayBio = profile?.bio || (user?.profile as any)?.bio || '';
   const myPoints = pointsData?.total || 0;
 
-  const posts: Post[] = (activeTab === 'posts' || activeTab === 'media' ? userPosts : savedPosts) || [];
+  const posts = ((activeTab === 'posts' || activeTab === 'media' ? userPosts : savedPosts) as Post[]) || [];
   const isLoading = activeTab === 'posts' || activeTab === 'media' ? postsLoading : savedLoading;
   const textPosts = posts.filter((p: Post) => !p.mediaAssets || p.mediaAssets.length === 0);
   const mediaPosts = posts.filter((p: Post) => p.mediaAssets && p.mediaAssets.length > 0);
