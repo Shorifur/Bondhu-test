@@ -163,8 +163,8 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!user?.id) return [];
       const res = await postService.getBookmarkedPosts(1, 50);
-      const raw = res.data as unknown;
-      return Array.isArray(raw) ? raw : raw?.data ?? [];
+      const raw = res.data as unknown as Record<string, unknown> | unknown[];
+      return Array.isArray(raw) ? raw : (raw?.data as unknown[]) ?? [];
     },
     enabled: !!user?.id && activeTab === 'saved',
   });
@@ -180,19 +180,19 @@ export default function ProfilePage() {
 
   const { data: myShop } = useQuery({
     queryKey: ['my-shop', user?.id],
-    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as unknown) || null; } catch { return null; } },
+    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as Record<string, unknown> | null) || null; } catch { return null; } },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myShopProducts } = useQuery({
     queryKey: ['my-shop-products', user?.id],
-    queryFn: async () => { try { const res = await api.get('marketplace/my-items'); return (res.data as unknown)?.data || []; } catch { return []; } },
+    queryFn: async () => { try { const res = await api.get('marketplace/my-items'); return (res.data as Record<string, unknown>)?.data as unknown[] || []; } catch { return []; } },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
   const { data: myJobs } = useQuery({
     queryKey: ['my-jobs', user?.id],
-    queryFn: async () => { try { const res = await api.get('jobs/my-posts'); return (res.data as unknown)?.data || []; } catch { return []; } },
+    queryFn: async () => { try { const res = await api.get('jobs/my-posts'); return (res.data as Record<string, unknown>)?.data as unknown[] || []; } catch { return []; } },
     enabled: !!user?.id && activeTab === 'jobs',
   });
 
@@ -468,7 +468,4 @@ export default function ProfilePage() {
         <ShopTabContent />
       ) : activeTab === 'jobs' ? (
         <JobsTabContent />
-      ) : null}
-    </div>
-  );
-}
+      ) : n
