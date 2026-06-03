@@ -67,7 +67,7 @@ class ApiClient {
     return data as ApiResponse<T>;
   }
 
-  get<T>(path: string, opts?: RequestInit) {
+  get<T>(path: string, opts?: RequestInit & { silent?: boolean }) {
     return this.request<T>('GET', path, undefined, opts);
   }
 
