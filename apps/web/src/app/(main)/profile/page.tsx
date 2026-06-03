@@ -401,8 +401,8 @@ export default function ProfilePage() {
           ) : (
             <button onClick={() => router.push('/settings')} className="flex items-center gap-1 text-[#5B21B6] hover:underline font-bangla"><MapPin className="w-3.5 h-3.5" />{t.addLocation}</button>
           )}
-          {user?.createdAt && (
-            <span className="flex items-center gap-1 font-bangla"><Calendar className="w-3.5 h-3.5" />{t.memberSince} {new Date(user.createdAt).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en', { year: 'numeric', month: 'long' })}</span>
+          {((user as unknown) as Record<string, string>)?.createdAt && (
+            <span className="flex items-center gap-1 font-bangla"><Calendar className="w-3.5 h-3.5" />{t.memberSince} {new Date(((user as unknown) as Record<string, string>).createdAt).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en', { year: 'numeric', month: 'long' })}</span>
           )}
           <span className="flex items-center gap-1"><Link2 className="w-3.5 h-3.5" />bondhu.app/u/{profile?.handle || user?.profile?.handle}</span>
           {profile?.websiteUrl && (
