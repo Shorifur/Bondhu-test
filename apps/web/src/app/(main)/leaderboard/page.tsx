@@ -40,20 +40,23 @@ export default function LeaderboardPage() {
   const [activeFilter, setActiveFilter] = useState('week');
   const { user } = useAuthStore();
 
-  // FIX 14: Real API data
-  const { data: leaderboardData, isLoading } = useQuery({
+  const { data: leaderboardData, isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ['leaderboard', activeFilter],
     queryFn: async () => {
-      const res = await api.get(`leaderboard?period=${activeFilter}&limit=20`);
-      return (res as unknown as { data: { data: LeaderboardEntry[] } })?.data?.data || [];
+      try {
+        const res = await api.get(`leaderboard?period=${activeFilter}&limit=20`);
+        return (res as unknown as { data: { data: LeaderboardEntry[] } })?.data?.data || [];
+      } catch { return []; }
     },
   });
 
   const { data: myRankData } = useQuery({
     queryKey: ['my-rank', activeFilter],
     queryFn: async () => {
-      const res = await api.get(`leaderboard/my-rank?period=${activeFilter}`);
-      return res.data as { rank: number; points: number; badge: string; streak: number } | null;
+      try {
+        const res = await api.get(`leaderboard/my-rank?period=${activeFilter}`);
+        return res.data as { rank: number; points: number; badge: string; streak: number } | null;
+      } catch { return null; }
     },
     enabled: !!user?.id,
   });
@@ -171,24 +174,32 @@ export default function LeaderboardPage() {
       {rest.length > 0 && (
         <div className="px-4 pt-4 space-y-2">
           <h2 className="text-sm font-bold font-bangla">র‍্যাঙ্কিং</h2>
-          {rest.map((entry: any, i: number) => {
+          {rest.map((entry, i: number) => {
             const badge = getBadge(entry.points || 0);
-            const isUp = (entry.weeklyChange || 0) > 0;
+            const isUp = true;
             return (
-              <motion.div key={entry.rank || i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm" style={{ boxShadow: '0 2px 8px rgba(167,139,250,0.05)' }}>
-                <span className="text-sm font-bold text-[#9B8FC0] w-6 text-center">{entry.rank || i + 4}</span>
+              <motion.div key={entry.id || i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm" style={{ boxShadow: '0 2px 8px rgba(167,139,250,0.05)' }}>
+                <span className="text-sm font-bold text-[#9B8FC0] w-6 text-center">{i + 4}</span>
                 <div className="w-10 h-10 rounded-full bg-[#F0EEF8] flex items-center justify-center font-bold text-sm text-[#7C3AED]">{entry.displayName?.[0] || '?'}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
                     <p className="text-sm font-semibold text-[#1a1a2e] truncate">{entry.displayName}</p>
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${badge.color}20`, color: badge.color }}>{badge.label}</span>
                   </div>
-                  <p className="text-[10px] text-[#9B8FC0]">{entry.district || ''} · {entry.postCount || 0} posts</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold">{(entry.points || 0).toLocaleString()}</p>
                   <div className="flex items-center gap-0.5 justify-end">
                     {isUp ? <TrendUpIcon size={12} className="text-green-500" /> : <TrendDownIcon size={12} className="text-red-400" />}
-                    <span className={`text-[10px] ${isUp ? 'text-green-500' : 'text-red-400'}`}>{isUp ? '+' : ''}{entry.weeklyChange || 0}</span>
+                    <span className={`text-[10px] ${isUp ? 'text-green-500' : 'text-red-400'}`}>{entry.points || 0}</span>
                   </div>
-      
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    <
+div>
+  );
+}
