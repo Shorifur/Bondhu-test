@@ -468,4 +468,7 @@ export default function ProfilePage() {
         <ShopTabContent />
       ) : activeTab === 'jobs' ? (
         <JobsTabContent />
-      ) : n
+      ) : null}
+    </div>
+  );
+}
