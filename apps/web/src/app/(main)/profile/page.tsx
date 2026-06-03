@@ -143,8 +143,8 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!user?.id) return [];
       const res = await postService.getUserPosts(user.id, 1, 50);
-      const raw = res.data as unknown;
-      const posts = Array.isArray(raw) ? raw : raw?.data ?? [];
+      const raw = res.data as unknown as Record<string, unknown> | unknown[];
+      const posts = Array.isArray(raw) ? raw : (raw?.data as unknown[]) ?? [];
       return posts.map((p: Post) => ({
         ...p,
         user: p.user || {
