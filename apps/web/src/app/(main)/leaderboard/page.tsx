@@ -9,6 +9,13 @@ import { useAuthStore } from '@/stores/authStore';
 
 const RANK_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
+interface LeaderboardEntry {
+  id: string;
+  displayName: string;
+  points: number;
+  avatarUrl?: string | null;
+}
+
 const BADGES = [
   { min: 0, max: 500, label: 'Bronze', labelBn: 'ব্রোঞ্জ', color: '#CD7F32' },
   { min: 501, max: 2000, label: 'Silver', labelBn: 'রৌপ্য', color: '#C0C0C0' },
@@ -38,7 +45,7 @@ export default function LeaderboardPage() {
     queryKey: ['leaderboard', activeFilter],
     queryFn: async () => {
       const res = await api.get(`leaderboard?period=${activeFilter}&limit=20`);
-      return (res as unknown as { data: { data: unknown[] } })?.data?.data || [];
+      return (res as unknown as { data: { data: LeaderboardEntry[] } })?.data?.data || [];
     },
   });
 
@@ -184,12 +191,4 @@ export default function LeaderboardPage() {
                     {isUp ? <TrendUpIcon size={12} className="text-green-500" /> : <TrendDownIcon size={12} className="text-red-400" />}
                     <span className={`text-[10px] ${isUp ? 'text-green-500' : 'text-red-400'}`}>{isUp ? '+' : ''}{entry.weeklyChange || 0}</span>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+      
