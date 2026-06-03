@@ -100,7 +100,8 @@ export default function CommunitiesPage() {
       {isError && !isLoading && <ErrorState onRetry={refetch} />}
 
       {/* List */}
-      {!isLoading && !isError && <div className="space-y-3">
+      {!isLoading && !isError && (
+        <div className="space-y-3">
         {filtered.map((community, i) => (
           <motion.button
             key={community.id}
@@ -141,6 +142,7 @@ export default function CommunitiesPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
