@@ -145,7 +145,7 @@ export default function ProfilePage() {
       const res = await postService.getUserPosts(user.id, 1, 50);
       const raw = res.data as unknown as Record<string, unknown> | unknown[];
       const posts = Array.isArray(raw) ? raw : (raw?.data as unknown[]) ?? [];
-      return posts.map((p: Post) => ({
+      return (posts as Post[]).map((p) => ({
         ...p,
         user: p.user || {
           id: user.id,
