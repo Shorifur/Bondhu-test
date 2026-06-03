@@ -181,7 +181,7 @@ export default function RegisterPage() {
                 <select value={districtId} onChange={(e) => setDistrictId(e.target.value)}
                   className="w-full pl-10 pr-8 py-3 bg-white border border-[#DDD6F3] rounded-xl text-sm outline-none focus:border-[#5B21B6] appearance-none font-bangla text-[#0F0A1E]">
                   <option value="">Select District</option>
-                  {districts.map((d) => <option key={d.id} value={d.id}>{d.nameBn} - {d.name}</option>)}
+                  {districts.map((d) => <option key={d.id} value={d.id}>{d.nameBn} - {d.nameEn}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8FC0] pointer-events-none" />
               </div>
