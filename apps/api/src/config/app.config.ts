@@ -1,4 +1,15 @@
 import { registerAs } from '@nestjs/config';
+import { randomBytes } from 'crypto';
+
+function requireSecret(envName: string, fallback?: string): string {
+  const value = process.env[envName];
+  if (value && value.length >= 32) return value;
+  if (value && !value.includes('your-') && !value.includes('placeholder')) return value;
+  if (fallback) return fallback;
+  const generated = randomBytes(32).toString('hex');
+  console.warn(`[WARN] ${envName} not set or is placeholder. Using auto-generated secret. Set a real ${envName} in production!`);
+  return generated;
+}
 
 export default registerAs('app', () => ({
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -8,8 +19,8 @@ export default registerAs('app', () => ({
   port: parseInt(process.env.PORT ?? '', 10) || 3001,
 
   // Security
-  jwtSecret: process.env.JWT_SECRET,
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
+  jwtSecret: requireSecret('JWT_SECRET'),
+  jwtRefreshSecret: requireSecret('JWT_REFRESH_SECRET'),
   jwtAccessExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
   jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
   otpSecret: process.env.OTP_SECRET,

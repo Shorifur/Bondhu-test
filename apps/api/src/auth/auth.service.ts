@@ -228,13 +228,15 @@ export class AuthService {
 
   private async generateTokens(user: User & { profile?: UserProfile | null }): Promise<TokenPair> {
     const basePayload = { sub: user.id, phone: user.phoneNumber };
+    const accessSecret = this.config.get('JWT_SECRET') || process.env.JWT_SECRET;
+    const refreshSecret = this.config.get('JWT_REFRESH_SECRET') || process.env.JWT_REFRESH_SECRET;
     const accessToken = this.jwtService.sign(
       { ...basePayload, type: 'access' },
-      { secret: this.config.get('JWT_SECRET'), expiresIn: '15m' },
+      { secret: accessSecret, expiresIn: '15m' },
     );
     const refreshToken = this.jwtService.sign(
       { ...basePayload, type: 'refresh' },
-      { secret: this.config.get('JWT_REFRESH_SECRET'), expiresIn: '7d' },
+      { secret: refreshSecret, expiresIn: '7d' },
     );
     return { accessToken, refreshToken };
   }
