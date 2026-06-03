@@ -17,6 +17,14 @@ import { formatNumber, cn } from '@/lib/utils';
 import { PostCard } from '@/components/feed/PostCard';
 import type { UserProfile, Post } from '@bondhu/shared-types';
 
+interface Shop {
+  id: string;
+  name: string;
+  handle: string;
+  description?: string | null;
+  avatarUrl?: string | null;
+}
+
 /* ── i18n Dictionary ── */
 const DICT = {
   bn: {
@@ -178,9 +186,9 @@ export default function ProfilePage() {
     enabled: !!user?.id,
   });
 
-  const { data: myShop } = useQuery({
+  const { data: myShop } = useQuery<Shop | null>({
     queryKey: ['my-shop', user?.id],
-    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as Record<string, unknown> | null) || null; } catch { return null; } },
+    queryFn: async () => { try { const res = await api.get('shops/mine'); return (res.data as Shop | null) || null; } catch { return null; } },
     enabled: !!user?.id && activeTab === 'shop',
   });
 
