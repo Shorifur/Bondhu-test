@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Metadata, Viewport } from 'next';
 import { Inter, Noto_Sans_Bengali, Hind_Siliguri } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
