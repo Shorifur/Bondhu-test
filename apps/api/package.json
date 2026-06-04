@@ -4,10 +4,10 @@
   "description": "Bondhu API — NestJS backend services",
   "private": true,
   "scripts": {
-    "prebuild": "npx prisma generate",
     "build": "nest build",
+    "postinstall": "prisma generate || true",
     "dev": "nest start --watch",
-    "start": "node dist/main",
+    "start": "prisma generate && node dist/main",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -90,5 +90,3 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
-  }
-}
