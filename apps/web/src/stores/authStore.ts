@@ -7,11 +7,16 @@ import type { AuthResponse } from '@/services/auth.service';
 interface User {
   id: string;
   phoneNumber: string;
+  createdAt?: string;
+  phoneVerified?: boolean;
   profile?: {
     id: string;
     handle: string;
     displayName: string;
     avatarUrl?: string | null;
+    bio?: string | null;
+    websiteUrl?: string | null;
+    whatsappNumber?: string | null;
     language: string;
     theme: string;
     fontScale: string;
