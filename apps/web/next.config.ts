@@ -11,7 +11,6 @@ const withPWA = require('next-pwa')({
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
