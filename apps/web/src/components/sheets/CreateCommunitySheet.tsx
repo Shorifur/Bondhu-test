@@ -48,7 +48,7 @@ export function CreateCommunitySheet() {
     const formData = new FormData();
     formData.append('file', file);
     const token = api.getToken();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/v1/media/upload`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://bondhuapi-production.up.railway.app'}/v1/media/upload`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: formData,

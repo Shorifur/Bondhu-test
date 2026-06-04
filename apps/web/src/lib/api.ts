@@ -1,6 +1,6 @@
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://bondhuapi-production.up.railway.app';
 
 interface ApiResponse<T = unknown> {
   success: boolean;

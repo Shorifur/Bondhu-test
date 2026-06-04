@@ -11,10 +11,8 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { LoggerService } from './common/services/logger.service';
 
 function getCorsOrigins(): string | string[] | boolean {
-  const appUrl = process.env.APP_URL;
-  if (appUrl) return [appUrl, 'https://bondhu-test-r6oyr1xco-shorifur-rahmans-projects.vercel.app', 'https://bondhu.vercel.app', 'https://bondhu-test-git-main-shorifur-rahmans-projects.vercel.app'];
-  if (process.env.NODE_ENV === 'production') return true;
-  return ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://bondhu-test-r6oyr1xco-shorifur-rahmans-projects.vercel.app'];
+  // Allow all origins in production - authentication handles security
+  return true;
 }
 
 async function bootstrap() {
