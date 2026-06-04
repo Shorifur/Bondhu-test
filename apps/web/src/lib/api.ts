@@ -71,15 +71,15 @@ class ApiClient {
     return this.request<T>('GET', path, undefined, opts);
   }
 
-  post<T>(path: string, body?: unknown, opts?: RequestInit) {
+  post<T>(path: string, body?: unknown, opts?: RequestInit & { silent?: boolean }) {
     return this.request<T>('POST', path, body, opts);
   }
 
-  patch<T>(path: string, body?: unknown, opts?: RequestInit) {
+  patch<T>(path: string, body?: unknown, opts?: RequestInit & { silent?: boolean }) {
     return this.request<T>('PATCH', path, body, opts);
   }
 
-  delete<T>(path: string, opts?: RequestInit) {
+  delete<T>(path: string, opts?: RequestInit & { silent?: boolean }) {
     return this.request<T>('DELETE', path, undefined, opts);
   }
 }
