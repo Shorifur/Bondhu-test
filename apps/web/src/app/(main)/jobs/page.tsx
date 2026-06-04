@@ -327,7 +327,7 @@ export default function JobsPage() {
       const fd = new FormData();
       fd.append('file', file);
       const token = api.getToken?.() || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/media/upload`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://bondhuapi-production.up.railway.app'}/v1/media/upload`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: fd,

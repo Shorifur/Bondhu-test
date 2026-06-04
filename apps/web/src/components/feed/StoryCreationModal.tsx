@@ -50,7 +50,7 @@ export function StoryCreationModal({ isOpen, onClose, onSuccess }: StoryCreation
     const formData = new FormData();
     formData.append('file', file);
     const token = api.getToken();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/v1/media/upload`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://bondhuapi-production.up.railway.app'}/v1/media/upload`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: formData,
