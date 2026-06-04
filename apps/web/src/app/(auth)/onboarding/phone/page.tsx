@@ -73,7 +73,7 @@ export default function MethodSelectPage() {
 
         {/* Phone */}
         <button
-          onClick={() => { /* phone OTP flow */ }}
+          onClick={() => router.push('/onboarding/phone/login')}
           className="w-full py-3.5 px-6 rounded-2xl border-2 border-[#DDD6F3] text-[#0F0A1E] font-semibold hover:bg-[#F5F2FF] transition-all flex items-center justify-center gap-3"
         >
           <Phone className="w-5 h-5 text-[#5B21B6]" />
