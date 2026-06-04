@@ -4,8 +4,8 @@
   "description": "Bondhu API — NestJS backend services",
   "private": true,
   "scripts": {
-    "prebuild": "cd apps/api && npx prisma generate",
-    "build": "cd apps/api && nest build",
+    "prebuild": "npx prisma generate",
+    "build": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
     "start:debug": "nest start --debug --watch",
