@@ -17,3 +17,11 @@ export class HealthController {
     };
   }
 }
+
+@Controller('')
+export class RootController {
+  @Get()
+  root() {
+    return { status: 'ok', message: 'Bondhu API is running' };
+  }
+}

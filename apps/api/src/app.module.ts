@@ -33,7 +33,7 @@ import { AddasModule } from './addas/addas.module';
 
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { WsModule } from './ws/ws.module';
-import { HealthController } from './health.controller';
+import { HealthController, RootController } from './health.controller';
 
 @Module({
   imports: [
@@ -83,7 +83,7 @@ import { HealthController } from './health.controller';
     AddasModule,
     WsModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, RootController],
   providers: [
     {
       provide: APP_GUARD,
